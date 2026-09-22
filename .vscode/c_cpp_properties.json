@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/2DGame/02-Bubble/02-Bubble/**",
+                "${workspaceFolder}/libs/Simple OpenGL Image Library/src",
+                "${workspaceFolder}/libs/glew-1.13.0/include",
+                "${workspaceFolder}/libs/glm",
+                "${workspaceFolder}/libs/glfw-3.3.8/include"
+            ],
+            "defines": [
+                "WIN32",
+                "_DEBUG",
+                "_CONSOLE",
+                "_LIB"
+            ],
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x86/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x86"
+        }
+    ],
+    "version": 4
+}
