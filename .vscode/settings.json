@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/Debug": true,
+        "**/Release": true,
+        "**/.vs": true
+    }
+}

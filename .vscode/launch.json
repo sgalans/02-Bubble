@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug 02-Bubble (Win32)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/2DGame/02-Bubble/Debug/02-Bubble.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/2DGame/02-Bubble/02-Bubble",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Debug (Win32)"
+        },
+        {
+            "name": "Run Release 02-Bubble (Win32)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/2DGame/02-Bubble/Release/02-Bubble.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/2DGame/02-Bubble/02-Bubble",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Release (Win32)"
+        }
+    ]
+}
