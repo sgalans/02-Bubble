@@ -23,6 +23,7 @@ public:
 	
 	void setTileMap(TileMap *tileMap);
 	void setPosition(const glm::vec2 &pos);
+	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posPlayer.x, tileMapDispl.y + posPlayer.y); }
 	
 private:
 	bool bJumping;

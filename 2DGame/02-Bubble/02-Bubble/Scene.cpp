@@ -11,6 +11,8 @@
 #define INIT_PLAYER_X_TILES 4
 #define INIT_PLAYER_Y_TILES 25
 
+#define CAMERA_WIDTH_TILES 10
+
 
 Scene::Scene()
 {
@@ -36,7 +38,9 @@ void Scene::init()
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
 	player->setTileMap(map);
-	projection = glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f);
+	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
+	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
+	updateCamera();
 	currentTime = 0.0f;
 }
 
@@ -44,6 +48,18 @@ void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
 	player->update(deltaTime);
+	updateCamera();
+}
+
+void Scene::updateCamera()
+{
+	glm::vec2 worldMin = glm::vec2(map->getPosition());
+	glm::vec2 worldMax = worldMin + glm::vec2(map->getMapSize()) * float(map->getTileSize());
+	glm::vec2 playerCenter = player->getPosition() + glm::vec2(16.f, 16.f);
+
+	cameraPos = playerCenter - cameraSize / 2.f;
+	cameraPos.x = glm::clamp(cameraPos.x, worldMin.x, glm::max(worldMin.x, worldMax.x - cameraSize.x));
+	cameraPos.y = glm::clamp(cameraPos.y, worldMin.y, glm::max(worldMin.y, worldMax.y - cameraSize.y));
 }
 
 void Scene::render()
@@ -51,6 +67,7 @@ void Scene::render()
 	glm::mat4 modelview;
 
 	texProgram.use();
+	projection = glm::ortho(cameraPos.x, cameraPos.x + cameraSize.x, cameraPos.y + cameraSize.y, cameraPos.y);
 	texProgram.setUniformMatrix4f("projection", projection);
 	texProgram.setUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
 	modelview = glm::mat4(1.0f);

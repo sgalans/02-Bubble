@@ -3,5 +3,6 @@
         "**/Debug": true,
         "**/Release": true,
         "**/.vs": true
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/orivc/source/repos/02-Bubble/libs/glm"
 }

@@ -29,6 +29,9 @@ public:
 	void free();
 	
 	int getTileSize() const { return tileSize; }
+	int getBlockSize() const { return blockSize; }
+	glm::ivec2 getPosition() const { return position; }
+	glm::ivec2 getMapSize() const { return mapSize; }
 
 	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size) const;
 	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) const;
