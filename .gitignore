@@ -17,7 +17,24 @@
 mono_crash.*
 
 # Build results
+# NO usar [Dd]ebug/ ni [Rr]elease/ genèrics: libs/ té .lib necessaris dins de
+# carpetes Debug/Release, i 2DGame/02-Bubble/Debug|Release tenen les DLLs
+# (glew32, freetype6) que l'executable necessita en temps d'execució.
+2DGame/02-Bubble/02-Bubble/[Dd]ebug/
+2DGame/02-Bubble/02-Bubble/[Rr]elease/
+2DGame/02-Bubble/02-Bubble/x64/
+2DGame/02-Bubble/x64/
+2DGame/02-Bubble/[Dd]ebug/*
+2DGame/02-Bubble/[Rr]elease/*
+!2DGame/02-Bubble/[Dd]ebug/*.dll
+!2DGame/02-Bubble/[Rr]elease/*.dll
+*.tlog
+*.idb
+*.recipe
+*.lastbuildstate
 
+# Carpeta de build de CMake (generada per l'extensió CMake Tools de VS Code)
+/build/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
