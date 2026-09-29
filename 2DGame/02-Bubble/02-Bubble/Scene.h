@@ -28,6 +28,7 @@ public:
 private:
 	void initShaders();
 	void updateCamera();
+	bool playerTouches(const Enemy *enemy) const;
 
 private:
 	TileMap *map;

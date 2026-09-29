@@ -62,8 +62,23 @@ void Scene::update(int deltaTime)
 	currentTime += deltaTime;
 	player->update(deltaTime);
 	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
 		enemies[i]->update(deltaTime);
+		if(player->isAlive() && playerTouches(enemies[i]))
+			player->loseLife();
+	}
 	updateCamera();
+}
+
+bool Scene::playerTouches(const Enemy *enemy) const
+{
+	glm::vec2 playerPos = player->getPosition();
+	glm::vec2 enemyPos = enemy->getPosition();
+	glm::ivec2 playerSize = player->getSize();
+	glm::ivec2 enemySize = enemy->getSize();
+
+	return playerPos.x < enemyPos.x + enemySize.x && enemyPos.x < playerPos.x + playerSize.x &&
+	       playerPos.y < enemyPos.y + enemySize.y && enemyPos.y < playerPos.y + playerSize.y;
 }
 
 void Scene::updateCamera()

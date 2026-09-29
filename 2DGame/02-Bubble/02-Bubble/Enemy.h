@@ -23,15 +23,17 @@ public:
 	void setTileMap(TileMap *tileMap);
 	void setPosition(const glm::vec2 &pos);
 	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posEnemy.x, tileMapDispl.y + posEnemy.y); }
+	glm::ivec2 getSize() const { return sizeEnemy; }
 
 protected:
 	void updateSpritePosition();
 
 protected:
-	glm::ivec2 tileMapDispl, posEnemy;
+	glm::ivec2 tileMapDispl, posEnemy, sizeEnemy;
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;
+	int lives;
 
 };
 

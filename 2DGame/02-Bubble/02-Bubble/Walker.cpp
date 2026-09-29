@@ -2,7 +2,7 @@
 #include "Walker.h"
 
 
-#define WALKER_SPEED 2
+#define WALKER_SPEED 1.0f
 #define FALL_STEP 4
 
 // Source art is 13x16 px, drawn at 2x so the walker is as tall as the player.
@@ -17,8 +17,8 @@
 #define FRAME_WIDTH 13.f
 #define FRAME_HEIGHT 16.f
 #define ROW_Y 153.f
-#define SIDE_A_X 32.f
-#define SIDE_B_X 46.f
+#define FRONT_A_X 2.f
+#define FRONT_B_X 17.f
 
 
 enum WalkerAnims
@@ -39,18 +39,20 @@ void Walker::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	                              &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(2);
 
-		// The sheet only carries right-facing side frames, so both directions
-		// share them until Sprite can mirror a quad horizontally.
+		// The side frames only exist facing right and Sprite cannot mirror a
+		// quad, so both directions use the front view, which reads either way.
 		sprite->setAnimationSpeed(MOVE_LEFT, 8);
-		sprite->addKeyframe(MOVE_LEFT, glm::vec2(SIDE_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
-		sprite->addKeyframe(MOVE_LEFT, glm::vec2(SIDE_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+		sprite->addKeyframe(MOVE_LEFT, glm::vec2(FRONT_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+		sprite->addKeyframe(MOVE_LEFT, glm::vec2(FRONT_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 
 		sprite->setAnimationSpeed(MOVE_RIGHT, 8);
-		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(SIDE_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
-		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(SIDE_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(FRONT_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(FRONT_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 
 	sprite->changeAnimation(MOVE_LEFT);
 	tileMapDispl = tileMapPos;
+	sizeEnemy = glm::ivec2(WALKER_WIDTH, WALKER_HEIGHT);
+	lives = 1;
 	updateSpritePosition();
 }
 
@@ -61,7 +63,7 @@ void Walker::update(int deltaTime)
 	if(sprite->animation() == MOVE_LEFT)
 	{
 		posEnemy.x -= WALKER_SPEED;
-		if(map->collisionMoveLeft(posEnemy, glm::ivec2(WALKER_WIDTH, WALKER_HEIGHT)))
+		if(map->collisionMoveLeft(posEnemy, sizeEnemy))
 		{
 			posEnemy.x += WALKER_SPEED;
 			sprite->changeAnimation(MOVE_RIGHT);
@@ -70,7 +72,7 @@ void Walker::update(int deltaTime)
 	else
 	{
 		posEnemy.x += WALKER_SPEED;
-		if(map->collisionMoveRight(posEnemy, glm::ivec2(WALKER_WIDTH, WALKER_HEIGHT)))
+		if(map->collisionMoveRight(posEnemy, sizeEnemy))
 		{
 			posEnemy.x -= WALKER_SPEED;
 			sprite->changeAnimation(MOVE_LEFT);
@@ -78,7 +80,7 @@ void Walker::update(int deltaTime)
 	}
 
 	posEnemy.y += FALL_STEP;
-	map->collisionMoveDown(posEnemy, glm::ivec2(WALKER_WIDTH, WALKER_HEIGHT), &posEnemy.y);
+	map->collisionMoveDown(posEnemy, sizeEnemy, &posEnemy.y);
 
 	updateSpritePosition();
 }
