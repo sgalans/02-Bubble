@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Scene.h"
 #include "Game.h"
+#include "Walker.h"
 
 
 #define SCREEN_X 32
@@ -10,6 +11,9 @@
 
 #define INIT_PLAYER_X_TILES 4
 #define INIT_PLAYER_Y_TILES 25
+
+#define INIT_WALKER_X_TILES 10
+#define INIT_WALKER_Y_TILES 25
 
 #define CAMERA_WIDTH_TILES 10
 
@@ -27,6 +31,8 @@ Scene::~Scene()
 		delete map;
 	if(player != NULL)
 		delete player;
+	for(unsigned int i = 0; i < enemies.size(); i++)
+		delete enemies[i];
 }
 
 
@@ -38,6 +44,13 @@ void Scene::init()
 	player->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
 	player->setTileMap(map);
+
+	Walker *walker = new Walker();
+	walker->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
+	walker->setPosition(glm::vec2(INIT_WALKER_X_TILES * map->getTileSize(), INIT_WALKER_Y_TILES * map->getTileSize()));
+	walker->setTileMap(map);
+	enemies.push_back(walker);
+
 	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
 	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
@@ -48,6 +61,8 @@ void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
 	player->update(deltaTime);
+	for(unsigned int i = 0; i < enemies.size(); i++)
+		enemies[i]->update(deltaTime);
 	updateCamera();
 }
 
@@ -75,6 +90,8 @@ void Scene::render()
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map->render();
 	player->render();
+	for(unsigned int i = 0; i < enemies.size(); i++)
+		enemies[i]->render();
 }
 
 void Scene::initShaders()

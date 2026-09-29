@@ -2,10 +2,12 @@
 #define _SCENE_INCLUDE
 
 
+#include <vector>
 #include <glm/glm.hpp>
 #include "ShaderProgram.h"
 #include "TileMap.h"
 #include "Player.h"
+#include "Enemy.h"
 
 
 // Scene contains all the entities of our game.
@@ -30,6 +32,7 @@ private:
 private:
 	TileMap *map;
 	Player *player;
+	std::vector<Enemy *> enemies;
 	ShaderProgram texProgram;
 	float currentTime;
 	glm::mat4 projection;
