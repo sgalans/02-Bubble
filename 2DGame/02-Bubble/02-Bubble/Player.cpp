@@ -31,6 +31,7 @@ Player::~Player()
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
 	bJumping = false;
+	bJumpKeyPressed = false;
 	spritesheet.loadFromFile("images/bub.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	sprite = Sprite::createSprite(glm::ivec2(32, 32), glm::vec2(0.25, 0.25), &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(4);
@@ -103,6 +104,8 @@ void Player::update(int deltaTime)
 			posPlayer.y = int(startY - 96 * sin(3.14159f * jumpAngle / 180.f));
 			if(jumpAngle > 90)
 				bJumping = !map->collisionMoveDown(posPlayer, glm::ivec2(32, 32), &posPlayer.y);
+			else if(map->collisionMoveUp(posPlayer, glm::ivec2(32, 32), &posPlayer.y))
+				jumpAngle = 180 - jumpAngle;
 		}
 	}
 	else
@@ -110,7 +113,7 @@ void Player::update(int deltaTime)
 		posPlayer.y += FALL_STEP;
 		if(map->collisionMoveDown(posPlayer, glm::ivec2(32, 32), &posPlayer.y))
 		{
-			if(Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W))
+			if((Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W)) && !bJumpKeyPressed)
 			{
 				bJumping = true;
 				jumpAngle = 0;
@@ -118,7 +121,9 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
-	
+
+	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP);
+
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }
 
