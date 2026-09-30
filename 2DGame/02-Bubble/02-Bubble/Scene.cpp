@@ -22,6 +22,7 @@ Scene::Scene()
 {
 	map = NULL;
 	player = NULL;
+	hud = NULL;
 }
 
 Scene::~Scene()
@@ -33,6 +34,8 @@ Scene::~Scene()
 		delete player;
 	for(unsigned int i = 0; i < enemies.size(); i++)
 		delete enemies[i];
+	if(hud != NULL)
+		delete hud;
 }
 
 
@@ -51,6 +54,10 @@ void Scene::init()
 	walker->setTileMap(map);
 	enemies.push_back(walker);
 
+	hud = new HUD();
+	hud->init(texProgram);
+	score = 0;
+
 	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
 	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
@@ -68,6 +75,7 @@ void Scene::update(int deltaTime)
 			player->loseLife();
 	}
 	updateCamera();
+	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs());
 }
 
 bool Scene::playerTouches(const Enemy *enemy) const
@@ -107,6 +115,11 @@ void Scene::render()
 	player->render();
 	for(unsigned int i = 0; i < enemies.size(); i++)
 		enemies[i]->render();
+
+	// HUD pass: screen-space projection so it does not scroll with the camera
+	texProgram.setUniformMatrix4f("projection", glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f));
+	texProgram.setUniformMatrix4f("modelview", glm::mat4(1.0f));
+	hud->render();
 }
 
 void Scene::initShaders()

@@ -8,6 +8,7 @@
 #include "TileMap.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "HUD.h"
 
 
 // Scene contains all the entities of our game.
@@ -34,6 +35,8 @@ private:
 	TileMap *map;
 	Player *player;
 	std::vector<Enemy *> enemies;
+	HUD *hud;
+	int score;
 	ShaderProgram texProgram;
 	float currentTime;
 	glm::mat4 projection;

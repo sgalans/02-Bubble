@@ -28,6 +28,8 @@ public:
 
 	void loseLife();
 	int getLives() const { return lives; }
+	int getMaxLives() const { return maxLives; }
+	int getNBombs() const { return nBombs; }
 	bool isAlive() const { return lives > 0; }
 
 private:
@@ -35,7 +37,8 @@ private:
 	bool bJumpKeyPressed;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
 	int jumpAngle, startY;
-	int lives;
+	int lives, maxLives;
+	int nBombs;
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;
