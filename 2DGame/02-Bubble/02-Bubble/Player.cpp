@@ -37,6 +37,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
+	invulnTime = 0;
+	invensible = false;
 	spritesheet.loadFromFile("images/bub.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	sprite = Sprite::createSprite(glm::ivec2(32, 32), glm::vec2(0.25, 0.25), &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(4);
@@ -133,6 +135,9 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
+	if(Game::instance().getKey(GLFW_KEY_G)){
+		invensible = true;
+	}
 
 	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP);
 
@@ -146,7 +151,7 @@ void Player::render()
 
 void Player::loseLife()
 {
-	if(invulnTime <= 0){
+	if(invulnTime <= 0 && !invensible){
 		invulnTime = INVULNERABILITY_TIME;
 		if(lives > 0)
 			lives--;

@@ -31,7 +31,7 @@ public:
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	bool isAlive() const { return lives > 0; }
-	bool isInvulnerable() const { return invulnTime > 0; }
+	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
 
 private:
 	bool bJumping;
@@ -44,6 +44,7 @@ private:
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;
+	bool invensible;
 
 };
 
