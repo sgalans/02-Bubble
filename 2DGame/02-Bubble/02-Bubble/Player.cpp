@@ -8,6 +8,8 @@
 #define JUMP_ANGLE_STEP 4
 #define JUMP_HEIGHT 96
 #define FALL_STEP 4
+#define INVULNERABILITY_TIME 2000 //ms
+
 
 
 enum PlayerAnims
@@ -67,6 +69,8 @@ void Player::update(int deltaTime)
 	// Out of lives: stay put and stop animating until the game handles it.
 	if(lives <= 0)
 		return;
+	if(invulnTime > 0)
+		invulnTime = max(0, invulnTime - deltaTime);
 
 	sprite->update(deltaTime);
 	if(Game::instance().getKey(GLFW_KEY_LEFT) || Game::instance().getKey(GLFW_KEY_A))
@@ -142,8 +146,11 @@ void Player::render()
 
 void Player::loseLife()
 {
-	if(lives > 0)
-		lives--;
+	if(invulnTime <= 0){
+		invulnTime = INVULNERABILITY_TIME;
+		if(lives > 0)
+			lives--;
+	}
 }
 
 void Player::setTileMap(TileMap *tileMap)

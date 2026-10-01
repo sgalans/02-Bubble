@@ -31,6 +31,7 @@ public:
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	bool isAlive() const { return lives > 0; }
+	bool isInvulnerable() const { return invulnTime > 0; }
 
 private:
 	bool bJumping;
@@ -38,6 +39,7 @@ private:
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
 	int jumpAngle, startY;
 	int lives, maxLives;
+	int invulnTime;
 	int nBombs;
 	Texture spritesheet;
 	Sprite *sprite;
