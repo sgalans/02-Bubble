@@ -53,7 +53,7 @@ void Scene::init()
 	walker->setPosition(glm::vec2(INIT_WALKER_X_TILES * map->getTileSize(), INIT_WALKER_Y_TILES * map->getTileSize()));
 	walker->setTileMap(map);
 	enemies.push_back(walker);
-
+	aliveEnemies = enemies.size();
 	hud = new HUD();
 	hud->init(texProgram);
 	score = 0;
@@ -75,7 +75,8 @@ void Scene::update(int deltaTime)
 			player->loseLife();
 	}
 	updateCamera();
-	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs());
+	
+	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),aliveEnemies);
 }
 
 bool Scene::playerTouches(const Enemy *enemy) const

@@ -19,17 +19,20 @@ public:
 
 public:
 	void init(ShaderProgram &shaderProgram);
-	void update(int deltaTime, int lives,int maxLives, int nBombs);
+	void update(int deltaTime, int lives,int maxLives, int nBombs,int aliveEnemies);
 	void render();
 
 private:
 	void renderLives();
+	void renderRemainingEnemys();
 
 private:
 	ShaderProgram *program;
-	int lives, maxLives,nBombs;
+	int lives, maxLives,nBombs,numEnemys;
 	Texture lifeTexture;
 	Sprite *lifeSprite;
+	Texture enemyTexture;
+	Sprite *enemySprite;
 
 };
 
