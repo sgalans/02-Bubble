@@ -25,6 +25,13 @@ public:
 	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posEnemy.x, tileMapDispl.y + posEnemy.y); }
 	glm::ivec2 getSize() const { return sizeEnemy; }
 
+	// Damage from explosions. After a hit the enemy ignores further hits for a
+	// moment, so one explosion only takes one life from enemies with several.
+	void takeHit();
+	void updateHitCooldown(int deltaTime);
+	void kill() { lives = 0; }
+	bool isDead() const { return lives <= 0; }
+
 protected:
 	void updateSpritePosition();
 
@@ -34,6 +41,7 @@ protected:
 	Sprite *sprite;
 	TileMap *map;
 	int lives;
+	int hitCooldown;
 
 };
 

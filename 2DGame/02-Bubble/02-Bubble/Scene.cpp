@@ -35,6 +35,8 @@ Scene::~Scene()
 		delete player;
 	for(unsigned int i = 0; i < enemies.size(); i++)
 		delete enemies[i];
+	for(unsigned int i = 0; i < bombs.size(); i++)
+		delete bombs[i];
 	if(hud != NULL)
 		delete hud;
 }
@@ -62,6 +64,14 @@ void Scene::init()
 	runner->setPlayer(player);
 	enemies.push_back(runner);
 
+	// Shared by every bomb so placing one does not reload the images from disk
+	bombTexture.loadFromFile("images/bombs.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	bombTexture.setMinFilter(GL_NEAREST);
+	bombTexture.setMagFilter(GL_NEAREST);
+	explosionTexture.loadFromFile("images/explosions.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	explosionTexture.setMinFilter(GL_NEAREST);
+	explosionTexture.setMagFilter(GL_NEAREST);
+
 	hud = new HUD();
 	hud->init(texProgram);
 
@@ -75,25 +85,165 @@ void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
 	player->update(deltaTime);
+	if(player->takeBombRequest())
+		tryPlayerBomb();
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->update(deltaTime);
+		enemies[i]->updateHitCooldown(deltaTime);
 		if(player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
 	}
+	updateBombs(deltaTime);
+	applyExplosionDamage();
+	removeDeadEnemies();
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs());
 }
 
+// Drops a bomb on the cell at the player's feet, horizontally centred on him.
+// Bombs ignore gravity, so this also works in mid-air.
+void Scene::tryPlayerBomb()
+{
+	if(activeBombs() >= player->getNBombs())
+		return;
+
+	glm::ivec2 pos = glm::ivec2(player->getPosition()) - map->getPosition();
+	glm::ivec2 size = player->getSize();
+	glm::ivec2 tile((pos.x + size.x / 2) / map->getTileSize(), (pos.y + size.y - 1) / map->getTileSize());
+	placeBomb(tile, player->getFirePower());
+}
+
+// Only bombs still burning their fuse count against the player's limit
+int Scene::activeBombs() const
+{
+	int count = 0;
+	for(unsigned int i = 0; i < bombs.size(); i++)
+	{
+		if(bombs[i]->getState() == Bomb::FUSE)
+			count++;
+	}
+
+	return count;
+}
+
+// Puts a bomb on the given cell if it is free. Returns false otherwise.
+bool Scene::placeBomb(const glm::ivec2 &tile, int range)
+{
+	if(!map->setBomb(tile.x, tile.y))
+		return false;
+	Bomb *bomb = new Bomb();
+	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
+	bombs.push_back(bomb);
+
+	return true;
+}
+
+void Scene::updateBombs(int deltaTime)
+{
+	for(unsigned int i = 0; i < bombs.size(); i++)
+	{
+		bombs[i]->update(deltaTime);
+
+		// A fresh bomb stays passable until whoever was on it has walked out
+		glm::ivec2 tile = bombs[i]->getTile();
+		if(map->isBombPassable(tile.x, tile.y) && !someoneInside(bombs[i]))
+			map->solidifyBomb(tile.x, tile.y);
+	}
+	chainExplosions();
+
+	for(unsigned int i = 0; i < bombs.size(); )
+	{
+		if(bombs[i]->isDone())
+		{
+			delete bombs[i];
+			bombs.erase(bombs.begin() + i);
+		}
+		else
+			i++;
+	}
+}
+
+// Bombs reached by a flame explode at once. Repeats until nothing changes so
+// a whole chain goes off in the same frame.
+void Scene::chainExplosions()
+{
+	bool changed = true;
+	while(changed)
+	{
+		changed = false;
+		for(unsigned int i = 0; i < bombs.size(); i++)
+		{
+			if(bombs[i]->getState() != Bomb::FUSE)
+				continue;
+			for(unsigned int j = 0; j < bombs.size(); j++)
+			{
+				if(bombs[j]->flameCovers(bombs[i]->getTile()))
+				{
+					bombs[i]->explode();
+					changed = true;
+					break;
+				}
+			}
+		}
+	}
+}
+
+// Flames hurt everybody, the player included. Player::loseLife already
+// ignores hits while he is invulnerable or in god mode.
+void Scene::applyExplosionDamage()
+{
+	for(unsigned int b = 0; b < bombs.size(); b++)
+	{
+		if(bombs[b]->getState() != Bomb::EXPLODING)
+			continue;
+		if(player->isAlive() && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
+			player->loseLife();
+		for(unsigned int i = 0; i < enemies.size(); i++)
+		{
+			if(bombs[b]->flameTouches(enemies[i]->getPosition(), enemies[i]->getSize()))
+				enemies[i]->takeHit();
+		}
+	}
+}
+
+void Scene::removeDeadEnemies()
+{
+	for(unsigned int i = 0; i < enemies.size(); )
+	{
+		if(enemies[i]->isDead())
+		{
+			delete enemies[i];
+			enemies.erase(enemies.begin() + i);
+		}
+		else
+			i++;
+	}
+}
+
 bool Scene::playerTouches(const Enemy *enemy) const
 {
-	glm::vec2 playerPos = player->getPosition();
-	glm::vec2 enemyPos = enemy->getPosition();
-	glm::ivec2 playerSize = player->getSize();
-	glm::ivec2 enemySize = enemy->getSize();
+	return boxesOverlap(player->getPosition(), player->getSize(), enemy->getPosition(), enemy->getSize());
+}
 
-	return playerPos.x < enemyPos.x + enemySize.x && enemyPos.x < playerPos.x + playerSize.x &&
-	       playerPos.y < enemyPos.y + enemySize.y && enemyPos.y < playerPos.y + playerSize.y;
+bool Scene::someoneInside(const Bomb *bomb) const
+{
+	if(boxesOverlap(player->getPosition(), player->getSize(), bomb->getPosition(), bomb->getSize()))
+		return true;
+	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
+		if(boxesOverlap(enemies[i]->getPosition(), enemies[i]->getSize(), bomb->getPosition(), bomb->getSize()))
+			return true;
+	}
+
+	return false;
+}
+
+bool Scene::boxesOverlap(const glm::vec2 &posA, const glm::ivec2 &sizeA,
+                         const glm::vec2 &posB, const glm::ivec2 &sizeB)
+{
+	return posA.x < posB.x + sizeB.x && posB.x < posA.x + sizeA.x &&
+	       posA.y < posB.y + sizeB.y && posB.y < posA.y + sizeA.y;
 }
 
 void Scene::updateCamera()
@@ -119,6 +269,8 @@ void Scene::render()
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map->render();
+	for(unsigned int i = 0; i < bombs.size(); i++)
+		bombs[i]->render();
 	player->render();
 	for(unsigned int i = 0; i < enemies.size(); i++)
 		enemies[i]->render();

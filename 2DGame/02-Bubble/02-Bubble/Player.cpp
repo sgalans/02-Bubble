@@ -34,9 +34,13 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
 	bJumping = false;
 	bJumpKeyPressed = false;
+	bGodKeyPressed = false;
+	bBombKeyPressed = false;
+	bBombRequested = false;
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
+	firePower = 1;
 	invulnTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bub.png", TEXTURE_PIXEL_FORMAT_RGBA);
@@ -135,11 +139,16 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
-	if(Game::instance().getKey(GLFW_KEY_G)){
-		invensible = true;
-	}
+	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
+		invensible = !invensible;
+	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
 
-	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP);
+	// Scene owns the bombs, so the player only asks for one on each key press
+	if(Game::instance().getKey(GLFW_KEY_SPACE) && !bBombKeyPressed)
+		bBombRequested = true;
+	bBombKeyPressed = Game::instance().getKey(GLFW_KEY_SPACE);
+
+	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W);
 
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }
@@ -156,6 +165,15 @@ void Player::loseLife()
 		if(lives > 0)
 			lives--;
 	}
+}
+
+// Returns whether the player pressed the bomb key since the last call
+bool Player::takeBombRequest()
+{
+	bool requested = bBombRequested;
+	bBombRequested = false;
+
+	return requested;
 }
 
 void Player::setTileMap(TileMap *tileMap)

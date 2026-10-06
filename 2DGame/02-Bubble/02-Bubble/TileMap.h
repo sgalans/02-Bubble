@@ -16,6 +16,11 @@
 class TileMap
 {
 
+public:
+	// Values stored in the bomb mirror map. A freshly placed bomb is passable
+	// so the player is not trapped inside it; it turns solid once he leaves it.
+	enum BombCell { NO_BOMB = 0, BOMB_SOLID = 1, BOMB_PASSABLE = 2 };
+
 private:
 	TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program);
 
@@ -37,10 +42,22 @@ public:
 	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) const;
 	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
 	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
-	
+
+	// True for map tiles and for anything outside the map (ignores bombs)
+	bool isWall(int x, int y) const;
+
+	// Bomb mirror map, in tile coordinates
+	bool setBomb(int x, int y);
+	void clearBomb(int x, int y);
+	bool hasBomb(int x, int y) const;
+	bool isBombPassable(int x, int y) const;
+	void solidifyBomb(int x, int y);
+
 private:
 	bool loadLevel(const string &levelFile);
 	void prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program);
+	bool insideMap(int x, int y) const;
+	bool isSolid(int x, int y) const;
 
 private:
 	GLuint vao;
@@ -52,6 +69,7 @@ private:
 	Texture tilesheet;
 	glm::vec2 tileTexSize;
 	int *map;
+	int *bombMap;
 
 };
 

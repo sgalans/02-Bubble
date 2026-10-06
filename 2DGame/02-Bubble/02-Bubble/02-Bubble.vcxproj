@@ -24,6 +24,7 @@
     <ClInclude Include="TileMap.h" />
     <ClInclude Include="Runner.h" />
     <ClInclude Include="Walker.h" />
+    <ClInclude Include="Bomb.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Enemy.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Walker.cpp" />
+    <ClCompile Include="Bomb.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5BE6CA2A-E5A8-40CC-9015-047CE0C78036}</ProjectGuid>

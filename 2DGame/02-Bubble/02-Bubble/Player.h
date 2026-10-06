@@ -30,17 +30,23 @@ public:
 	int getLives() const { return lives; }
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
+	int getFirePower() const { return firePower; }
 	bool isAlive() const { return lives > 0; }
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
+	bool takeBombRequest();
 
 private:
 	bool bJumping;
 	bool bJumpKeyPressed;
+	bool bGodKeyPressed;
+	bool bBombKeyPressed;
+	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
 	int jumpAngle, startY;
 	int lives, maxLives;
 	int invulnTime;
 	int nBombs;
+	int firePower; // flame length in tiles
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;

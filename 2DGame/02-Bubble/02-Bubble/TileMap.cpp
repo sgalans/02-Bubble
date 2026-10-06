@@ -18,6 +18,8 @@ TileMap *TileMap::createTileMap(const string &levelFile, const glm::vec2 &minCoo
 
 TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program)
 {
+	map = NULL;
+	bombMap = NULL;
 	position = glm::ivec2(minCoords);
 	loadLevel(levelFile);
 	prepareArrays(minCoords, program);
@@ -27,6 +29,8 @@ TileMap::~TileMap()
 {
 	if(map != NULL)
 		delete [] map;
+	if(bombMap != NULL)
+		delete [] bombMap;
 	free();
 }
 
@@ -97,7 +101,11 @@ bool TileMap::loadLevel(const string &levelFile)
 #endif
 	}
 	fin.close();
-	
+
+	bombMap = new int[mapSize.x * mapSize.y];
+	for(int i=0; i<mapSize.x * mapSize.y; i++)
+		bombMap[i] = NO_BOMB;
+
 	return true;
 }
 
@@ -163,7 +171,7 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size) c
 	y1 = (pos.y + size.y - 1) / tileSize;
 	for(int y=y0; y<=y1; y++)
 	{
-		if(map[y*mapSize.x+x] != 0)
+		if(isSolid(x, y))
 			return true;
 	}
 	
@@ -179,7 +187,7 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) 
 	y1 = (pos.y + size.y - 1) / tileSize;
 	for(int y=y0; y<=y1; y++)
 	{
-		if(map[y*mapSize.x+x] != 0)
+		if(isSolid(x, y))
 			return true;
 	}
 	
@@ -195,7 +203,7 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, i
 	y = (pos.y + size.y - 1) / tileSize;
 	for(int x=x0; x<=x1; x++)
 	{
-		if(map[y*mapSize.x+x] != 0)
+		if(isSolid(x, y))
 		{
 			if(*posY - tileSize * y + size.y <= 4)
 			{
@@ -217,7 +225,7 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int
 	y = pos.y / tileSize;
 	for(int x=x0; x<=x1; x++)
 	{
-		if(map[y*mapSize.x+x] != 0)
+		if(isSolid(x, y))
 		{
 			*posY = tileSize * (y + 1);
 			return true;
@@ -225,6 +233,53 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int
 	}
 
 	return false;
+}
+
+bool TileMap::isWall(int x, int y) const
+{
+	return !insideMap(x, y) || map[y*mapSize.x+x] != 0;
+}
+
+bool TileMap::setBomb(int x, int y)
+{
+	if(!insideMap(x, y) || map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] != NO_BOMB)
+		return false;
+	bombMap[y*mapSize.x+x] = BOMB_PASSABLE;
+
+	return true;
+}
+
+void TileMap::clearBomb(int x, int y)
+{
+	if(insideMap(x, y))
+		bombMap[y*mapSize.x+x] = NO_BOMB;
+}
+
+bool TileMap::hasBomb(int x, int y) const
+{
+	return insideMap(x, y) && bombMap[y*mapSize.x+x] != NO_BOMB;
+}
+
+bool TileMap::isBombPassable(int x, int y) const
+{
+	return insideMap(x, y) && bombMap[y*mapSize.x+x] == BOMB_PASSABLE;
+}
+
+// Called once nobody is standing inside the bomb any more
+void TileMap::solidifyBomb(int x, int y)
+{
+	if(isBombPassable(x, y))
+		bombMap[y*mapSize.x+x] = BOMB_SOLID;
+}
+
+bool TileMap::insideMap(int x, int y) const
+{
+	return x >= 0 && x < mapSize.x && y >= 0 && y < mapSize.y;
+}
+
+bool TileMap::isSolid(int x, int y) const
+{
+	return map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] == BOMB_SOLID;
 }
 
 
