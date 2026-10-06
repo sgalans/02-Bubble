@@ -46,6 +46,7 @@ public:
 
 	const std::vector<Flame> &getFlames() const { return flames; }
 	bool flameCovers(const glm::ivec2 &cell) const;
+	bool flameTouches(const glm::vec2 &pos, const glm::ivec2 &size) const;
 
 private:
 	void spreadFlames();

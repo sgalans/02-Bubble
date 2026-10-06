@@ -90,10 +90,13 @@ void Scene::update(int deltaTime)
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->update(deltaTime);
+		enemies[i]->updateHitCooldown(deltaTime);
 		if(player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
 	}
 	updateBombs(deltaTime);
+	applyExplosionDamage();
+	removeDeadEnemies();
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs());
 }
@@ -183,6 +186,38 @@ void Scene::chainExplosions()
 				}
 			}
 		}
+	}
+}
+
+// Flames hurt everybody, the player included. Player::loseLife already
+// ignores hits while he is invulnerable or in god mode.
+void Scene::applyExplosionDamage()
+{
+	for(unsigned int b = 0; b < bombs.size(); b++)
+	{
+		if(bombs[b]->getState() != Bomb::EXPLODING)
+			continue;
+		if(player->isAlive() && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
+			player->loseLife();
+		for(unsigned int i = 0; i < enemies.size(); i++)
+		{
+			if(bombs[b]->flameTouches(enemies[i]->getPosition(), enemies[i]->getSize()))
+				enemies[i]->takeHit();
+		}
+	}
+}
+
+void Scene::removeDeadEnemies()
+{
+	for(unsigned int i = 0; i < enemies.size(); )
+	{
+		if(enemies[i]->isDead())
+		{
+			delete enemies[i];
+			enemies.erase(enemies.begin() + i);
+		}
+		else
+			i++;
 	}
 }
 

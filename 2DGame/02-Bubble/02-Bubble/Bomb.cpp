@@ -144,6 +144,24 @@ bool Bomb::flameCovers(const glm::ivec2 &cell) const
 	return false;
 }
 
+// Whether any flame cell overlaps the given box (in the same coordinates as
+// the sprites, i.e. including the tile map displacement)
+bool Bomb::flameTouches(const glm::vec2 &pos, const glm::ivec2 &size) const
+{
+	if(state != EXPLODING)
+		return false;
+	float cellSize = float(map->getTileSize());
+	for(unsigned int i = 0; i < flames.size(); i++)
+	{
+		glm::vec2 cellPos = tilePosition(flames[i].tile);
+		if(pos.x < cellPos.x + cellSize && cellPos.x < pos.x + size.x &&
+		   pos.y < cellPos.y + cellSize && cellPos.y < pos.y + size.y)
+			return true;
+	}
+
+	return false;
+}
+
 // Builds the cross of flames. Each arm stops before a wall, or on the cell
 // of another bomb (which Scene will then detonate). The last cell of an arm
 // uses the end piece so the flame looks closed.

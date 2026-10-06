@@ -33,6 +33,8 @@ private:
 	void tryPlayerBomb();
 	bool placeBomb(const glm::ivec2 &tile, int range);
 	void chainExplosions();
+	void applyExplosionDamage();
+	void removeDeadEnemies();
 	int activeBombs() const;
 	void updateBombs(int deltaTime);
 	bool playerTouches(const Enemy *enemy) const;
