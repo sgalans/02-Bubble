@@ -35,6 +35,8 @@ public:
 	int animation() const;
 	
 	void setPosition(const glm::vec2 &pos);
+	// Mirrors the quad horizontally in place, so one set of frames can face both ways.
+	void setFlipX(bool flip);
 
 private:
 	Texture *texture;
@@ -42,7 +44,8 @@ private:
 	GLuint vao;
 	GLuint vbo;
 	GLint posLocation, texCoordLocation;
-	glm::vec2 position;
+	glm::vec2 position, size;
+	bool flipX;
 	int currentAnimation, currentKeyframe;
 	float timeAnimation;
 	glm::vec2 texCoordDispl;

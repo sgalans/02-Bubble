@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "Game.h"
 #include "Walker.h"
+#include "Runner.h"
 
 
 #define SCREEN_X 32
@@ -54,9 +55,12 @@ void Scene::init()
 	walker->setTileMap(map);
 	enemies.push_back(walker);
 
-	hud = new HUD();
-	hud->init(texProgram);
-	score = 0;
+	Runner *runner = new Runner();
+	runner->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
+	runner->setPosition(glm::vec2((INIT_WALKER_X_TILES + 2) * map->getTileSize(), INIT_WALKER_Y_TILES * map->getTileSize()));
+	runner->setTileMap(map);
+	runner->setPlayer(player);
+	enemies.push_back(runner);
 
 	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
 	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));

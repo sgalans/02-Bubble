@@ -32,6 +32,8 @@ Sprite::Sprite(const glm::vec2 &quadSize, const glm::vec2 &sizeInSpritesheet, Te
 	shaderProgram = program;
 	currentAnimation = -1;
 	position = glm::vec2(0.f);
+	size = quadSize;
+	flipX = false;
 }
 
 Sprite::~Sprite()
@@ -57,6 +59,12 @@ void Sprite::update(int deltaTime)
 void Sprite::render() const
 {
 	glm::mat4 modelview = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.f));
+	if(flipX)
+	{
+		// Mirror around the quad's vertical centre so it stays in the same spot.
+		modelview = glm::translate(modelview, glm::vec3(size.x, 0.f, 0.f));
+		modelview = glm::scale(modelview, glm::vec3(-1.f, 1.f, 1.f));
+	}
 	shaderProgram->setUniformMatrix4f("modelview", modelview);
 	shaderProgram->setUniform2f("texCoordDispl", texCoordDispl.x, texCoordDispl.y);
 	glEnable(GL_TEXTURE_2D);
@@ -110,6 +118,11 @@ int Sprite::animation() const
 void Sprite::setPosition(const glm::vec2 &pos)
 {
 	position = pos;
+}
+
+void Sprite::setFlipX(bool flip)
+{
+	flipX = flip;
 }
 
 
