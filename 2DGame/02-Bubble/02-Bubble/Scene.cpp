@@ -62,6 +62,9 @@ void Scene::init()
 	runner->setPlayer(player);
 	enemies.push_back(runner);
 
+	hud = new HUD();
+	hud->init(texProgram);
+
 	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
 	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
