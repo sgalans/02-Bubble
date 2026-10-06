@@ -35,7 +35,6 @@ private:
 	TileMap *map;
 	Player *player;
 	std::vector<Enemy *> enemies;
-	int aliveEnemies;
 	HUD *hud;
 	int score;
 	ShaderProgram texProgram;
