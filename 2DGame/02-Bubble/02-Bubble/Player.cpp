@@ -34,6 +34,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
 	bJumping = false;
 	bJumpKeyPressed = false;
+	bGodKeyPressed = false;
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
@@ -135,11 +136,11 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
-	if(Game::instance().getKey(GLFW_KEY_G)){
-		invensible = true;
-	}
+	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
+		invensible = !invensible;
+	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
 
-	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP);
+	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W);
 
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }

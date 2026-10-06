@@ -36,6 +36,7 @@ public:
 private:
 	bool bJumping;
 	bool bJumpKeyPressed;
+	bool bGodKeyPressed;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
 	int jumpAngle, startY;
 	int lives, maxLives;
