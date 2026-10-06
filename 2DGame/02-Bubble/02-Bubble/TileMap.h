@@ -47,7 +47,8 @@ public:
 	bool setBomb(int x, int y);
 	void clearBomb(int x, int y);
 	bool hasBomb(int x, int y) const;
-	void solidifyBombs(const glm::ivec2 &pos, const glm::ivec2 &size);
+	bool isBombPassable(int x, int y) const;
+	void solidifyBomb(int x, int y);
 
 private:
 	bool loadLevel(const string &levelFile);

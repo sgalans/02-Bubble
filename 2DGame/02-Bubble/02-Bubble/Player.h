@@ -32,11 +32,14 @@ public:
 	int getNBombs() const { return nBombs; }
 	bool isAlive() const { return lives > 0; }
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
+	bool takeBombRequest();
 
 private:
 	bool bJumping;
 	bool bJumpKeyPressed;
 	bool bGodKeyPressed;
+	bool bBombKeyPressed;
+	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
 	int jumpAngle, startY;
 	int lives, maxLives;

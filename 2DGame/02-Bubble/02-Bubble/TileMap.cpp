@@ -255,25 +255,16 @@ bool TileMap::hasBomb(int x, int y) const
 	return insideMap(x, y) && bombMap[y*mapSize.x+x] != NO_BOMB;
 }
 
-// Turns passable bombs into solid ones once the given box (the player)
-// no longer overlaps them. pos is relative to the tile map, like in collisions.
-void TileMap::solidifyBombs(const glm::ivec2 &pos, const glm::ivec2 &size)
+bool TileMap::isBombPassable(int x, int y) const
 {
-	int x0, x1, y0, y1;
+	return insideMap(x, y) && bombMap[y*mapSize.x+x] == BOMB_PASSABLE;
+}
 
-	x0 = pos.x / tileSize;
-	x1 = (pos.x + size.x - 1) / tileSize;
-	y0 = pos.y / tileSize;
-	y1 = (pos.y + size.y - 1) / tileSize;
-	for(int j=0; j<mapSize.y; j++)
-	{
-		for(int i=0; i<mapSize.x; i++)
-		{
-			bool overlaps = i >= x0 && i <= x1 && j >= y0 && j <= y1;
-			if(bombMap[j*mapSize.x+i] == BOMB_PASSABLE && !overlaps)
-				bombMap[j*mapSize.x+i] = BOMB_SOLID;
-		}
-	}
+// Called once nobody is standing inside the bomb any more
+void TileMap::solidifyBomb(int x, int y)
+{
+	if(isBombPassable(x, y))
+		bombMap[y*mapSize.x+x] = BOMB_SOLID;
 }
 
 bool TileMap::insideMap(int x, int y) const
