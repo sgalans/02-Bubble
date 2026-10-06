@@ -40,6 +40,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
+	firePower = 1;
 	invulnTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bub.png", TEXTURE_PIXEL_FORMAT_RGBA);

@@ -235,6 +235,11 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int
 	return false;
 }
 
+bool TileMap::isWall(int x, int y) const
+{
+	return !insideMap(x, y) || map[y*mapSize.x+x] != 0;
+}
+
 bool TileMap::setBomb(int x, int y)
 {
 	if(!insideMap(x, y) || map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] != NO_BOMB)

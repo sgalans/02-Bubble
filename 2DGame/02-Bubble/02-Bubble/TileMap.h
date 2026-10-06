@@ -43,6 +43,9 @@ public:
 	bool collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
 	bool collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int *posY) const;
 
+	// True for map tiles and for anything outside the map (ignores bombs)
+	bool isWall(int x, int y) const;
+
 	// Bomb mirror map, in tile coordinates
 	bool setBomb(int x, int y);
 	void clearBomb(int x, int y);

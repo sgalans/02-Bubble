@@ -31,7 +31,8 @@ private:
 	void initShaders();
 	void updateCamera();
 	void tryPlayerBomb();
-	bool placeBomb(const glm::ivec2 &tile);
+	bool placeBomb(const glm::ivec2 &tile, int range);
+	void chainExplosions();
 	int activeBombs() const;
 	void updateBombs(int deltaTime);
 	bool playerTouches(const Enemy *enemy) const;
@@ -44,7 +45,7 @@ private:
 	Player *player;
 	std::vector<Enemy *> enemies;
 	std::vector<Bomb *> bombs;
-	Texture bombTexture;
+	Texture bombTexture, explosionTexture;
 	HUD *hud;
 	int score;
 	ShaderProgram texProgram;
