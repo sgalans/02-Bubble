@@ -75,6 +75,7 @@ void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
 	player->update(deltaTime);
+	map->solidifyBombs(glm::ivec2(player->getPosition()) - map->getPosition(), player->getSize());
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->update(deltaTime);
