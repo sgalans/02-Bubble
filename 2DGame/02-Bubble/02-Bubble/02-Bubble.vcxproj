@@ -21,6 +21,7 @@
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileMap.h" />
+    <ClInclude Include="Runner.h" />
     <ClInclude Include="Walker.h" />
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +35,7 @@
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileMap.cpp" />
+    <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Walker.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
