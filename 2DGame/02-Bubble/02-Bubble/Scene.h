@@ -29,6 +29,7 @@ public:
 
 private:
 	void initShaders();
+	void spawnEnemies();
 	void updateCamera();
 	void tryPlayerBomb();
 	bool placeBomb(const glm::ivec2 &tile, int range);

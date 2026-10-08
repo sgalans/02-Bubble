@@ -13,9 +13,6 @@
 #define INIT_PLAYER_X_TILES 4
 #define INIT_PLAYER_Y_TILES 25
 
-#define INIT_WALKER_X_TILES 10
-#define INIT_WALKER_Y_TILES 25
-
 #define CAMERA_WIDTH_TILES 10
 
 
@@ -51,18 +48,7 @@ void Scene::init()
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
 	player->setTileMap(map);
 
-	Walker *walker = new Walker();
-	walker->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
-	walker->setPosition(glm::vec2(INIT_WALKER_X_TILES * map->getTileSize(), INIT_WALKER_Y_TILES * map->getTileSize()));
-	walker->setTileMap(map);
-	enemies.push_back(walker);
-
-	Runner *runner = new Runner();
-	runner->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
-	runner->setPosition(glm::vec2((INIT_WALKER_X_TILES + 2) * map->getTileSize(), INIT_WALKER_Y_TILES * map->getTileSize()));
-	runner->setTileMap(map);
-	runner->setPlayer(player);
-	enemies.push_back(runner);
+	spawnEnemies();
 
 	// Shared by every bomb so placing one does not reload the images from disk
 	bombTexture.loadFromFile("images/bombs.png", TEXTURE_PIXEL_FORMAT_RGBA);
@@ -79,6 +65,37 @@ void Scene::init()
 	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
 	currentTime = 0.0f;
+}
+
+// Creates one enemy per letter found in the level file:
+// W = Walker, R = Runner. The letter marks the enemy's top-left tile.
+void Scene::spawnEnemies()
+{
+	const vector<TileMap::EnemySpawn> &spawns = map->getEnemySpawns();
+	for(unsigned int i = 0; i < spawns.size(); i++)
+	{
+		Enemy *enemy;
+		switch(spawns[i].type)
+		{
+		case 'W':
+			enemy = new Walker();
+			break;
+		case 'R':
+		{
+			Runner *runner = new Runner();
+			runner->setPlayer(player);
+			enemy = runner;
+			break;
+		}
+		default:
+			cout << "Unknown enemy '" << spawns[i].type << "' in level file" << endl;
+			continue;
+		}
+		enemy->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
+		enemy->setPosition(glm::vec2(spawns[i].tile * map->getTileSize()));
+		enemy->setTileMap(map);
+		enemies.push_back(enemy);
+	}
 }
 
 void Scene::update(int deltaTime)
