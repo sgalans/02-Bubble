@@ -94,12 +94,14 @@ bool TileMap::loadLevel(const string &levelFile)
 			fin.get(tile);
 			if(tile == ' ')
 				map[j*mapSize.x+i] = 0;
-			else if(isalpha(tile))
+			else if(isupper(tile))
 			{
 				map[j*mapSize.x+i] = 0;
 				EnemySpawn spawn = { tile, glm::ivec2(i, j) };
 				enemySpawns.push_back(spawn);
 			}
+			else if(islower(tile))
+				map[j*mapSize.x+i] = 10 + (tile - int('a'));
 			else
 				map[j*mapSize.x+i] = tile - int('0');
 		}
