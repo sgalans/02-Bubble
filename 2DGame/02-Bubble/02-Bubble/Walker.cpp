@@ -5,9 +5,9 @@
 #define WALKER_SPEED 1.0f
 #define FALL_STEP 4
 
-// Source art is 13x16 px, drawn at 2x so the walker is as tall as the player.
-#define WALKER_WIDTH 26
-#define WALKER_HEIGHT 32
+// Draw and collide at the source art's native size.
+#define WALKER_WIDTH 13
+#define WALKER_HEIGHT 16
 
 // bomberman.png is a ragged rip, so frames are addressed by pixel offset
 // instead of a uniform grid. Row 10 spans y = 153..168 and holds, left to

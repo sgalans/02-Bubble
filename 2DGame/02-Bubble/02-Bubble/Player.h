@@ -37,6 +37,7 @@ public:
 
 private:
 	bool bJumping;
+	bool facingRight;
 	bool bJumpKeyPressed;
 	bool bGodKeyPressed;
 	bool bBombKeyPressed;
