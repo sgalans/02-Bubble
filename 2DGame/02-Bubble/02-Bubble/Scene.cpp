@@ -13,7 +13,7 @@
 #define INIT_PLAYER_X_TILES 4
 #define INIT_PLAYER_Y_TILES 25
 
-#define CAMERA_WIDTH_TILES 10
+#define CAMERA_WIDTH_TILES 20
 
 
 Scene::Scene()
@@ -61,8 +61,8 @@ void Scene::init()
 	hud = new HUD();
 	hud->init(texProgram);
 
-	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getBlockSize(),
-	                        CAMERA_WIDTH_TILES * map->getBlockSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
+	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getTileSize(),
+	                        CAMERA_WIDTH_TILES * map->getTileSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
 	currentTime = 0.0f;
 }
@@ -267,7 +267,7 @@ void Scene::updateCamera()
 {
 	glm::vec2 worldMin = glm::vec2(map->getPosition());
 	glm::vec2 worldMax = worldMin + glm::vec2(map->getMapSize()) * float(map->getTileSize());
-	glm::vec2 playerCenter = player->getPosition() + glm::vec2(16.f, 16.f);
+	glm::vec2 playerCenter = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
 
 	cameraPos = playerCenter - cameraSize / 2.f;
 	cameraPos.x = glm::clamp(cameraPos.x, worldMin.x, glm::max(worldMin.x, worldMax.x - cameraSize.x));

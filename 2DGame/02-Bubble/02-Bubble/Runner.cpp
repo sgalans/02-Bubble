@@ -9,8 +9,8 @@
 // How far ahead the runner can spot the player, in tiles.
 #define SIGHT_RANGE_TILES 8
 
-#define RUNNER_WIDTH 30
-#define RUNNER_HEIGHT 32
+#define RUNNER_WIDTH 15
+#define RUNNER_HEIGHT 16
 
 
 #define SHEET_WIDTH 253.f
