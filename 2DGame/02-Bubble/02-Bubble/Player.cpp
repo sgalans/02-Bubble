@@ -41,7 +41,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
-	firePower = 1;
+	firePower = 5; // set to 5 for easier testing
 	invulnTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);

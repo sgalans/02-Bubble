@@ -25,10 +25,10 @@ Objectes:
  - obj3 []
  - obj4 []
 Gameplay:
- - posar Bombes []
- - Explotar bombes []
- - saltar sobre bombes []
- - bombes maten enemics i player []
+ - posar Bombes [x]
+ - Explotar bombes [x]
+ - saltar sobre bombes [x]
+ - bombes maten enemics i player [x]
  - tiles destructibles []
 
 General:
