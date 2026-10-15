@@ -110,22 +110,36 @@ void Player::update(int deltaTime)
 	if(bJumping)
 	{
 		jumpAngle += JUMP_ANGLE_STEP;
+		int targetY = int(startY - JUMP_HEIGHT * sin(3.14159f * jumpAngle / 180.f));
 		if(jumpAngle == 180)
 		{
 			bJumping = false;
-			posPlayer.y = startY;
-			glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, FALL_STEP);
-			grounded = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
+			targetY = startY;
+		}
+		if(jumpAngle > 90)
+		{
+			// The jump can fall faster than collisionMoveDown's penetration limit.
+			// Check the whole descent, including the last step back to startY.
+			while(posPlayer.y < targetY)
+			{
+				posPlayer.y++;
+				grounded = map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
+				if(grounded)
+				{
+					bJumping = false;
+					break;
+				}
+			}
+			if(!bJumping && !grounded)
+			{
+				glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, FALL_STEP);
+				grounded = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
+			}
 		}
 		else
 		{
-			posPlayer.y = int(startY - 96 * sin(3.14159f * jumpAngle / 180.f));
-			if(jumpAngle > 90)
-			{
-				grounded = map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
-				bJumping = !grounded;
-			}
-			else if(map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y))
+			posPlayer.y = targetY;
+			if(map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y))
 				jumpAngle = 180 - jumpAngle;
 		}
 	}
