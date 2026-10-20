@@ -36,14 +36,14 @@ public:
 	bool takeBombRequest();
 
 private:
-	bool bJumping;
 	bool facingRight;
 	bool bJumpKeyPressed;
 	bool bGodKeyPressed;
 	bool bBombKeyPressed;
 	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
-	int jumpAngle, startY;
+	float verticalPosition, verticalVelocity;
+	bool shortJumpActive;
 	int lives, maxLives;
 	int invulnTime;
 	int nBombs;
