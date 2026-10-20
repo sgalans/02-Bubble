@@ -5,7 +5,7 @@
 #include "Game.h"
 
 
-#define HIGH_JUMP_HEIGHT_TILES 5
+#define HIGH_JUMP_HEIGHT_TILES 5 // set to five for easier testing
 #define SHORT_JUMP_HEIGHT_TILES 2
 #define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
 #define SHORT_JUMP_DURATION 0.5f
