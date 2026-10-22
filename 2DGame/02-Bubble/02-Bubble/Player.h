@@ -4,6 +4,7 @@
 
 #include "Sprite.h"
 #include "TileMap.h"
+#include "Item.h"
 
 
 // Player is basically a Sprite that represents the player. As such it has
@@ -31,9 +32,12 @@ public:
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	int getFirePower() const { return firePower; }
+	// Own bombs do not hurt him (other bombs still do)
+	bool isBombProof() const { return bombProof; }
 	bool isAlive() const { return lives > 0; }
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
 	bool takeBombRequest();
+	void applyItem(Item::ItemType type);
 
 private:
 	bool bJumping;
@@ -48,6 +52,8 @@ private:
 	int invulnTime;
 	int nBombs;
 	int firePower; // flame length in tiles
+	int moveSpeed; // pixels per frame
+	bool bombProof;
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;

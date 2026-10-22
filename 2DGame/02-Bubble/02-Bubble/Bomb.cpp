@@ -54,6 +54,7 @@ void Bomb::init(const glm::ivec2 &tile, int range, const glm::ivec2 &tileMapPos,
 	map = tileMap;
 	state = FUSE;
 	timer = FUSE_TIME;
+	playerOwned = false;
 
 	sprite = Sprite::createSprite(glm::vec2(getSize()),
 	                              glm::vec2(FRAME_SIZE / SHEET_WIDTH, FRAME_SIZE / SHEET_HEIGHT),

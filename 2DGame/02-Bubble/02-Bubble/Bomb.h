@@ -42,6 +42,9 @@ public:
 	glm::vec2 getPosition() const { return tilePosition(tile); }
 	glm::ivec2 getSize() const { return glm::ivec2(map->getTileSize()); }
 	BombState getState() const { return state; }
+	// Bombs placed by the player can be made harmless to him (bomb proof item)
+	void setPlayerOwned(bool owned) { playerOwned = owned; }
+	bool isPlayerOwned() const { return playerOwned; }
 	bool isDone() const { return state == DONE; }
 
 	const std::vector<Flame> &getFlames() const { return flames; }
@@ -57,6 +60,7 @@ private:
 	int range;
 	BombState state;
 	int timer;
+	bool playerOwned;
 	Sprite *sprite, *flameSprite;
 	TileMap *map;
 	std::vector<Flame> flames;

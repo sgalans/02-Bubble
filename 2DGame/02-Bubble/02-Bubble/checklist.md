@@ -8,7 +8,7 @@ Interface:
 
 Enemy:
  - walker [x]
- - ememy2 []
+ - runner [x]
  - enemy3 []
  - Boss []
 Nivells:

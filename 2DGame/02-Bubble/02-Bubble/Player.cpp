@@ -9,6 +9,10 @@
 #define JUMP_HEIGHT 96
 #define FALL_STEP 4
 #define INVULNERABILITY_TIME 2000 //ms
+#define MAX_BOMBS 5
+#define MAX_FIRE_POWER 5 // tiles
+#define BASE_MOVE_SPEED 2 // pixels per frame
+#define MAX_MOVE_SPEED 4
 
 
 
@@ -41,7 +45,9 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
-	firePower = 5; // set to 5 for easier testing
+	firePower = 1; // Fire Up items extend it
+	moveSpeed = BASE_MOVE_SPEED;
+	bombProof = false;
 	invulnTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
@@ -91,19 +97,28 @@ void Player::update(int deltaTime)
 	if(Game::instance().getKey(GLFW_KEY_LEFT) || Game::instance().getKey(GLFW_KEY_A))
 	{
 		facingRight = false;
-		posPlayer.x -= 2;
-		if(map->collisionMoveLeft(posPlayer, sizePlayer))
+		// One pixel at a time so higher speeds still stop flush against walls
+		for(int i = 0; i < moveSpeed; i++)
 		{
-			posPlayer.x += 2;
+			posPlayer.x--;
+			if(map->collisionMoveLeft(posPlayer, sizePlayer))
+			{
+				posPlayer.x++;
+				break;
+			}
 		}
 	}
 	else if(Game::instance().getKey(GLFW_KEY_RIGHT) || Game::instance().getKey(GLFW_KEY_D))
 	{
 		facingRight = true;
-		posPlayer.x += 2;
-		if(map->collisionMoveRight(posPlayer, sizePlayer))
+		for(int i = 0; i < moveSpeed; i++)
 		{
-			posPlayer.x -= 2;
+			posPlayer.x++;
+			if(map->collisionMoveRight(posPlayer, sizePlayer))
+			{
+				posPlayer.x--;
+				break;
+			}
 		}
 	}
 	
@@ -205,6 +220,28 @@ bool Player::takeBombRequest()
 	bBombRequested = false;
 
 	return requested;
+}
+
+// Buffs from picked-up items. Stats stop growing at their cap.
+void Player::applyItem(Item::ItemType type)
+{
+	switch(type)
+	{
+	case Item::BOMB_UP:
+		nBombs = min(nBombs + 1, MAX_BOMBS);
+		break;
+	case Item::FIRE_UP:
+		firePower = min(firePower + 1, MAX_FIRE_POWER);
+		break;
+	case Item::SPEED_UP:
+		moveSpeed = min(moveSpeed + 1, MAX_MOVE_SPEED);
+		break;
+	case Item::BOMB_PROOF:
+		bombProof = true;
+		break;
+	default:
+		break;
+	}
 }
 
 void Player::setTileMap(TileMap *tileMap)

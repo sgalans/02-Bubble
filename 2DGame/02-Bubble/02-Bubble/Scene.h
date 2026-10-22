@@ -9,6 +9,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Bomb.h"
+#include "Item.h"
 #include "HUD.h"
 
 
@@ -29,10 +30,13 @@ public:
 
 private:
 	void initShaders();
-	void spawnEnemies();
+	void spawnFromLevel();
+	void spawnItem(Item::ItemType type, const glm::ivec2 &tile);
+	void collectItems();
+	void removeCollectedItems();
 	void updateCamera();
 	void tryPlayerBomb();
-	bool placeBomb(const glm::ivec2 &tile, int range);
+	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
 	void chainExplosions();
 	void applyExplosionDamage();
 	void removeDeadEnemies();
@@ -48,7 +52,8 @@ private:
 	Player *player;
 	std::vector<Enemy *> enemies;
 	std::vector<Bomb *> bombs;
-	Texture bombTexture, explosionTexture;
+	std::vector<Item *> items;
+	Texture bombTexture, explosionTexture, itemTexture;
 	HUD *hud;
 	int score;
 	ShaderProgram texProgram;

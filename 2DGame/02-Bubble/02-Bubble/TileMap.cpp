@@ -86,7 +86,7 @@ bool TileMap::loadLevel(const string &levelFile)
 	tileTexSize = glm::vec2(1.f / tilesheetSize.x, 1.f / tilesheetSize.y);
 	
 	map = new int[mapSize.x * mapSize.y];
-	enemySpawns.clear();
+	spawns.clear();
 	for(int j=0; j<mapSize.y; j++)
 	{
 		for(int i=0; i<mapSize.x; i++)
@@ -97,8 +97,8 @@ bool TileMap::loadLevel(const string &levelFile)
 			else if(isalpha(tile))
 			{
 				map[j*mapSize.x+i] = 0;
-				EnemySpawn spawn = { tile, glm::ivec2(i, j) };
-				enemySpawns.push_back(spawn);
+				Spawn spawn = { tile, glm::ivec2(i, j) };
+				spawns.push_back(spawn);
 			}
 			else
 				map[j*mapSize.x+i] = tile - int('0');

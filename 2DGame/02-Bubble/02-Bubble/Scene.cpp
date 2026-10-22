@@ -34,6 +34,8 @@ Scene::~Scene()
 		delete enemies[i];
 	for(unsigned int i = 0; i < bombs.size(); i++)
 		delete bombs[i];
+	for(unsigned int i = 0; i < items.size(); i++)
+		delete items[i];
 	if(hud != NULL)
 		delete hud;
 }
@@ -48,8 +50,6 @@ void Scene::init()
 	player->setPosition(glm::vec2(INIT_PLAYER_X_TILES * map->getTileSize(), INIT_PLAYER_Y_TILES * map->getTileSize()));
 	player->setTileMap(map);
 
-	spawnEnemies();
-
 	// Shared by every bomb so placing one does not reload the images from disk
 	bombTexture.loadFromFile("images/bombs.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	bombTexture.setMinFilter(GL_NEAREST);
@@ -57,6 +57,12 @@ void Scene::init()
 	explosionTexture.loadFromFile("images/explosions.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	explosionTexture.setMinFilter(GL_NEAREST);
 	explosionTexture.setMagFilter(GL_NEAREST);
+	// Power-up icons, shared by every item. Loaded before spawning them.
+	itemTexture.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	itemTexture.setMinFilter(GL_NEAREST);
+	itemTexture.setMagFilter(GL_NEAREST);
+
+	spawnFromLevel();
 
 	hud = new HUD();
 	hud->init(texProgram);
@@ -67,13 +73,21 @@ void Scene::init()
 	currentTime = 0.0f;
 }
 
-// Creates one enemy per letter found in the level file:
-// W = Walker, R = Runner. The letter marks the enemy's top-left tile.
-void Scene::spawnEnemies()
+// Creates one enemy or item per letter found in the level file:
+// W = Walker, R = Runner, and the item letters listed in Item::typeFromLetter.
+// The letter marks the entity's top-left tile.
+void Scene::spawnFromLevel()
 {
-	const vector<TileMap::EnemySpawn> &spawns = map->getEnemySpawns();
+	const vector<TileMap::Spawn> &spawns = map->getSpawns();
 	for(unsigned int i = 0; i < spawns.size(); i++)
 	{
+		Item::ItemType itemType;
+		if(Item::typeFromLetter(spawns[i].type, itemType))
+		{
+			spawnItem(itemType, spawns[i].tile);
+			continue;
+		}
+
 		Enemy *enemy;
 		switch(spawns[i].type)
 		{
@@ -88,7 +102,7 @@ void Scene::spawnEnemies()
 			break;
 		}
 		default:
-			cout << "Unknown enemy '" << spawns[i].type << "' in level file" << endl;
+			cout << "Unknown letter '" << spawns[i].type << "' in level file" << endl;
 			continue;
 		}
 		enemy->init(glm::ivec2(SCREEN_X, SCREEN_Y), texProgram);
@@ -98,12 +112,53 @@ void Scene::spawnEnemies()
 	}
 }
 
+void Scene::spawnItem(Item::ItemType type, const glm::ivec2 &tile)
+{
+	Item *item = new Item();
+	item->init(type, tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
+	items.push_back(item);
+}
+
+// The player picks up every item he overlaps
+void Scene::collectItems()
+{
+	if(!player->isAlive())
+		return;
+	for(unsigned int i = 0; i < items.size(); i++)
+	{
+		if(!items[i]->isCollected() &&
+		   boxesOverlap(player->getPosition(), player->getSize(), items[i]->getPosition(), items[i]->getSize()))
+		{
+			player->applyItem(items[i]->getType());
+			items[i]->collect();
+		}
+	}
+}
+
+void Scene::removeCollectedItems()
+{
+	for(unsigned int i = 0; i < items.size(); )
+	{
+		if(items[i]->isCollected())
+		{
+			delete items[i];
+			items.erase(items.begin() + i);
+		}
+		else
+			i++;
+	}
+}
+
 void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();
+	for(unsigned int i = 0; i < items.size(); i++)
+		items[i]->update(deltaTime);
+	collectItems();
+	removeCollectedItems();
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->update(deltaTime);
@@ -128,7 +183,7 @@ void Scene::tryPlayerBomb()
 	glm::ivec2 pos = glm::ivec2(player->getPosition()) - map->getPosition();
 	glm::ivec2 size = player->getSize();
 	glm::ivec2 tile((pos.x + size.x / 2) / map->getTileSize(), (pos.y + size.y - 1) / map->getTileSize());
-	placeBomb(tile, player->getFirePower());
+	placeBomb(tile, player->getFirePower(), true);
 }
 
 // Only bombs still burning their fuse count against the player's limit
@@ -145,12 +200,13 @@ int Scene::activeBombs() const
 }
 
 // Puts a bomb on the given cell if it is free. Returns false otherwise.
-bool Scene::placeBomb(const glm::ivec2 &tile, int range)
+bool Scene::placeBomb(const glm::ivec2 &tile, int range, bool playerOwned)
 {
 	if(!map->setBomb(tile.x, tile.y))
 		return false;
 	Bomb *bomb = new Bomb();
 	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
+	bomb->setPlayerOwned(playerOwned);
 	bombs.push_back(bomb);
 
 	return true;
@@ -214,7 +270,8 @@ void Scene::applyExplosionDamage()
 	{
 		if(bombs[b]->getState() != Bomb::EXPLODING)
 			continue;
-		if(player->isAlive() && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
+		bool harmless = bombs[b]->isPlayerOwned() && player->isBombProof();
+		if(player->isAlive() && !harmless && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
 			player->loseLife();
 		for(unsigned int i = 0; i < enemies.size(); i++)
 		{
@@ -286,6 +343,8 @@ void Scene::render()
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map->render();
+	for(unsigned int i = 0; i < items.size(); i++)
+		items[i]->render();
 	for(unsigned int i = 0; i < bombs.size(); i++)
 		bombs[i]->render();
 	player->render();
