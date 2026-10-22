@@ -32,6 +32,10 @@ public:
 	void kill() { lives = 0; }
 	bool isDead() const { return lives <= 0; }
 
+	// Enemies that fire return true once per shot, with the projectile's
+	// starting centre and velocity. Scene creates the projectile.
+	virtual bool takeShot(glm::vec2 &origin, glm::vec2 &velocity) { return false; }
+
 protected:
 	void updateSpritePosition();
 

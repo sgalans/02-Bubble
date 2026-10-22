@@ -5,6 +5,7 @@
 #include "Game.h"
 #include "Walker.h"
 #include "Runner.h"
+#include "Shooter.h"
 
 
 #define SCREEN_X 32
@@ -36,6 +37,8 @@ Scene::~Scene()
 		delete bombs[i];
 	for(unsigned int i = 0; i < items.size(); i++)
 		delete items[i];
+	for(unsigned int i = 0; i < projectiles.size(); i++)
+		delete projectiles[i];
 	if(hud != NULL)
 		delete hud;
 }
@@ -57,7 +60,8 @@ void Scene::init()
 	explosionTexture.loadFromFile("images/explosions.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	explosionTexture.setMinFilter(GL_NEAREST);
 	explosionTexture.setMagFilter(GL_NEAREST);
-	// Power-up icons, shared by every item. Loaded before spawning them.
+	// Power-up icons, shared by every item and also used for the shooter's
+	// balls. Loaded before spawning them.
 	itemTexture.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	itemTexture.setMinFilter(GL_NEAREST);
 	itemTexture.setMagFilter(GL_NEAREST);
@@ -74,7 +78,7 @@ void Scene::init()
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, and the item letters listed in Item::typeFromLetter.
+// W = Walker, R = Runner, Z = Shooter, and the item letters listed in Item::typeFromLetter.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
@@ -99,6 +103,13 @@ void Scene::spawnFromLevel()
 			Runner *runner = new Runner();
 			runner->setPlayer(player);
 			enemy = runner;
+			break;
+		}
+		case 'Z':
+		{
+			Shooter *shooter = new Shooter();
+			shooter->setPlayer(player);
+			enemy = shooter;
 			break;
 		}
 		default:
@@ -149,6 +160,40 @@ void Scene::removeCollectedItems()
 	}
 }
 
+void Scene::spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity)
+{
+	Projectile *projectile = new Projectile();
+	projectile->init(origin, velocity, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
+	projectiles.push_back(projectile);
+}
+
+// Balls hurt the player on contact and vanish, as they do against walls and
+// bombs (Projectile::update handles those).
+void Scene::updateProjectiles(int deltaTime)
+{
+	for(unsigned int i = 0; i < projectiles.size(); i++)
+	{
+		projectiles[i]->update(deltaTime);
+		if(!projectiles[i]->isDone() && player->isAlive() &&
+		   boxesOverlap(player->getPosition(), player->getSize(), projectiles[i]->getPosition(), projectiles[i]->getSize()))
+		{
+			player->loseLife();
+			projectiles[i]->destroy();
+		}
+	}
+
+	for(unsigned int i = 0; i < projectiles.size(); )
+	{
+		if(projectiles[i]->isDone())
+		{
+			delete projectiles[i];
+			projectiles.erase(projectiles.begin() + i);
+		}
+		else
+			i++;
+	}
+}
+
 void Scene::update(int deltaTime)
 {
 	currentTime += deltaTime;
@@ -165,7 +210,11 @@ void Scene::update(int deltaTime)
 		enemies[i]->updateHitCooldown(deltaTime);
 		if(player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
+		glm::vec2 shotOrigin, shotVelocity;
+		if(enemies[i]->takeShot(shotOrigin, shotVelocity))
+			spawnProjectile(shotOrigin, shotVelocity);
 	}
+	updateProjectiles(deltaTime);
 	updateBombs(deltaTime);
 	applyExplosionDamage();
 	removeDeadEnemies();
@@ -350,6 +399,8 @@ void Scene::render()
 	player->render();
 	for(unsigned int i = 0; i < enemies.size(); i++)
 		enemies[i]->render();
+	for(unsigned int i = 0; i < projectiles.size(); i++)
+		projectiles[i]->render();
 
 	// HUD pass: screen-space projection so it does not scroll with the camera
 	texProgram.setUniformMatrix4f("projection", glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f));

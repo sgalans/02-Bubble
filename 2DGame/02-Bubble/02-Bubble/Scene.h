@@ -10,6 +10,7 @@
 #include "Enemy.h"
 #include "Bomb.h"
 #include "Item.h"
+#include "Projectile.h"
 #include "HUD.h"
 
 
@@ -34,6 +35,8 @@ private:
 	void spawnItem(Item::ItemType type, const glm::ivec2 &tile);
 	void collectItems();
 	void removeCollectedItems();
+	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity);
+	void updateProjectiles(int deltaTime);
 	void updateCamera();
 	void tryPlayerBomb();
 	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
@@ -53,6 +56,7 @@ private:
 	std::vector<Enemy *> enemies;
 	std::vector<Bomb *> bombs;
 	std::vector<Item *> items;
+	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture;
 	HUD *hud;
 	int score;
