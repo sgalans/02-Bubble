@@ -8,14 +8,14 @@ t *          * t
 t             Dt
 tei    dhi   det
 t       3      t
-t       F      t
+t      W       t
 t   dhefghi    t
 t    3   3   det
-t*d            t
+tFd            t
 tg3efghefi     t
 t333         * t
 t       defgheft
 t             3t
 t   d       d  t
-t   3dS     3  t
+t   3dS  W  3  t
 teeeeeeeeeeeeeet
