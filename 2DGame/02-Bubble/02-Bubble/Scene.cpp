@@ -78,7 +78,7 @@ void Scene::init()
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, and the item letters listed in Item::typeFromLetter.
+// W = Walker, R = Runner, Z = Shooter. Item letters mark bushes hiding power-ups.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
@@ -137,7 +137,7 @@ void Scene::collectItems()
 		return;
 	for(unsigned int i = 0; i < items.size(); i++)
 	{
-		if(!items[i]->isCollected() &&
+		if(items[i]->isAvailable() &&
 		   boxesOverlap(player->getPosition(), player->getSize(), items[i]->getPosition(), items[i]->getSize()))
 		{
 			player->applyItem(items[i]->getType());

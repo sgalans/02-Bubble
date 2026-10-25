@@ -4,11 +4,11 @@ TILEMAP
 images/level01_tiles.png -- Tilesheet
 10 4               -- Number of tiles in tilesheet
 tttttttttttttttt
-t              t
+t *          * t
 t              t
 tei    dhi   det
 t       3      t
-t       *      t
+t       F      t
 t   dhefghi    t
 t    3   3   det
 t*d            t
@@ -17,5 +17,5 @@ t333         * t
 t       defgheft
 t             3t
 t   d       d  t
-t   3d*     3  t
+t   3dS     3  t
 teeeeeeeeeeeeeet

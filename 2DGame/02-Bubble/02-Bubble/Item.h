@@ -7,8 +7,8 @@
 
 
 // A power-up that occupies a single cell of the tile map and does not fall.
-// It waits until the player touches it; then Scene hands its type to the
-// player, marks it collected and deletes it.
+// It stays hidden until its bush is destroyed, then waits for player contact.
+// Scene applies its effect, marks it collected and deletes it.
 // Scene owns the items and shares one icon sheet between all of them.
 
 class Item
@@ -35,6 +35,7 @@ public:
 	glm::ivec2 getSize() const { return glm::ivec2(map->getTileSize()); }
 	void collect() { collected = true; }
 	bool isCollected() const { return collected; }
+	bool isAvailable() const { return !collected && !map->isWall(tile.x, tile.y); }
 
 private:
 	ItemType type;
