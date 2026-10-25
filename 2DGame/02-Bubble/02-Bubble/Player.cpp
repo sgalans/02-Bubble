@@ -10,6 +10,7 @@
 #define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
 #define SHORT_JUMP_DURATION 0.5f
 #define MAX_VERTICAL_STEP_TIME (1.f / 120.f)
+#define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define INVULNERABILITY_TIME 2000 //ms
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
@@ -101,6 +102,12 @@ void Player::update(int deltaTime)
 		|| Game::instance().getKey(GLFW_KEY_W);
 	bool jumpKeyPressed = highJumpKeyPressed || Game::instance().getKey(GLFW_KEY_S);
 	bool grounded = false;
+	bool supportedBeforeMove = false;
+	if(verticalVelocity == 0.f)
+	{
+		glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, 1);
+		supportedBeforeMove = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
+	}
 	if(Game::instance().getKey(GLFW_KEY_LEFT) || Game::instance().getKey(GLFW_KEY_A))
 	{
 		facingRight = false;
@@ -141,6 +148,12 @@ void Player::update(int deltaTime)
 		}
 	}
 	bool startJump = grounded && jumpKeyPressed && !bJumpKeyPressed;
+	if(supportedBeforeMove && !grounded)
+	{
+		// Skip the slow start from rest when stepping off a platform or bomb.
+		verticalVelocity = LEDGE_FALL_SPEED_TILES * map->getTileSize();
+		shortJumpActive = false;
+	}
 	if(grounded)
 		shortJumpActive = startJump && !highJumpKeyPressed;
 
