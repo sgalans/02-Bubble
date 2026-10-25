@@ -164,7 +164,7 @@ bool Bomb::flameTouches(const glm::vec2 &pos, const glm::ivec2 &size) const
 }
 
 // Builds the cross of flames. Each arm stops before a wall, or on the cell
-// of another bomb (which Scene will then detonate). The last cell of an arm
+// of a destroyed bush or another bomb (which Scene will then detonate). The last cell of an arm
 // uses the end piece so the flame looks closed.
 void Bomb::spreadFlames()
 {
@@ -181,11 +181,12 @@ void Bomb::spreadFlames()
 		for(int i = 1; i <= range; i++)
 		{
 			glm::ivec2 cell = tile + dirs[d] * i;
-			if(map->isWall(cell.x, cell.y))
+			bool destroyedBush = map->destroyDestructible(cell.x, cell.y);
+			if(!destroyedBush && map->isWall(cell.x, cell.y))
 				break;
 			Flame flame = { cell, arms[d] };
 			flames.push_back(flame);
-			if(map->hasBomb(cell.x, cell.y))
+			if(destroyedBush || map->hasBomb(cell.x, cell.y))
 				break;
 		}
 		if(int(flames.size()) > armStart)

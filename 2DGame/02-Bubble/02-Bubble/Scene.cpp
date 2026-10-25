@@ -11,10 +11,10 @@
 #define SCREEN_X 32
 #define SCREEN_Y 16
 
-#define INIT_PLAYER_X_TILES 4
-#define INIT_PLAYER_Y_TILES 25
+#define INIT_PLAYER_X_TILES 2
+#define INIT_PLAYER_Y_TILES 14
 
-#define CAMERA_WIDTH_TILES 20
+#define CAMERA_HEIGHT_TILES 20
 
 
 Scene::Scene()
@@ -71,8 +71,8 @@ void Scene::init()
 	hud = new HUD();
 	hud->init(texProgram);
 
-	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getTileSize(),
-	                        CAMERA_WIDTH_TILES * map->getTileSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
+	cameraSize = glm::vec2(CAMERA_HEIGHT_TILES * map->getTileSize() * float(SCREEN_WIDTH) / float(SCREEN_HEIGHT),
+	                        CAMERA_HEIGHT_TILES * map->getTileSize());
 	updateCamera();
 	currentTime = 0.0f;
 }
@@ -376,8 +376,14 @@ void Scene::updateCamera()
 	glm::vec2 playerCenter = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
 
 	cameraPos = playerCenter - cameraSize / 2.f;
-	cameraPos.x = glm::clamp(cameraPos.x, worldMin.x, glm::max(worldMin.x, worldMax.x - cameraSize.x));
-	cameraPos.y = glm::clamp(cameraPos.y, worldMin.y, glm::max(worldMin.y, worldMax.y - cameraSize.y));
+	// Centre small maps; follow the player when the map exceeds the viewport.
+	for(int axis = 0; axis < 2; axis++)
+	{
+		if(worldMax[axis] - worldMin[axis] <= cameraSize[axis])
+			cameraPos[axis] = (worldMin[axis] + worldMax[axis] - cameraSize[axis]) / 2.f;
+		else
+			cameraPos[axis] = glm::clamp(cameraPos[axis], worldMin[axis], worldMax[axis] - cameraSize[axis]);
+	}
 }
 
 void Scene::render()
