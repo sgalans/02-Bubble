@@ -50,5 +50,7 @@ Obre `blocs.html` al navegador per veure cada codi al costat de la seva imatge a
 | 40 | `%` | Trama de rombes amb molsa |
 | — | `*` | Arbust sòlid destruïble (`SwampTiles/Bush_2_16x16.png`) |
 
-Els quatre arbustos són a les caselles (columna, fila), comptant des d'1: **(7,15), (14,11), (5,9), (9,6)**. Bloquegen el moviment i la propagació del foc. Una explosió els elimina i s'atura en aquella casella; no deixen objectes.
+Els quatre arbustos són a les caselles (columna, fila), comptant des d'1: **(7,15), (14,11), (2,9), (9,6)**. Bloquegen el moviment i la propagació del foc. Una explosió els elimina i s'atura en aquella casella.
+
+Per amagar un power-up, substitueix `*` per `S` (patins), `F` (abast de foc), `B` (més bombes) o `P` (protecció contra bombes pròpies). La casella continua sent un arbust sòlid; l'objecte només es veu i es pot recollir quan l'arbust desapareix. `*` és un arbust buit. Al nivell 1, **(7,15)** amaga els patins i **(9,6)** amaga el Fire Up.
 

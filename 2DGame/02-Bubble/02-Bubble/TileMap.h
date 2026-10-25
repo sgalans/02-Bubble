@@ -15,8 +15,8 @@
 // method draws the whole map independently of what is visible.
 // Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
 // * marks a solid bush that explosions can destroy.
-// Uppercase letters mark where enemies and items start: the cell is left
-// empty and the letter is stored as a spawn point for the scene to read.
+// B/F/S/P mark bushes hiding items; other uppercase letters mark enemies
+// in empty cells. Both are stored as spawn points for the scene to read.
 
 
 class TileMap

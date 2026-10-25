@@ -8,7 +8,7 @@
 static const glm::vec2 ICON_PIXELS[Item::N_TYPES] =
 {
 	glm::vec2(21.f, 117.f),  // BOMB_UP: bomb
-	glm::vec2(57.f, 135.f),  // FIRE_UP: "F"
+	glm::vec2(39.f, 117.f),  // FIRE_UP: flame
 	glm::vec2(57.f, 117.f),  // SPEED_UP: roller skates
 	glm::vec2(75.f, 117.f)   // BOMB_PROOF: vest
 };
@@ -59,7 +59,7 @@ void Item::update(int deltaTime)
 
 void Item::render()
 {
-	if(!collected)
+	if(isAvailable())
 		sprite->render();
 }
 
