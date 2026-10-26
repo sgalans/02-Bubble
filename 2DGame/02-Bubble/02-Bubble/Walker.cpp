@@ -56,14 +56,26 @@ void Walker::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	updateSpritePosition();
 }
 
+// True when the tile row right under the walker's feet is solid below the
+// given column span. Probes with a copy of the position so nothing moves.
+bool Walker::hasFloorBelow(int x, int width) const
+{
+	glm::ivec2 probePos(x, posEnemy.y + 1);
+	int probeY = probePos.y;
+	return map->collisionMoveDown(probePos, glm::ivec2(width, sizeEnemy.y), &probeY);
+}
+
 void Walker::update(int deltaTime)
 {
 	sprite->update(deltaTime);
 
+	// Only guard edges while standing, so a walker spawned mid-air still drops.
+	bool onGround = hasFloorBelow(posEnemy.x, sizeEnemy.x);
+
 	if(sprite->animation() == MOVE_LEFT)
 	{
 		posEnemy.x -= WALKER_SPEED;
-		if(map->collisionMoveLeft(posEnemy, sizeEnemy))
+		if(map->collisionMoveLeft(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x, 1)))
 		{
 			posEnemy.x += WALKER_SPEED;
 			sprite->changeAnimation(MOVE_RIGHT);
@@ -72,7 +84,7 @@ void Walker::update(int deltaTime)
 	else
 	{
 		posEnemy.x += WALKER_SPEED;
-		if(map->collisionMoveRight(posEnemy, sizeEnemy))
+		if(map->collisionMoveRight(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x + sizeEnemy.x - 1, 1)))
 		{
 			posEnemy.x -= WALKER_SPEED;
 			sprite->changeAnimation(MOVE_LEFT);
