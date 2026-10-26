@@ -5,13 +5,17 @@
 #include "Enemy.h"
 
 
-// Enemy that walks along the floor and turns around when it hits a wall.
+// Enemy that walks along the floor and turns around when it hits a wall
+// or reaches the edge of a platform.
 
 class Walker : public Enemy
 {
 public:
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
+
+private:
+	bool hasFloorBelow(int x, int width) const;
 
 };
 
