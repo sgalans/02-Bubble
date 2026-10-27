@@ -5,16 +5,23 @@
 #include "Game.h"
 
 
-#define JUMP_ANGLE_STEP 4
-#define JUMP_HEIGHT 96
-#define FALL_STEP 4
+#define HIGH_JUMP_HEIGHT_TILES 7 // set to 7 for easier testing
+#define SHORT_JUMP_HEIGHT_TILES 2
+#define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
+#define SHORT_JUMP_DURATION 0.5f
+#define MAX_VERTICAL_STEP_TIME (1.f / 120.f)
+#define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define INVULNERABILITY_TIME 2000 //ms
+#define MAX_BOMBS 5
+#define MAX_FIRE_POWER 5 // tiles
+#define BASE_MOVE_SPEED 2 // pixels per frame
+#define MAX_MOVE_SPEED 4
 
 
 
 enum PlayerAnims
 {
-	STAND_LEFT, STAND_RIGHT, MOVE_LEFT, MOVE_RIGHT
+	STAND, MOVE, JUMP_UP, JUMP_DOWN
 };
 
 
@@ -32,36 +39,52 @@ Player::~Player()
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
-	bJumping = false;
+	verticalPosition = 0.f;
+	verticalVelocity = 0.f;
+	shortJumpActive = false;
+	facingRight = false;
 	bJumpKeyPressed = false;
+	bGodKeyPressed = false;
+	bBombKeyPressed = false;
+	bBombRequested = false;
 	lives = 2;
 	maxLives = 3;
 	nBombs = 1;
+	firePower = 1; // Fire Up items extend it
+	moveSpeed = BASE_MOVE_SPEED;
+	bombProof = false;
 	invulnTime = 0;
 	invensible = false;
-	spritesheet.loadFromFile("images/bub.png", TEXTURE_PIXEL_FORMAT_RGBA);
-	sprite = Sprite::createSprite(glm::ivec2(32, 32), glm::vec2(0.25, 0.25), &spritesheet, &shaderProgram);
+	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	spritesheet.setMinFilter(GL_NEAREST);
+	spritesheet.setMagFilter(GL_NEAREST);
+	sizePlayer = glm::ivec2(16, 16);
+	// Left-facing poses on the ragged sheet, cropped to 16x16 at y = 2.
+	glm::vec2 frameSize(16.f / spritesheet.width(), 16.f / spritesheet.height());
+	glm::vec2 standFrame(4.f / spritesheet.width(), 2.f / spritesheet.height());
+	glm::vec2 frameA(19.f / spritesheet.width(), 2.f / spritesheet.height());
+	glm::vec2 frameB(36.f / spritesheet.width(), 2.f / spritesheet.height());
+	glm::vec2 jumpUpFrame(86.f / spritesheet.width(), 2.f / spritesheet.height());
+	glm::vec2 jumpDownFrame(69.f / spritesheet.width(), 2.f / spritesheet.height());
+	sprite = Sprite::createSprite(glm::vec2(sizePlayer), frameSize, &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(4);
 	
-		sprite->setAnimationSpeed(STAND_LEFT, 8);
-		sprite->addKeyframe(STAND_LEFT, glm::vec2(0.f, 0.f));
+		sprite->setAnimationSpeed(STAND, 8);
+		sprite->addKeyframe(STAND, standFrame);
 		
-		sprite->setAnimationSpeed(STAND_RIGHT, 8);
-		sprite->addKeyframe(STAND_RIGHT, glm::vec2(0.25f, 0.f));
+		sprite->setAnimationSpeed(MOVE, 8);
+		sprite->addKeyframe(MOVE, frameA);
+		sprite->addKeyframe(MOVE, frameB);
 		
-		sprite->setAnimationSpeed(MOVE_LEFT, 8);
-		sprite->addKeyframe(MOVE_LEFT, glm::vec2(0.f, 0.f));
-		sprite->addKeyframe(MOVE_LEFT, glm::vec2(0.f, 0.25f));
-		sprite->addKeyframe(MOVE_LEFT, glm::vec2(0.f, 0.5f));
+		sprite->setAnimationSpeed(JUMP_UP, 8);
+		sprite->addKeyframe(JUMP_UP, jumpUpFrame);
 		
-		sprite->setAnimationSpeed(MOVE_RIGHT, 8);
-		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(0.25, 0.f));
-		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(0.25, 0.25f));
-		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(0.25, 0.5f));
+		sprite->setAnimationSpeed(JUMP_DOWN, 8);
+		sprite->addKeyframe(JUMP_DOWN, jumpDownFrame);
 		
-	sprite->changeAnimation(0);
+	sprite->changeAnimation(STAND);
+	sprite->setFlipX(false);
 	tileMapDispl = tileMapPos;
-	sizePlayer = glm::ivec2(32, 32);
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 	
 }
@@ -74,72 +97,123 @@ void Player::update(int deltaTime)
 	if(invulnTime > 0)
 		invulnTime = max(0, invulnTime - deltaTime);
 
-	sprite->update(deltaTime);
+	glm::ivec2 previousPos = posPlayer;
+	bool highJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP)
+		|| Game::instance().getKey(GLFW_KEY_W);
+	bool jumpKeyPressed = highJumpKeyPressed || Game::instance().getKey(GLFW_KEY_S);
+	bool grounded = false;
+	bool supportedBeforeMove = false;
+	if(verticalVelocity == 0.f)
+	{
+		glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, 1);
+		supportedBeforeMove = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
+	}
 	if(Game::instance().getKey(GLFW_KEY_LEFT) || Game::instance().getKey(GLFW_KEY_A))
 	{
-		if(sprite->animation() != MOVE_LEFT)
-			sprite->changeAnimation(MOVE_LEFT);
-		posPlayer.x -= 2;
-		if(map->collisionMoveLeft(posPlayer, sizePlayer))
+		facingRight = false;
+		// One pixel at a time so higher speeds still stop flush against walls
+		for(int i = 0; i < moveSpeed; i++)
 		{
-			posPlayer.x += 2;
-			sprite->changeAnimation(STAND_LEFT);
+			posPlayer.x--;
+			if(map->collisionMoveLeft(posPlayer, sizePlayer))
+			{
+				posPlayer.x++;
+				break;
+			}
 		}
 	}
 	else if(Game::instance().getKey(GLFW_KEY_RIGHT) || Game::instance().getKey(GLFW_KEY_D))
 	{
-		if(sprite->animation() != MOVE_RIGHT)
-			sprite->changeAnimation(MOVE_RIGHT);
-		posPlayer.x += 2;
-		if(map->collisionMoveRight(posPlayer, sizePlayer))
+		facingRight = true;
+		for(int i = 0; i < moveSpeed; i++)
 		{
-			posPlayer.x -= 2;
-			sprite->changeAnimation(STAND_RIGHT);
-		}
-	}
-	else
-	{
-		if(sprite->animation() == MOVE_LEFT)
-			sprite->changeAnimation(STAND_LEFT);
-		else if(sprite->animation() == MOVE_RIGHT)
-			sprite->changeAnimation(STAND_RIGHT);
-	}
-	
-	if(bJumping)
-	{
-		jumpAngle += JUMP_ANGLE_STEP;
-		if(jumpAngle == 180)
-		{
-			bJumping = false;
-			posPlayer.y = startY;
-		}
-		else
-		{
-			posPlayer.y = int(startY - 96 * sin(3.14159f * jumpAngle / 180.f));
-			if(jumpAngle > 90)
-				bJumping = !map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
-			else if(map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y))
-				jumpAngle = 180 - jumpAngle;
-		}
-	}
-	else
-	{
-		posPlayer.y += FALL_STEP;
-		if(map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y))
-		{
-			if((Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W)) && !bJumpKeyPressed)
+			posPlayer.x++;
+			if(map->collisionMoveRight(posPlayer, sizePlayer))
 			{
-				bJumping = true;
-				jumpAngle = 0;
-				startY = posPlayer.y;
+				posPlayer.x--;
+				break;
 			}
 		}
 	}
-	if(Game::instance().getKey(GLFW_KEY_G)){
-		invensible = true;
+	
+	if(verticalVelocity >= 0.f)
+	{
+		glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, 1);
+		grounded = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
+		if(grounded)
+		{
+			posPlayer.y = groundProbe.y;
+			verticalPosition = float(posPlayer.y);
+			verticalVelocity = 0.f;
+		}
+	}
+	bool startJump = grounded && jumpKeyPressed && !bJumpKeyPressed;
+	if(supportedBeforeMove && !grounded)
+	{
+		// Skip the slow start from rest when stepping off a platform or bomb.
+		verticalVelocity = LEDGE_FALL_SPEED_TILES * map->getTileSize();
+		shortJumpActive = false;
+	}
+	if(grounded)
+		shortJumpActive = startJump && !highJumpKeyPressed;
+
+	// For total flight time T and height H: gravity = 8H/T^2, launch speed = -4H/T.
+	const float jumpHeight = float((shortJumpActive ? SHORT_JUMP_HEIGHT_TILES : HIGH_JUMP_HEIGHT_TILES) * map->getTileSize());
+	const float jumpDuration = shortJumpActive ? SHORT_JUMP_DURATION : HIGH_JUMP_DURATION;
+	const float gravity = 8.f * jumpHeight / (jumpDuration * jumpDuration);
+	if(startJump)
+	{
+		verticalVelocity = -4.f * jumpHeight / jumpDuration;
+		grounded = false;
 	}
 
-	bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP);
+	// Keep fractional motion and split time to check collisions near the apex too.
+	float remainingTime = max(0, deltaTime) / 1000.f;
+	while(remainingTime > 0.f && !grounded)
+	{
+		float stepTime = min(remainingTime, MAX_VERTICAL_STEP_TIME);
+		remainingTime -= stepTime;
+		verticalPosition += verticalVelocity * stepTime + 0.5f * gravity * stepTime * stepTime;
+		verticalVelocity += gravity * stepTime;
+		int targetY = int(floor(verticalPosition));
+		int direction = targetY < posPlayer.y ? -1 : 1;
+		// Sweep every pixel so fast movement cannot skip tiles or solid bombs.
+		while(posPlayer.y != targetY)
+		{
+			posPlayer.y += direction;
+			bool collided = direction < 0
+				? map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y)
+				: map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
+			if(collided)
+			{
+				verticalPosition = float(posPlayer.y);
+				verticalVelocity = 0.f;
+				grounded = direction > 0;
+				break;
+			}
+		}
+	}
+	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
+		invensible = !invensible;
+	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
+
+	// Scene owns the bombs, so the player only asks for one on each key press
+	if(Game::instance().getKey(GLFW_KEY_SPACE) && !bBombKeyPressed)
+		bBombRequested = true;
+	bBombKeyPressed = Game::instance().getKey(GLFW_KEY_SPACE);
+
+	bJumpKeyPressed = jumpKeyPressed;
+
+	// Airborne poses take priority over walking, even with no horizontal input.
+	int animation = STAND;
+	if(!grounded)
+		animation = verticalVelocity < 0.f ? JUMP_UP : JUMP_DOWN;
+	else if(posPlayer.x != previousPos.x)
+		animation = MOVE;
+	if(sprite->animation() != animation)
+		sprite->changeAnimation(animation);
+	sprite->setFlipX(facingRight);
+	sprite->update(deltaTime);
 
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }
@@ -158,6 +232,37 @@ void Player::loseLife()
 	}
 }
 
+// Returns whether the player pressed the bomb key since the last call
+bool Player::takeBombRequest()
+{
+	bool requested = bBombRequested;
+	bBombRequested = false;
+
+	return requested;
+}
+
+// Buffs from picked-up items. Stats stop growing at their cap.
+void Player::applyItem(Item::ItemType type)
+{
+	switch(type)
+	{
+	case Item::BOMB_UP:
+		nBombs = min(nBombs + 1, MAX_BOMBS);
+		break;
+	case Item::FIRE_UP:
+		firePower = min(firePower + 1, MAX_FIRE_POWER);
+		break;
+	case Item::SPEED_UP:
+		moveSpeed = min(moveSpeed + 1, MAX_MOVE_SPEED);
+		break;
+	case Item::BOMB_PROOF:
+		bombProof = true;
+		break;
+	default:
+		break;
+	}
+}
+
 void Player::setTileMap(TileMap *tileMap)
 {
 	map = tileMap;
@@ -166,6 +271,9 @@ void Player::setTileMap(TileMap *tileMap)
 void Player::setPosition(const glm::vec2 &pos)
 {
 	posPlayer = pos;
+	verticalPosition = float(posPlayer.y);
+	verticalVelocity = 0.f;
+	shortJumpActive = false;
 	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
 }
 

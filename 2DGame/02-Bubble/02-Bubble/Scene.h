@@ -8,6 +8,9 @@
 #include "TileMap.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Bomb.h"
+#include "Item.h"
+#include "Projectile.h"
 #include "HUD.h"
 
 
@@ -28,13 +31,33 @@ public:
 
 private:
 	void initShaders();
+	void spawnFromLevel();
+	void spawnItem(Item::ItemType type, const glm::ivec2 &tile);
+	void collectItems();
+	void removeCollectedItems();
+	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity);
+	void updateProjectiles(int deltaTime);
 	void updateCamera();
+	void tryPlayerBomb();
+	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
+	void chainExplosions();
+	void applyExplosionDamage();
+	void removeDeadEnemies();
+	int activeBombs() const;
+	void updateBombs(int deltaTime);
 	bool playerTouches(const Enemy *enemy) const;
+	bool someoneInside(const Bomb *bomb) const;
+	static bool boxesOverlap(const glm::vec2 &posA, const glm::ivec2 &sizeA,
+	                         const glm::vec2 &posB, const glm::ivec2 &sizeB);
 
 private:
 	TileMap *map;
 	Player *player;
 	std::vector<Enemy *> enemies;
+	std::vector<Bomb *> bombs;
+	std::vector<Item *> items;
+	std::vector<Projectile *> projectiles;
+	Texture bombTexture, explosionTexture, itemTexture;
 	HUD *hud;
 	int score;
 	ShaderProgram texProgram;
