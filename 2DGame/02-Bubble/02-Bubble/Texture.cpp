@@ -51,6 +51,18 @@ bool Texture::loadFromFile(const string &filename, PixelFormat format)
 	return true;
 }
 
+void Texture::loadFromRGBABuffer(const unsigned char *buffer, int width, int height)
+{
+	widthTex = width;
+	heightTex = height;
+	glGenTextures(1, &texId);
+	glBindTexture(GL_TEXTURE_2D, texId);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+}
+
 void Texture::loadFromGlyphBuffer(unsigned char *buffer, int width, int height)
 {
 	glGenTextures(1, &texId);

@@ -4,6 +4,7 @@
 
 #include <GLFW/glfw3.h>
 #include "Scene.h"
+#include "Menu.h"
 
 
 #define SCREEN_WIDTH 640
@@ -17,7 +18,7 @@ class Game
 {
 
 private:
-	Game() {}
+	Game() { scene = NULL; }
 	
 public:
 	static Game &instance()
@@ -41,10 +42,18 @@ public:
 	bool getKey(int key) const;
 
 private:
+	void startLevel(int level);
+	void backToMenu();
+
+private:
+	enum GameState { MENU, PLAYING };
+
 	bool bPlay; // Continue to play game?
 	bool keys[GLFW_KEY_LAST+1]; // Store key states so that 
 							    // we can have access at any time
-	Scene scene;
+	GameState state;
+	Menu menu;
+	Scene *scene; // Only exists while a level is being played
 
 };
 
