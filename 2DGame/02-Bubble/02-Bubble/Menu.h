@@ -4,16 +4,14 @@
 
 #include <string>
 #include "ShaderProgram.h"
-#include "Sprite.h"
-#include "Texture.h"
+#include "Text.h"
 
 
 #define MENU_NUM_LEVELS 5
-#define MENU_MAX_TEXT_SCALE 5
 
 
 // Menu is the start screen: it lists the levels and lets the player pick one.
-// Text is drawn with a small bitmap font built in code, so it needs no image files.
+// Text is drawn with FreeType through the Text class.
 // Levels whose file does not exist yet are shown greyed out and cannot be picked.
 
 
@@ -37,15 +35,11 @@ public:
 
 private:
 	void initShaders();
-	void initFont();
 	void moveSelection(int step);
-	void renderText(const std::string &text, float x, float y, int scale, const glm::vec4 &color);
-	void renderTextCentered(const std::string &text, float y, int scale, const glm::vec4 &color);
 
 private:
 	ShaderProgram program;
-	Texture fontTexture;
-	Sprite *glyph[MENU_MAX_TEXT_SCALE]; // One quad size per text scale (1x..5x)
+	Text titleText, entryText, footerText;
 	bool available[MENU_NUM_LEVELS];
 	int selected, chosen;
 	float currentTime;
