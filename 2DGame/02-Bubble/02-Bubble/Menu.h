@@ -10,10 +10,6 @@
 #define MENU_NUM_LEVELS 5
 
 
-// Menu is the start screen: it lists the levels and lets the player pick one.
-// Text is drawn with FreeType through the Text class.
-// Levels whose file does not exist yet are shown greyed out and cannot be picked.
-
 
 class Menu
 {

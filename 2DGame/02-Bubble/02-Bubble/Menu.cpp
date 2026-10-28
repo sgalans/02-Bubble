@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Menu.h"
 #include "Game.h"
+#include "Audio.h"
 
 
 #define FONT_FILE "fonts/PressStart2P-Regular.ttf"
@@ -144,6 +145,8 @@ void Menu::moveSelection(int step)
 		int candidate = ((selected + step * i) % MENU_NUM_LEVELS + MENU_NUM_LEVELS) % MENU_NUM_LEVELS;
 		if(available[candidate])
 		{
+			if(candidate != selected)
+				Audio::instance().play(Audio::MENU_MOVE);
 			selected = candidate;
 			currentTime = 0.0f; // Restart the blink so the arrow shows right away
 			return;

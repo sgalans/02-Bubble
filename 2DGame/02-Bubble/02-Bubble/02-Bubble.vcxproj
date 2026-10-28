@@ -17,6 +17,7 @@
     <ClInclude Include="HUD.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Text.h" />
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
@@ -37,6 +38,7 @@
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -94,7 +96,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\libs\Simple OpenGL Image Library\src;..\..\..\libs\glew-1.13.0\include;..\..\..\libs\glm;..\..\..\libs\glfw-3.3.8\include;..\..\..\libs\freetype-2.3.5-1-bin\include;..\..\..\libs\freetype-2.3.5-1-bin\include\freetype2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\libs\Simple OpenGL Image Library\src;..\..\..\libs\glew-1.13.0\include;..\..\..\libs\glm;..\..\..\libs\glfw-3.3.8\include;..\..\..\libs\freetype-2.3.5-1-bin\include;..\..\..\libs\freetype-2.3.5-1-bin\include\freetype2;..\..\..\libs\miniaudio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,7 +114,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\libs\Simple OpenGL Image Library\src;..\..\..\libs\glfw-3.3.8\include;..\..\..\libs\glew-1.13.0\include;..\..\..\libs\glm;..\..\..\libs\freetype-2.3.5-1-bin\include;..\..\..\libs\freetype-2.3.5-1-bin\include\freetype2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\libs\Simple OpenGL Image Library\src;..\..\..\libs\glfw-3.3.8\include;..\..\..\libs\glew-1.13.0\include;..\..\..\libs\glm;..\..\..\libs\freetype-2.3.5-1-bin\include;..\..\..\libs\freetype-2.3.5-1-bin\include\freetype2;..\..\..\libs\miniaudio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Scene.h"
 #include "Game.h"
+#include "Audio.h"
 #include "Walker.h"
 #include "Runner.h"
 #include "Shooter.h"
@@ -142,6 +143,7 @@ void Scene::collectItems()
 		{
 			player->applyItem(items[i]->getType());
 			items[i]->collect();
+			Audio::instance().play(Audio::ITEM_PICKUP);
 		}
 	}
 }
@@ -257,6 +259,7 @@ bool Scene::placeBomb(const glm::ivec2 &tile, int range, bool playerOwned)
 	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
 	bomb->setPlayerOwned(playerOwned);
 	bombs.push_back(bomb);
+	Audio::instance().play(Audio::BOMB_PLACE);
 
 	return true;
 }

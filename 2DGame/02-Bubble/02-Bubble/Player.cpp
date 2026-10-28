@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include "Player.h"
 #include "Game.h"
+#include "Audio.h"
 
 
 #define HIGH_JUMP_HEIGHT_TILES 7 // set to 7 for easier testing
@@ -229,6 +230,7 @@ void Player::loseLife()
 		invulnTime = INVULNERABILITY_TIME;
 		if(lives > 0)
 			lives--;
+		Audio::instance().play(Audio::PLAYER_HURT);
 	}
 }
 

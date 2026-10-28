@@ -1,12 +1,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "Game.h"
+#include "Audio.h"
 
 
 void Game::init()
 {
 	bPlay = true;
 	glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+	Audio::instance().init();
 	menu.init();
 	state = MENU;
 }
@@ -75,6 +77,7 @@ bool Game::getKey(int key) const
 
 void Game::startLevel(int level)
 {
+	Audio::instance().play(Audio::MENU_SELECT);
 	scene = new Scene();
 	scene->init(Menu::levelFile(level));
 	state = PLAYING;

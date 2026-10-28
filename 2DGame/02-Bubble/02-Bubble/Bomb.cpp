@@ -1,4 +1,5 @@
 #include "Bomb.h"
+#include "Audio.h"
 
 
 #define FUSE_TIME 2500 //ms
@@ -129,6 +130,7 @@ void Bomb::explode()
 	map->clearBomb(tile.x, tile.y);
 	spreadFlames();
 	state = EXPLODING;
+	Audio::instance().play(Audio::EXPLOSION);
 	timer = EXPLOSION_TIME;
 }
 
