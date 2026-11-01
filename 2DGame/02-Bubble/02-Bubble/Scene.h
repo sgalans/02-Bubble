@@ -10,8 +10,10 @@
 #include "Enemy.h"
 #include "Bomb.h"
 #include "Item.h"
+#include "Door.h"
 #include "Projectile.h"
 #include "HUD.h"
+#include "Text.h"
 
 
 // Scene contains all the entities of our game.
@@ -29,6 +31,9 @@ public:
 	void update(int deltaTime);
 	void render();
 
+	// True once the player has walked into the open door. The level freezes and shows the win screen.
+	bool isCleared() const { return cleared; }
+
 private:
 	void initShaders();
 	void spawnFromLevel();
@@ -38,6 +43,8 @@ private:
 	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity);
 	void updateProjectiles(int deltaTime);
 	void updateCamera();
+	void updateDoor(int deltaTime);
+	void renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint);
 	void tryPlayerBomb();
 	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
 	void chainExplosions();
@@ -56,12 +63,16 @@ private:
 	std::vector<Enemy *> enemies;
 	std::vector<Bomb *> bombs;
 	std::vector<Item *> items;
+	Door *door; // NULL if the level file has no D
 	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture;
 	HUD *hud;
+	Text endTitleText, endHintText; // Death and win screens
 	int score;
 	ShaderProgram texProgram;
 	float currentTime;
+	int timeLeft; // ms until the level time limit runs out
+	bool cleared;
 	glm::mat4 projection;
 	glm::vec2 cameraPos, cameraSize;
 

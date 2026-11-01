@@ -44,10 +44,11 @@ void Menu::init()
 	{
 		ifstream fin(levelFile(i + 1).c_str());
 		available[i] = fin.good();
+		unlocked[i] = (i == 0);
 	}
 	// Start on the first level that can be played
 	selected = 0;
-	while(selected < MENU_NUM_LEVELS - 1 && !available[selected])
+	while(selected < MENU_NUM_LEVELS - 1 && !isPlayable(selected + 1))
 		selected++;
 	chosen = 0;
 	currentTime = 0.0f;
@@ -74,7 +75,7 @@ void Menu::render()
 		float y = float(FIRST_ENTRY_Y + i * ENTRY_SPACING);
 
 		glm::vec4 color;
-		if(!available[i])
+		if(!isPlayable(i + 1))
 			color = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
 		else if(i == selected)
 			color = glm::vec4(1.f, 1.f, 0.3f, 1.f);
@@ -109,11 +110,11 @@ void Menu::keyPressed(int key)
 	case GLFW_KEY_ENTER:
 	case GLFW_KEY_KP_ENTER:
 	case GLFW_KEY_SPACE:
-		if(available[selected])
+		if(isPlayable(selected + 1))
 			chosen = selected + 1;
 		break;
 	default:
-		// Number keys jump straight into that level
+		// Number keys jump straight into that level, even a locked one (debug shortcut)
 		if(key >= GLFW_KEY_1 && key < GLFW_KEY_1 + MENU_NUM_LEVELS && available[key - GLFW_KEY_1])
 		{
 			selected = key - GLFW_KEY_1;
@@ -137,13 +138,30 @@ string Menu::levelFile(int level)
 	return file.str();
 }
 
-// Moves to the next available level in the given direction, wrapping around
+void Menu::unlockLevel(int level)
+{
+	if(level < 1 || level > MENU_NUM_LEVELS)
+		return;
+	unlocked[level - 1] = true;
+	if(available[level - 1])
+	{
+		selected = level - 1;
+		currentTime = 0.0f;
+	}
+}
+
+bool Menu::isPlayable(int level) const
+{
+	return available[level - 1] && unlocked[level - 1];
+}
+
+// Moves to the next playable level in the given direction, wrapping around
 void Menu::moveSelection(int step)
 {
 	for(int i = 1; i <= MENU_NUM_LEVELS; i++)
 	{
 		int candidate = ((selected + step * i) % MENU_NUM_LEVELS + MENU_NUM_LEVELS) % MENU_NUM_LEVELS;
-		if(available[candidate])
+		if(isPlayable(candidate + 1))
 		{
 			if(candidate != selected)
 				Audio::instance().play(Audio::MENU_MOVE);

@@ -29,6 +29,7 @@
     <ClInclude Include="Walker.h" />
     <ClInclude Include="Bomb.h" />
     <ClInclude Include="Item.h" />
+    <ClInclude Include="Door.h" />
     <ClInclude Include="Shooter.h" />
     <ClInclude Include="Projectile.h" />
   </ItemGroup>
@@ -51,6 +52,7 @@
     <ClCompile Include="Walker.cpp" />
     <ClCompile Include="Bomb.cpp" />
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="Door.cpp" />
     <ClCompile Include="Shooter.cpp" />
     <ClCompile Include="Projectile.cpp" />
   </ItemGroup>

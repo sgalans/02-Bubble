@@ -29,6 +29,12 @@ public:
 
 	static std::string levelFile(int level);
 
+	// Unlocks the given level (1..MENU_NUM_LEVELS) and selects it, so after
+	// beating a level the next one is ready to play from the menu
+	void unlockLevel(int level);
+	// The level file exists and it has been unlocked
+	bool isPlayable(int level) const;
+
 private:
 	void initShaders();
 	void moveSelection(int step);
@@ -36,7 +42,8 @@ private:
 private:
 	ShaderProgram program;
 	Text titleText, entryText, footerText;
-	bool available[MENU_NUM_LEVELS];
+	bool available[MENU_NUM_LEVELS]; // The level file exists
+	bool unlocked[MENU_NUM_LEVELS]; // Level 1 always, the rest once the previous one is beaten
 	int selected, chosen;
 	float currentTime;
 

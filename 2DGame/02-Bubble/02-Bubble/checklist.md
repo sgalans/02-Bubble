@@ -3,12 +3,13 @@ Interface:
  - Instruccions []
  - Credits []
  - HUD vides [x]
- - HUD temps restant []
- - HUD enemics restants []
- - HUD bombes simultanies [] //HUD ja rep nBombs pero no el pinta
- - HUD mida explosio (fire) []
- - pantalla game over [] //perdre 3 vides -> tornar al menu
- - pantalla nivell superat / victoria final []
+ - HUD temps restant [x] //vermell i parpellejant els ultims 30s
+ - HUD enemics restants [x]
+ - HUD bombes simultanies [x]
+ - HUD mida explosio (fire) [x]
+ - pantalla game over [x] //"YOU ARE DEAD" + ESC torna al menu
+ - pantalla nivell superat [x]
+ - pantalla victoria final (despres del boss) []
 
 Enemy:
  - walker [x]
@@ -22,9 +23,11 @@ Nivells:
  - nivell3 []
  - nivell4 []
  - nivell5 [] //amb el boss
- - porta de sortida [] //nomes s'obre quan no queden enemics
- - superar nivell -> passar al seguent []
- - temps limit per nivell (i que fer quan s'acaba) []
+ - porta de sortida [x] //D al fitxer de nivell, textura placeholder (images/door.png)
+ - superar nivell -> passar al seguent [x] //pantalla "YOU WIN", ENTER seguent nivell, ESC menu
+ - recordar nivells superats al menu [x] //nomes durant la sessio, no es guarda a fitxer
+ - compte enrere del nivell [x] //3 min, LEVEL_TIME a Scene.cpp
+ - que passa quan el temps arriba a 0 [] //ara es queda a 0:00 i no passa res
  - posicio inicial del player llegida del fitxer de nivell [] //ara es fixa a Scene.cpp
 
 Moviment:
@@ -62,6 +65,7 @@ General (polish):
  - So efectes [x] //menu, bomba, explosio, item, mal
  - So: falten efectes [] //mort enemic, salt, porta, game over, victoria, boss
  - Musica de fons [] //Audio::playMusic existeix pero no es crida enlloc
+ - Textura definitiva de la porta []
  - Animacions [] //tantes com poguem (mort player/enemics, tile destruint-se, porta, HUD)
  - Transicions entre pantalles (fade) []
 

@@ -18,7 +18,7 @@ class Game
 {
 
 private:
-	Game() { scene = NULL; }
+	Game() { scene = NULL; currentLevel = 0; }
 	
 public:
 	static Game &instance()
@@ -44,6 +44,7 @@ public:
 private:
 	void startLevel(int level);
 	void backToMenu();
+	void levelCleared();
 
 private:
 	enum GameState { MENU, PLAYING };
@@ -54,6 +55,7 @@ private:
 	GameState state;
 	Menu menu;
 	Scene *scene; // Only exists while a level is being played
+	int currentLevel; // Level being played, 1..MENU_NUM_LEVELS
 
 };
 

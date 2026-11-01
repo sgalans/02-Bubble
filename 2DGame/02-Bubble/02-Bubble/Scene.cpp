@@ -17,11 +17,20 @@
 
 #define CAMERA_WIDTH_TILES 20
 
+#define LEVEL_TIME 180000 // ms to clear a level
+
+#define FONT_FILE "fonts/PressStart2P-Regular.ttf"
+// The font is drawn on an 8 pixel grid, so multiples of 8 keep it crisp
+#define END_TITLE_SIZE 32
+#define END_HINT_SIZE 16
+#define END_LINE_SPACING 24
+
 
 Scene::Scene()
 {
 	map = NULL;
 	player = NULL;
+	door = NULL;
 	hud = NULL;
 }
 
@@ -40,6 +49,8 @@ Scene::~Scene()
 		delete items[i];
 	for(unsigned int i = 0; i < projectiles.size(); i++)
 		delete projectiles[i];
+	if(door != NULL)
+		delete door;
 	if(hud != NULL)
 		delete hud;
 }
@@ -71,15 +82,19 @@ void Scene::init(const string &levelFile)
 
 	hud = new HUD();
 	hud->init(texProgram);
+	endTitleText.init(FONT_FILE, END_TITLE_SIZE, texProgram);
+	endHintText.init(FONT_FILE, END_HINT_SIZE, texProgram);
 
 	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getTileSize(),
 	                        CAMERA_WIDTH_TILES * map->getTileSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
 	updateCamera();
 	currentTime = 0.0f;
+	timeLeft = LEVEL_TIME;
+	cleared = false;
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, and the item letters listed in Item::typeFromLetter.
+// W = Walker, R = Runner, Z = Shooter, D = exit door, and the item letters listed in Item::typeFromLetter.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
@@ -90,6 +105,18 @@ void Scene::spawnFromLevel()
 		if(Item::typeFromLetter(spawns[i].type, itemType))
 		{
 			spawnItem(itemType, spawns[i].tile);
+			continue;
+		}
+
+		if(spawns[i].type == 'D')
+		{
+			if(door != NULL)
+				cout << "More than one door in level file, keeping the first" << endl;
+			else
+			{
+				door = new Door();
+				door->init(spawns[i].tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, texProgram);
+			}
 			continue;
 		}
 
@@ -198,7 +225,13 @@ void Scene::updateProjectiles(int deltaTime)
 
 void Scene::update(int deltaTime)
 {
+	// Everything stops on the win screen
+	if(cleared)
+		return;
 	currentTime += deltaTime;
+	// The clock stops once the player is out of lives
+	if(player->isAlive())
+		timeLeft = glm::max(0, timeLeft - deltaTime);
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();
@@ -220,8 +253,10 @@ void Scene::update(int deltaTime)
 	updateBombs(deltaTime);
 	applyExplosionDamage();
 	removeDeadEnemies();
+	updateDoor(deltaTime);
 	updateCamera();
-	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs());
+	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
+	            player->getFirePower(), int(enemies.size()), timeLeft);
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -347,6 +382,24 @@ void Scene::removeDeadEnemies()
 	}
 }
 
+// The door opens once no enemies are left. The player clears the level when
+// the centre of his body is inside the open door.
+void Scene::updateDoor(int deltaTime)
+{
+	if(door == NULL)
+		return;
+	door->update(deltaTime);
+	if(!door->isOpen() && enemies.empty())
+		door->open();
+	if(door->isOpen() && player->isAlive())
+	{
+		glm::vec2 center = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
+		glm::vec2 doorMin = door->getPosition(), doorMax = doorMin + glm::vec2(door->getSize());
+		if(center.x >= doorMin.x && center.x < doorMax.x && center.y >= doorMin.y && center.y < doorMax.y)
+			cleared = true;
+	}
+}
+
 bool Scene::playerTouches(const Enemy *enemy) const
 {
 	return boxesOverlap(player->getPosition(), player->getSize(), enemy->getPosition(), enemy->getSize());
@@ -395,6 +448,8 @@ void Scene::render()
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
 	map->render();
+	if(door != NULL)
+		door->render();
 	for(unsigned int i = 0; i < items.size(); i++)
 		items[i]->render();
 	for(unsigned int i = 0; i < bombs.size(); i++)
@@ -409,6 +464,20 @@ void Scene::render()
 	texProgram.setUniformMatrix4f("projection", glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f));
 	texProgram.setUniformMatrix4f("modelview", glm::mat4(1.0f));
 	hud->render();
+	if(cleared)
+		renderEndScreen("YOU WIN", glm::vec4(1.f, 0.85f, 0.2f, 1.f), "PRESS ENTER TO CONTINUE");
+	else if(!player->isAlive())
+		renderEndScreen("YOU ARE DEAD", glm::vec4(1.f, 0.f, 0.f, 1.f), "PRESS ESC TO RETURN TO MAIN MENU");
+}
+
+// Title centred on screen with a smaller white hint under it. Game::keyPressed
+// handles the keys: Escape goes back to the menu, Enter continues after a win.
+void Scene::renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint)
+{
+	float titleY = (SCREEN_HEIGHT - END_TITLE_SIZE - END_LINE_SPACING - END_HINT_SIZE) / 2.f;
+	endTitleText.renderCentered(title, titleY, SCREEN_WIDTH, titleColor);
+	endHintText.renderCentered(hint, titleY + END_TITLE_SIZE + END_LINE_SPACING, SCREEN_WIDTH,
+	                           glm::vec4(1.f, 1.f, 1.f, 1.f));
 }
 
 void Scene::initShaders()
