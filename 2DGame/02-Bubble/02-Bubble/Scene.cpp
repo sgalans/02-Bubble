@@ -229,9 +229,14 @@ void Scene::update(int deltaTime)
 	if(cleared)
 		return;
 	currentTime += deltaTime;
-	// The clock stops once the player is out of lives
+	// The clock stops once the player is out of lives. Running out of time
+	// kills him outright, which brings up the death screen.
 	if(player->isAlive())
+	{
 		timeLeft = glm::max(0, timeLeft - deltaTime);
+		if(timeLeft == 0)
+			player->loseAllLives();
+	}
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();

@@ -28,6 +28,8 @@ public:
 	glm::ivec2 getSize() const { return sizePlayer; }
 
 	void loseLife();
+	// Takes every life at once, ignoring invulnerability and god mode (used when time runs out)
+	void loseAllLives();
 	int getLives() const { return lives; }
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }

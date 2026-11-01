@@ -234,6 +234,14 @@ void Player::loseLife()
 	}
 }
 
+void Player::loseAllLives()
+{
+	if(lives <= 0)
+		return;
+	lives = 0;
+	Audio::instance().play(Audio::PLAYER_HURT);
+}
+
 // Returns whether the player pressed the bomb key since the last call
 bool Player::takeBombRequest()
 {

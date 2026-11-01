@@ -15,37 +15,37 @@ Enemy:
  - walker [x]
  - runner [x]
  - shooter [x]
- - Boss [] //nomes a l'ultim nivell
+ - Boss [] 
 
 Nivells:
- - nivell1 [] //existeix level01.txt pero es de proves
+ - nivell1 [] 
  - nivell2 []
  - nivell3 []
  - nivell4 []
- - nivell5 [] //amb el boss
- - porta de sortida [x] //D al fitxer de nivell, textura placeholder (images/door.png)
- - superar nivell -> passar al seguent [x] //pantalla "YOU WIN", ENTER seguent nivell, ESC menu
- - recordar nivells superats al menu [x] //nomes durant la sessio, no es guarda a fitxer
- - compte enrere del nivell [x] //3 min, LEVEL_TIME a Scene.cpp
- - que passa quan el temps arriba a 0 [] //ara es queda a 0:00 i no passa res
- - posicio inicial del player llegida del fitxer de nivell [] //ara es fixa a Scene.cpp
+ - nivell5 [] 
+ - porta de sortida [x] -> falta trobat textura per la porta
+ - superar nivell -> passar al seguent [x] 
+ - recordar nivells superats al menu [x] 
+ - compte enrere del nivell [x] 
+ - que passa quan el temps arriba a 0 [] 
+ - posicio inicial del player llegida del fitxer de nivell [] 
 
 Moviment:
  - fet [x]
 
 Vides:
- - 3 vides [] //ara comenca amb lives = 2 (Player.cpp)
+ - 3 vides [] 
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn / reiniciar nivell en perdre una vida []
- - perdre totes les vides -> tornar al menu [] //ara el player es queda quiet i no passa res
+
 
 Objectes:
  - Bomb Up [x]
  - Fire Up [x]
  - Speed Up [x]
  - Bomb Proof [x]
- - Cor (protegeix d'un cop) [] //el pdf el menciona, opcional si ja en tenim 4
- - objectes surten en destruir tiles [] //ara es col·loquen directament al mapa
+ - Cor (protegeix d'un cop) [] opcional
+ - objectes surten en destruir tiles []
 
 Gameplay:
  - posar Bombes [x]
