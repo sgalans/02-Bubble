@@ -36,6 +36,9 @@ Nivells:
 
 Moviment:
  - fet [x]
+ - reduir velocitat màxima de caiguda
+ - reduir velocitat de moviment de tot
+ - reduir velocitat que dóna el power up speed
 
 Vides:
  - 3 vides [x] 
@@ -61,7 +64,7 @@ Gameplay:
  - reaccio en cadena [x]
  - tiles destructibles [x]
  - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
- - millora de càmera
+ - millora de càmera []
 
 Tecles debug:
  - G god mode [x]
