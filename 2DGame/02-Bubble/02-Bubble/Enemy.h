@@ -46,6 +46,7 @@ protected:
 	TileMap *map;
 	int lives;
 	int hitCooldown;
+	float horizontalRemainder;
 
 };
 

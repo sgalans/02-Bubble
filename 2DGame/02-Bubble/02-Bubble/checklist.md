@@ -1,7 +1,7 @@
 Interface:
  - Menu principal [] //ara nomes es un selector de nivells, falta menu amb Jugar / Instruccions / Credits / Sortir
  - Instruccions []
- - Credits []
+ - Crèdits []
  - HUD vides [x]
  - HUD temps restant [x] //vermell i parpellejant els ultims 30s
  - HUD enemics restants [x]
@@ -18,12 +18,16 @@ Enemy:
  - Boss [] 
 
 Nivells:
- - nivell1 [] 
- - nivell2 []
+ - nivell1 [x] 
+ - millorar nivell 1 []
+ - nivell2 [x]
+ - millorar nivell 2 []
  - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
+ - millorar nivell 3 []
  - nivell4 []
  - nivell5 [] 
- - implementar memòria entre nivells
+ - memòria dels power-ups entre nivells consecutius [x]
+ - pensar en què fer amb els power-ups acomulats en cas de perdre una vida o morir
  - porta de sortida [x] -> falta trobat textura per la porta
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
@@ -33,6 +37,9 @@ Nivells:
 
 Moviment:
  - fet [x]
+ - reduir velocitat màxima de caiguda [x]
+ - reduir velocitat de moviment de tot [x]
+ - reduir velocitat que dóna el power up speed [x]
 
 Vides:
  - 3 vides [x] 
@@ -47,7 +54,7 @@ Objectes:
  - Bomb Proof [x]
  - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
  - Cor (protegeix d'un cop) [] opcional
- - objectes surten en destruir tiles []
+ - objectes surten en destruir tiles [x]
 
 Gameplay:
  - posar Bombes [x]
@@ -58,6 +65,7 @@ Gameplay:
  - reaccio en cadena [x]
  - tiles destructibles [x]
  - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
+ - millora de càmera [x]
 
 Tecles debug:
  - G god mode [x]

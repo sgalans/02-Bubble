@@ -12,11 +12,16 @@
 #define SHORT_JUMP_DURATION 0.5f
 #define MAX_VERTICAL_STEP_TIME (1.f / 120.f)
 #define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
+#define MAX_FALL_SPEED_TILES 15.f // tiles per second
 #define INVULNERABILITY_TIME 2000 //ms
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
-#define BASE_MOVE_SPEED 2 // pixels per frame
-#define MAX_MOVE_SPEED 4
+#define BASE_MOVE_SPEED 1.5f // pixels per frame
+#define SPEED_UP_INCREMENT 0.5f
+#define MAX_MOVE_SPEED 3.f
+#define PLAYER_SPRITE_WIDTH 16
+#define PLAYER_HEIGHT 16
+#define HITBOX_INSET_X 2
 
 
 
@@ -42,6 +47,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
 	verticalPosition = 0.f;
 	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	moveDirection = 0;
 	shortJumpActive = false;
 	facingRight = false;
 	bJumpKeyPressed = false;
@@ -59,7 +66,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet.setMinFilter(GL_NEAREST);
 	spritesheet.setMagFilter(GL_NEAREST);
-	sizePlayer = glm::ivec2(16, 16);
+	sizePlayer = glm::ivec2(PLAYER_SPRITE_WIDTH - 2 * HITBOX_INSET_X, PLAYER_HEIGHT);
 	// Left-facing poses on the ragged sheet, cropped to 16x16 at y = 2.
 	glm::vec2 frameSize(16.f / spritesheet.width(), 16.f / spritesheet.height());
 	glm::vec2 standFrame(4.f / spritesheet.width(), 2.f / spritesheet.height());
@@ -67,7 +74,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	glm::vec2 frameB(36.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpUpFrame(86.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpDownFrame(69.f / spritesheet.width(), 2.f / spritesheet.height());
-	sprite = Sprite::createSprite(glm::vec2(sizePlayer), frameSize, &spritesheet, &shaderProgram);
+	sprite = Sprite::createSprite(glm::vec2(PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT), frameSize, &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(4);
 	
 		sprite->setAnimationSpeed(STAND, 8);
@@ -86,7 +93,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	sprite->changeAnimation(STAND);
 	sprite->setFlipX(false);
 	tileMapDispl = tileMapPos;
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	posPlayer = glm::ivec2(HITBOX_INSET_X, 0);
+	updateSpritePosition();
 	
 }
 
@@ -109,29 +117,31 @@ void Player::update(int deltaTime)
 		glm::ivec2 groundProbe = posPlayer + glm::ivec2(0, 1);
 		supportedBeforeMove = map->collisionMoveDown(groundProbe, sizePlayer, &groundProbe.y);
 	}
+	int directionX = 0;
 	if(Game::instance().getKey(GLFW_KEY_LEFT) || Game::instance().getKey(GLFW_KEY_A))
-	{
-		facingRight = false;
-		// One pixel at a time so higher speeds still stop flush against walls
-		for(int i = 0; i < moveSpeed; i++)
-		{
-			posPlayer.x--;
-			if(map->collisionMoveLeft(posPlayer, sizePlayer))
-			{
-				posPlayer.x++;
-				break;
-			}
-		}
-	}
+		directionX = -1;
 	else if(Game::instance().getKey(GLFW_KEY_RIGHT) || Game::instance().getKey(GLFW_KEY_D))
+		directionX = 1;
+	if(directionX != moveDirection)
 	{
-		facingRight = true;
-		for(int i = 0; i < moveSpeed; i++)
+		horizontalRemainder = 0.f;
+		moveDirection = directionX;
+	}
+	if(directionX != 0)
+	{
+		facingRight = directionX > 0;
+		horizontalRemainder += moveSpeed;
+		int steps = int(horizontalRemainder);
+		horizontalRemainder -= steps;
+		// One pixel at a time so higher speeds still stop flush against walls.
+		for(int i = 0; i < steps; i++)
 		{
-			posPlayer.x++;
-			if(map->collisionMoveRight(posPlayer, sizePlayer))
+			posPlayer.x += directionX;
+			if(directionX < 0 ? map->collisionMoveLeft(posPlayer, sizePlayer)
+			                  : map->collisionMoveRight(posPlayer, sizePlayer))
 			{
-				posPlayer.x--;
+				posPlayer.x -= directionX;
+				horizontalRemainder = 0.f;
 				break;
 			}
 		}
@@ -162,6 +172,7 @@ void Player::update(int deltaTime)
 	const float jumpHeight = float((shortJumpActive ? SHORT_JUMP_HEIGHT_TILES : HIGH_JUMP_HEIGHT_TILES) * map->getTileSize());
 	const float jumpDuration = shortJumpActive ? SHORT_JUMP_DURATION : HIGH_JUMP_DURATION;
 	const float gravity = 8.f * jumpHeight / (jumpDuration * jumpDuration);
+	const float maxFallSpeed = MAX_FALL_SPEED_TILES * map->getTileSize();
 	if(startJump)
 	{
 		verticalVelocity = -4.f * jumpHeight / jumpDuration;
@@ -174,8 +185,10 @@ void Player::update(int deltaTime)
 	{
 		float stepTime = min(remainingTime, MAX_VERTICAL_STEP_TIME);
 		remainingTime -= stepTime;
-		verticalPosition += verticalVelocity * stepTime + 0.5f * gravity * stepTime * stepTime;
-		verticalVelocity += gravity * stepTime;
+		float acceleratingTime = glm::clamp((maxFallSpeed - verticalVelocity) / gravity, 0.f, stepTime);
+		verticalPosition += verticalVelocity * acceleratingTime + 0.5f * gravity * acceleratingTime * acceleratingTime;
+		verticalVelocity = min(verticalVelocity + gravity * acceleratingTime, maxFallSpeed);
+		verticalPosition += verticalVelocity * (stepTime - acceleratingTime);
 		int targetY = int(floor(verticalPosition));
 		int direction = targetY < posPlayer.y ? -1 : 1;
 		// Sweep every pixel so fast movement cannot skip tiles or solid bombs.
@@ -216,7 +229,7 @@ void Player::update(int deltaTime)
 	sprite->setFlipX(facingRight);
 	sprite->update(deltaTime);
 
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	updateSpritePosition();
 }
 
 void Player::render()
@@ -263,7 +276,7 @@ void Player::applyItem(Item::ItemType type)
 		firePower = min(firePower + 1, MAX_FIRE_POWER);
 		break;
 	case Item::SPEED_UP:
-		moveSpeed = min(moveSpeed + 1, MAX_MOVE_SPEED);
+		moveSpeed = min(moveSpeed + SPEED_UP_INCREMENT, MAX_MOVE_SPEED);
 		break;
 	case Item::BOMB_PROOF:
 		bombProof = true;
@@ -273,6 +286,20 @@ void Player::applyItem(Item::ItemType type)
 	}
 }
 
+Player::PowerUps Player::getPowerUps() const
+{
+	PowerUps powerUps = { nBombs, firePower, moveSpeed, bombProof };
+	return powerUps;
+}
+
+void Player::setPowerUps(const PowerUps &powerUps)
+{
+	nBombs = powerUps.nBombs;
+	firePower = powerUps.firePower;
+	moveSpeed = powerUps.moveSpeed;
+	bombProof = powerUps.bombProof;
+}
+
 void Player::setTileMap(TileMap *tileMap)
 {
 	map = tileMap;
@@ -280,13 +307,19 @@ void Player::setTileMap(TileMap *tileMap)
 
 void Player::setPosition(const glm::vec2 &pos)
 {
-	posPlayer = pos;
+	posPlayer = glm::ivec2(pos) + glm::ivec2(HITBOX_INSET_X, 0);
 	verticalPosition = float(posPlayer.y);
 	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	moveDirection = 0;
 	shortJumpActive = false;
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	updateSpritePosition();
 }
 
+void Player::updateSpritePosition()
+{
+	sprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 0)));
+}
 
 
 

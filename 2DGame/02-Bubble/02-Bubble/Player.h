@@ -14,6 +14,13 @@
 class Player
 {
 public:
+	struct PowerUps
+	{
+		int nBombs, firePower;
+		float moveSpeed;
+		bool bombProof;
+	};
+
 	Player();
 	~Player();
 
@@ -23,6 +30,7 @@ public:
 	void render();
 	
 	void setTileMap(TileMap *tileMap);
+	// Position uses the sprite's top-left; getPosition returns the hitbox's top-left.
 	void setPosition(const glm::vec2 &pos);
 	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posPlayer.x, tileMapDispl.y + posPlayer.y); }
 	glm::ivec2 getSize() const { return sizePlayer; }
@@ -40,6 +48,11 @@ public:
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+	PowerUps getPowerUps() const;
+	void setPowerUps(const PowerUps &powerUps);
+
+private:
+	void updateSpritePosition();
 
 private:
 	bool facingRight;
@@ -48,13 +61,14 @@ private:
 	bool bBombKeyPressed;
 	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
-	float verticalPosition, verticalVelocity;
+	float verticalPosition, verticalVelocity, horizontalRemainder;
+	int moveDirection;
 	bool shortJumpActive;
 	int lives, maxLives;
 	int invulnTime;
 	int nBombs;
 	int firePower; // flame length in tiles
-	int moveSpeed; // pixels per frame
+	float moveSpeed; // pixels per frame
 	bool bombProof;
 	Texture spritesheet;
 	Sprite *sprite;

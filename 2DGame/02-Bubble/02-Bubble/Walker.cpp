@@ -2,8 +2,8 @@
 #include "Walker.h"
 
 
-#define WALKER_SPEED 1.0f
-#define FALL_STEP 4
+#define WALKER_SPEED 0.5f
+#define FALL_STEP 2
 
 // Draw and collide at the source art's native size.
 #define WALKER_WIDTH 13
@@ -71,22 +71,25 @@ void Walker::update(int deltaTime)
 
 	// Only guard edges while standing, so a walker spawned mid-air still drops.
 	bool onGround = hasFloorBelow(posEnemy.x, sizeEnemy.x);
+	horizontalRemainder += WALKER_SPEED;
+	int steps = int(horizontalRemainder);
+	horizontalRemainder -= steps;
 
 	if(sprite->animation() == MOVE_LEFT)
 	{
-		posEnemy.x -= WALKER_SPEED;
+		posEnemy.x -= steps;
 		if(map->collisionMoveLeft(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x, 1)))
 		{
-			posEnemy.x += WALKER_SPEED;
+			posEnemy.x += steps;
 			sprite->changeAnimation(MOVE_RIGHT);
 		}
 	}
 	else
 	{
-		posEnemy.x += WALKER_SPEED;
+		posEnemy.x += steps;
 		if(map->collisionMoveRight(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x + sizeEnemy.x - 1, 1)))
 		{
-			posEnemy.x -= WALKER_SPEED;
+			posEnemy.x -= steps;
 			sprite->changeAnimation(MOVE_LEFT);
 		}
 	}

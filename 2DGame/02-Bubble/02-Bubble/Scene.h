@@ -33,6 +33,8 @@ public:
 
 	// True once the player has walked into the open door. The level freezes and shows the win screen.
 	bool isCleared() const { return cleared; }
+	Player::PowerUps getPowerUps() const { return player->getPowerUps(); }
+	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
 
 private:
 	void initShaders();

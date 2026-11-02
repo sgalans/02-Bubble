@@ -15,7 +15,7 @@
 #define INIT_PLAYER_X_TILES 2
 #define INIT_PLAYER_Y_TILES 14
 
-#define CAMERA_HEIGHT_TILES 20
+#define CAMERA_HEIGHT_TILES 10
 
 #define LEVEL_TIME 180000 // ms to clear a level
 
