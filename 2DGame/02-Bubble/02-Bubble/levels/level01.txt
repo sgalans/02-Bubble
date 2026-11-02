@@ -5,7 +5,7 @@ images/level01_tiles.png -- Tilesheet
 10 4               -- Number of tiles in tilesheet
 tttttttttttttttt
 t *          * t
-t             Dt
+t W           Dt
 tei    dhi   det
 t       3      t
 t      W       t
