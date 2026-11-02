@@ -19,6 +19,9 @@
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
 #define SPEED_UP_INCREMENT 0.5f
 #define MAX_MOVE_SPEED 3.f
+#define PLAYER_SPRITE_WIDTH 16
+#define PLAYER_HEIGHT 16
+#define HITBOX_INSET_X 2
 
 
 
@@ -63,7 +66,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet.setMinFilter(GL_NEAREST);
 	spritesheet.setMagFilter(GL_NEAREST);
-	sizePlayer = glm::ivec2(16, 16);
+	sizePlayer = glm::ivec2(PLAYER_SPRITE_WIDTH - 2 * HITBOX_INSET_X, PLAYER_HEIGHT);
 	// Left-facing poses on the ragged sheet, cropped to 16x16 at y = 2.
 	glm::vec2 frameSize(16.f / spritesheet.width(), 16.f / spritesheet.height());
 	glm::vec2 standFrame(4.f / spritesheet.width(), 2.f / spritesheet.height());
@@ -71,7 +74,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	glm::vec2 frameB(36.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpUpFrame(86.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpDownFrame(69.f / spritesheet.width(), 2.f / spritesheet.height());
-	sprite = Sprite::createSprite(glm::vec2(sizePlayer), frameSize, &spritesheet, &shaderProgram);
+	sprite = Sprite::createSprite(glm::vec2(PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT), frameSize, &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(4);
 	
 		sprite->setAnimationSpeed(STAND, 8);
@@ -90,7 +93,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	sprite->changeAnimation(STAND);
 	sprite->setFlipX(false);
 	tileMapDispl = tileMapPos;
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	posPlayer = glm::ivec2(HITBOX_INSET_X, 0);
+	updateSpritePosition();
 	
 }
 
@@ -225,7 +229,7 @@ void Player::update(int deltaTime)
 	sprite->setFlipX(facingRight);
 	sprite->update(deltaTime);
 
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	updateSpritePosition();
 }
 
 void Player::render()
@@ -289,15 +293,19 @@ void Player::setTileMap(TileMap *tileMap)
 
 void Player::setPosition(const glm::vec2 &pos)
 {
-	posPlayer = pos;
+	posPlayer = glm::ivec2(pos) + glm::ivec2(HITBOX_INSET_X, 0);
 	verticalPosition = float(posPlayer.y);
 	verticalVelocity = 0.f;
 	horizontalRemainder = 0.f;
 	moveDirection = 0;
 	shortJumpActive = false;
-	sprite->setPosition(glm::vec2(float(tileMapDispl.x + posPlayer.x), float(tileMapDispl.y + posPlayer.y)));
+	updateSpritePosition();
 }
 
+void Player::updateSpritePosition()
+{
+	sprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 0)));
+}
 
 
 

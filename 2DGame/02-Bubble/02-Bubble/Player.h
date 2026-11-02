@@ -23,6 +23,7 @@ public:
 	void render();
 	
 	void setTileMap(TileMap *tileMap);
+	// Position uses the sprite's top-left; getPosition returns the hitbox's top-left.
 	void setPosition(const glm::vec2 &pos);
 	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posPlayer.x, tileMapDispl.y + posPlayer.y); }
 	glm::ivec2 getSize() const { return sizePlayer; }
@@ -40,6 +41,9 @@ public:
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+
+private:
+	void updateSpritePosition();
 
 private:
 	bool facingRight;
