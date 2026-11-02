@@ -21,7 +21,7 @@ public:
 
 public:
 	void init(ShaderProgram &shaderProgram);
-	void update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft);
+	void update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey);
 	void render();
 
 private:
@@ -34,8 +34,11 @@ private:
 	ShaderProgram *program;
 	int lives, maxLives, nBombs, firePower, enemiesLeft, timeLeft;
 	float currentTime;
+	bool hasKey;
 	Texture lifeTexture;
+	Texture keyTexture;
 	Sprite *lifeSprite;
+	Sprite *keySprite;
 	Text statText;
 
 };

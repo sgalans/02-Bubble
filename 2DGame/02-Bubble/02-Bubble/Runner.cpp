@@ -75,9 +75,18 @@ void Runner::setPlayer(const Player *target)
 	player = target;
 }
 
+bool Runner::hasFloorBelow(int x, int width) const
+{
+	glm::ivec2 probePos(x, posEnemy.y + 1);
+	int probeY = probePos.y;
+	return map->collisionMoveDown(probePos, glm::ivec2(width, sizeEnemy.y), &probeY);
+}
+
 void Runner::update(int deltaTime)
 {
 	sprite->update(deltaTime);
+	// Only guard edges while standing, so airborne runners can still land.
+	bool onGround = hasFloorBelow(posEnemy.x, sizeEnemy.x);
 
 	// Spotting the player starts a charge; losing sight of it mid-charge (it
 	// jumped over us, or got out of reach) makes the runner turn around.
@@ -93,7 +102,7 @@ void Runner::update(int deltaTime)
 	if(direction == 0)
 	{
 		posEnemy.x -= speed;
-		if(map->collisionMoveLeft(posEnemy, sizeEnemy))
+		if(map->collisionMoveLeft(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x, 1)))
 		{
 			posEnemy.x += speed;
 			chasing = false;
@@ -103,7 +112,7 @@ void Runner::update(int deltaTime)
 	else
 	{
 		posEnemy.x += speed;
-		if(map->collisionMoveRight(posEnemy, sizeEnemy))
+		if(map->collisionMoveRight(posEnemy, sizeEnemy) || (onGround && !hasFloorBelow(posEnemy.x + sizeEnemy.x - 1, 1)))
 		{
 			posEnemy.x -= speed;
 			chasing = false;

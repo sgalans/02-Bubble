@@ -12,10 +12,10 @@
 #define SCREEN_X 32
 #define SCREEN_Y 16
 
-#define INIT_PLAYER_X_TILES 4
-#define INIT_PLAYER_Y_TILES 25
+#define INIT_PLAYER_X_TILES 2
+#define INIT_PLAYER_Y_TILES 14
 
-#define CAMERA_WIDTH_TILES 20
+#define CAMERA_HEIGHT_TILES 20
 
 #define LEVEL_TIME 180000 // ms to clear a level
 
@@ -31,6 +31,7 @@ Scene::Scene()
 	map = NULL;
 	player = NULL;
 	door = NULL;
+	hasKey = false;
 	hud = NULL;
 }
 
@@ -51,6 +52,8 @@ Scene::~Scene()
 		delete projectiles[i];
 	if(door != NULL)
 		delete door;
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+		delete keyGates[i];
 	if(hud != NULL)
 		delete hud;
 }
@@ -77,6 +80,9 @@ void Scene::init(const string &levelFile)
 	itemTexture.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	itemTexture.setMinFilter(GL_NEAREST);
 	itemTexture.setMagFilter(GL_NEAREST);
+	personalizedTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	personalizedTexture.setMinFilter(GL_NEAREST);
+	personalizedTexture.setMagFilter(GL_NEAREST);
 
 	spawnFromLevel();
 
@@ -85,8 +91,8 @@ void Scene::init(const string &levelFile)
 	endTitleText.init(FONT_FILE, END_TITLE_SIZE, texProgram);
 	endHintText.init(FONT_FILE, END_HINT_SIZE, texProgram);
 
-	cameraSize = glm::vec2(CAMERA_WIDTH_TILES * map->getTileSize(),
-	                        CAMERA_WIDTH_TILES * map->getTileSize() * float(SCREEN_HEIGHT) / float(SCREEN_WIDTH));
+	cameraSize = glm::vec2(CAMERA_HEIGHT_TILES * map->getTileSize() * float(SCREEN_WIDTH) / float(SCREEN_HEIGHT),
+	                        CAMERA_HEIGHT_TILES * map->getTileSize());
 	updateCamera();
 	currentTime = 0.0f;
 	timeLeft = LEVEL_TIME;
@@ -94,17 +100,32 @@ void Scene::init(const string &levelFile)
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, D = exit door, and the item letters listed in Item::typeFromLetter.
+// W = Walker, R = Runner, Z = Shooter, D = exit, L = key gate, @ = player
+// and the item letters listed in Item::typeFromLetter mark bushes hiding power-ups.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
 	const vector<TileMap::Spawn> &spawns = map->getSpawns();
 	for(unsigned int i = 0; i < spawns.size(); i++)
 	{
+		if(spawns[i].type == '@')
+		{
+			player->setPosition(glm::vec2(spawns[i].tile * map->getTileSize()));
+			continue;
+		}
+
 		Item::ItemType itemType;
 		if(Item::typeFromLetter(spawns[i].type, itemType))
 		{
 			spawnItem(itemType, spawns[i].tile);
+			continue;
+		}
+
+		if(spawns[i].type == 'L')
+		{
+			Door *gate = new Door();
+			gate->init(spawns[i].tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, texProgram, true);
+			keyGates.push_back(gate);
 			continue;
 		}
 
@@ -154,7 +175,8 @@ void Scene::spawnFromLevel()
 void Scene::spawnItem(Item::ItemType type, const glm::ivec2 &tile)
 {
 	Item *item = new Item();
-	item->init(type, tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
+	Texture *sheet = type == Item::KEY ? &personalizedTexture : &itemTexture;
+	item->init(type, tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, sheet, texProgram);
 	items.push_back(item);
 }
 
@@ -165,10 +187,13 @@ void Scene::collectItems()
 		return;
 	for(unsigned int i = 0; i < items.size(); i++)
 	{
-		if(!items[i]->isCollected() &&
+		if(items[i]->isAvailable() &&
 		   boxesOverlap(player->getPosition(), player->getSize(), items[i]->getPosition(), items[i]->getSize()))
 		{
-			player->applyItem(items[i]->getType());
+			if(items[i]->getType() == Item::KEY)
+				hasKey = true;
+			else
+				player->applyItem(items[i]->getType());
 			items[i]->collect();
 			Audio::instance().play(Audio::ITEM_PICKUP);
 		}
@@ -261,7 +286,7 @@ void Scene::update(int deltaTime)
 	updateDoor(deltaTime);
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
-	            player->getFirePower(), int(enemies.size()), timeLeft);
+	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey);
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -391,6 +416,24 @@ void Scene::removeDeadEnemies()
 // the centre of his body is inside the open door.
 void Scene::updateDoor(int deltaTime)
 {
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+	{
+		Door *gate = keyGates[i];
+		gate->update(deltaTime);
+		// The closed gate is solid, so include flush contact in the overlap test.
+		if(!gate->isOpen() && hasKey && player->isAlive() &&
+		   boxesOverlap(player->getPosition() - glm::vec2(1.f), player->getSize() + glm::ivec2(2),
+		                gate->getPosition(), gate->getSize()))
+		{
+			gate->open();
+			if(gate->isOpen())
+			{
+				hasKey = false;
+				Audio::instance().play(Audio::MENU_SELECT);
+			}
+		}
+	}
+
 	if(door == NULL)
 		return;
 	door->update(deltaTime);
@@ -437,8 +480,14 @@ void Scene::updateCamera()
 	glm::vec2 playerCenter = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
 
 	cameraPos = playerCenter - cameraSize / 2.f;
-	cameraPos.x = glm::clamp(cameraPos.x, worldMin.x, glm::max(worldMin.x, worldMax.x - cameraSize.x));
-	cameraPos.y = glm::clamp(cameraPos.y, worldMin.y, glm::max(worldMin.y, worldMax.y - cameraSize.y));
+	// Centre small maps; follow the player when the map exceeds the viewport.
+	for(int axis = 0; axis < 2; axis++)
+	{
+		if(worldMax[axis] - worldMin[axis] <= cameraSize[axis])
+			cameraPos[axis] = (worldMin[axis] + worldMax[axis] - cameraSize[axis]) / 2.f;
+		else
+			cameraPos[axis] = glm::clamp(cameraPos[axis], worldMin[axis], worldMax[axis] - cameraSize[axis]);
+	}
 }
 
 void Scene::render()
@@ -455,6 +504,8 @@ void Scene::render()
 	map->render();
 	if(door != NULL)
 		door->render();
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+		keyGates[i]->render();
 	for(unsigned int i = 0; i < items.size(); i++)
 		items[i]->render();
 	for(unsigned int i = 0; i < bombs.size(); i++)

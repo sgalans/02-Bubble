@@ -33,6 +33,8 @@ HUD::HUD()
 {
 	program = NULL;
 	lifeSprite = NULL;
+	keySprite = NULL;
+	hasKey = false;
 	lives = maxLives = nBombs = firePower = enemiesLeft = timeLeft = 0;
 	currentTime = 0.0f;
 }
@@ -41,6 +43,7 @@ HUD::~HUD()
 {
 	if(lifeSprite != NULL)
 		delete lifeSprite;
+	delete keySprite;
 }
 
 
@@ -59,10 +62,21 @@ void HUD::init(ShaderProgram &shaderProgram)
 	lifeSprite->addKeyframe(HEART_FULL, glm::vec2(0.f, 0.f));                 // top row, first
 	lifeSprite->addKeyframe(HEART_EMPTY, glm::vec2(4 * HEART_FRAME_W, 0.f));  // top row, last
 
+	keyTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	keyTexture.setMinFilter(GL_NEAREST);
+	keyTexture.setMagFilter(GL_NEAREST);
+	glm::vec2 keyFrame(16.f / keyTexture.width(), 16.f / keyTexture.height());
+	keySprite = Sprite::createSprite(glm::vec2(HEART_SIZE), keyFrame, &keyTexture, program);
+	keySprite->setNumberAnimations(1);
+	keySprite->setAnimationSpeed(0, 1);
+	keySprite->addKeyframe(0, glm::vec2(2.f, 1.f) * keyFrame);
+	keySprite->changeAnimation(0);
+	keySprite->setPosition(glm::vec2(SCREEN_WIDTH - HUD_MARGIN - HEART_SIZE, HUD_MARGIN));
+
 	statText.init(FONT_FILE, STAT_SIZE, *program);
 }
 
-void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft)
+void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey)
 {
 	currentTime += deltaTime;
 	if(this->lives != lives){
@@ -77,12 +91,15 @@ void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePow
 	this->firePower = firePower;
 	this->enemiesLeft = enemiesLeft;
 	this->timeLeft = timeLeft;
+	this->hasKey = hasKey;
 }
 
 void HUD::render()
 {
 	renderLives();
 	renderStats();
+	if(hasKey)
+		keySprite->render();
 }
 
 void HUD::renderLives()

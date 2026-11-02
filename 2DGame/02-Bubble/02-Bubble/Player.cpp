@@ -6,7 +6,7 @@
 #include "Audio.h"
 
 
-#define HIGH_JUMP_HEIGHT_TILES 7 // set to 7 for easier testing
+#define HIGH_JUMP_HEIGHT_TILES 3
 #define SHORT_JUMP_HEIGHT_TILES 2
 #define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
 #define SHORT_JUMP_DURATION 0.5f
@@ -48,7 +48,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	bGodKeyPressed = false;
 	bBombKeyPressed = false;
 	bBombRequested = false;
-	lives = 2;
+	lives = 3;
 	maxLives = 3;
 	nBombs = 1;
 	firePower = 1; // Fire Up items extend it

@@ -2,15 +2,16 @@
 
 
 // The power-up icons on bomberman.png are 16x16 squares laid out on an 18 px
-// grid starting at (21, 117). Each entry is the pixel offset of one ItemType.
+// grid starting at (21, 117). The key uses personalized.png instead.
 #define ICON_SIZE 16.f
 
 static const glm::vec2 ICON_PIXELS[Item::N_TYPES] =
 {
 	glm::vec2(21.f, 117.f),  // BOMB_UP: bomb
-	glm::vec2(57.f, 135.f),  // FIRE_UP: "F"
+	glm::vec2(39.f, 117.f),  // FIRE_UP: flame
 	glm::vec2(57.f, 117.f),  // SPEED_UP: roller skates
-	glm::vec2(75.f, 117.f)   // BOMB_PROOF: vest
+	glm::vec2(75.f, 117.f),  // BOMB_PROOF: vest
+	glm::vec2(32.f, 16.f)    // KEY: personalized.png, column 2, row 1
 };
 
 
@@ -59,11 +60,11 @@ void Item::update(int deltaTime)
 
 void Item::render()
 {
-	if(!collected)
+	if(isAvailable())
 		sprite->render();
 }
 
-// B = bomb up, F = fire up, S = speed up, P = bomb proof
+// B = bomb up, F = fire up, S = speed up, P = bomb proof, K = key
 bool Item::typeFromLetter(char letter, ItemType &type)
 {
 	switch(letter)
@@ -79,6 +80,9 @@ bool Item::typeFromLetter(char letter, ItemType &type)
 		return true;
 	case 'P':
 		type = BOMB_PROOF;
+		return true;
+	case 'K':
+		type = KEY;
 		return true;
 	default:
 		return false;

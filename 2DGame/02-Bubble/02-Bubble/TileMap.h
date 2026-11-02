@@ -6,14 +6,17 @@
 #include <glm/glm.hpp>
 #include "Texture.h"
 #include "ShaderProgram.h"
+#include "Sprite.h"
 
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
 // simple format (see level01.txt for an example). With this information
 // it builds a single VBO that contains all tiles. As a result the render
 // method draws the whole map independently of what is visible.
-// Letters in the map mark where enemies and items start: the cell is left
-// empty and the letter is stored as a spawn point for the scene to read.
+// Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
+// * marks a solid bush that explosions can destroy.
+// B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
+// W/R/Z mark enemies, D the exit and @ the player start. All are spawn points.
 
 
 class TileMap
@@ -57,6 +60,8 @@ public:
 
 	// True for map tiles and for anything outside the map (ignores bombs)
 	bool isWall(int x, int y) const;
+	bool destroyDestructible(int x, int y);
+	bool openKeyGate(int x, int y);
 
 	// Bomb mirror map, in tile coordinates
 	bool setBomb(int x, int y);
@@ -79,6 +84,8 @@ private:
 	glm::ivec2 position, mapSize, tilesheetSize;
 	int tileSize, blockSize;
 	Texture tilesheet;
+	Texture bushTexture;
+	Sprite *bushSprite;
 	glm::vec2 tileTexSize;
 	int *map;
 	int *bombMap;

@@ -21,13 +21,31 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 {
 	map = NULL;
 	bombMap = NULL;
+	bushSprite = NULL;
 	position = glm::ivec2(minCoords);
 	loadLevel(levelFile);
 	prepareArrays(minCoords, program);
+	for(int i = 0; i < mapSize.x * mapSize.y; i++)
+	{
+		if(map[i] != -1)
+			continue;
+		bushTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
+		bushTexture.setMinFilter(GL_NEAREST);
+		bushTexture.setMagFilter(GL_NEAREST);
+		// Tile 4 starts at column 0, row 1 in the 3x3 tilesheet.
+		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
+		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
+		bushSprite->setNumberAnimations(1);
+		bushSprite->setAnimationSpeed(0, 1);
+		bushSprite->addKeyframe(0, glm::vec2(0.f, bushTexSize.y));
+		bushSprite->changeAnimation(0);
+		break;
+	}
 }
 
 TileMap::~TileMap()
 {
+	delete bushSprite;
 	if(map != NULL)
 		delete [] map;
 	if(bombMap != NULL)
@@ -45,6 +63,19 @@ void TileMap::render() const
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nTiles);
 	glDisable(GL_TEXTURE_2D);
+	if(bushSprite != NULL)
+	{
+		for(int y = 0; y < mapSize.y; y++)
+		{
+			for(int x = 0; x < mapSize.x; x++)
+			{
+				if(map[y * mapSize.x + x] != -1)
+					continue;
+				bushSprite->setPosition(glm::vec2(position + glm::ivec2(x, y) * tileSize));
+				bushSprite->render();
+			}
+		}
+	}
 }
 
 void TileMap::free()
@@ -94,12 +125,21 @@ bool TileMap::loadLevel(const string &levelFile)
 			fin.get(tile);
 			if(tile == ' ')
 				map[j*mapSize.x+i] = 0;
-			else if(isalpha(tile))
+			else if(tile == '*')
+				map[j*mapSize.x+i] = -1;
+			else if(tile >= '!' && tile <= '%')
+				map[j*mapSize.x+i] = 36 + (tile - '!');
+			else if(isupper(tile) || tile == '@')
 			{
-				map[j*mapSize.x+i] = 0;
+				// Items hide in bushes; key gates block movement and flames.
+				map[j*mapSize.x+i] = (tile == 'B' || tile == 'F' || tile == 'S' || tile == 'P' || tile == 'K') ? -1 : 0;
+				if(tile == 'L')
+					map[j*mapSize.x+i] = -2;
 				Spawn spawn = { tile, glm::ivec2(i, j) };
 				spawns.push_back(spawn);
 			}
+			else if(islower(tile))
+				map[j*mapSize.x+i] = 10 + (tile - int('a'));
 			else
 				map[j*mapSize.x+i] = tile - int('0');
 		}
@@ -130,7 +170,7 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 		for(int i=0; i<mapSize.x; i++)
 		{
 			tile = map[j * mapSize.x + i];
-			if(tile != 0)
+			if(tile > 0)
 			{
 				// Non-empty tile
 				nTiles++;
@@ -248,6 +288,22 @@ bool TileMap::isWall(int x, int y) const
 	return !insideMap(x, y) || map[y*mapSize.x+x] != 0;
 }
 
+bool TileMap::destroyDestructible(int x, int y)
+{
+	if(!insideMap(x, y) || map[y*mapSize.x+x] != -1)
+		return false;
+	map[y*mapSize.x+x] = 0;
+	return true;
+}
+
+bool TileMap::openKeyGate(int x, int y)
+{
+	if(!insideMap(x, y) || map[y*mapSize.x+x] != -2)
+		return false;
+	map[y*mapSize.x+x] = 0;
+	return true;
+}
+
 bool TileMap::setBomb(int x, int y)
 {
 	if(!insideMap(x, y) || map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] != NO_BOMB)
@@ -287,7 +343,7 @@ bool TileMap::insideMap(int x, int y) const
 
 bool TileMap::isSolid(int x, int y) const
 {
-	return map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] == BOMB_SOLID;
+	return !insideMap(x, y) || map[y*mapSize.x+x] != 0 || bombMap[y*mapSize.x+x] == BOMB_SOLID;
 }
 
 

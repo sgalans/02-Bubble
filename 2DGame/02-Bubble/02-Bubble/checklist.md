@@ -20,21 +20,22 @@ Enemy:
 Nivells:
  - nivell1 [] 
  - nivell2 []
- - nivell3 []
+ - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
  - nivell4 []
  - nivell5 [] 
+ - implementar memòria entre nivells
  - porta de sortida [x] -> falta trobat textura per la porta
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
  - compte enrere del nivell [x] 
  - que passa quan el temps arriba a 0 [] 
- - posicio inicial del player llegida del fitxer de nivell [] 
+ - posicio inicial del player llegida del fitxer de nivell [x] // @; sense marcador conserva l'inici per defecte
 
 Moviment:
  - fet [x]
 
 Vides:
- - 3 vides [] 
+ - 3 vides [x] 
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn / reiniciar nivell en perdre una vida []
 
@@ -44,6 +45,7 @@ Objectes:
  - Fire Up [x]
  - Speed Up [x]
  - Bomb Proof [x]
+ - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
  - Cor (protegeix d'un cop) [] opcional
  - objectes surten en destruir tiles []
 
@@ -54,7 +56,8 @@ Gameplay:
  - bombes maten enemics i player [x]
  - bombes alineades amb els tiles [x]
  - reaccio en cadena [x]
- - tiles destructibles []
+ - tiles destructibles [x]
+ - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
 
 Tecles debug:
  - G god mode [x]
