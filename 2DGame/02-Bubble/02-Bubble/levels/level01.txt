@@ -1,21 +1,21 @@
 TILEMAP
 16 16              -- Size of tile map in tiles
 16 16              -- Tile size & block size
-images/level01_tiles.png -- Tilesheet
-10 4               -- Number of tiles in tilesheet
-tttttttttttttttt
-t *          * t
-t W           Dt
-tei    dhi   det
-t       3      t
-t      W       t
-t   dhefghi    t
-t    3   3   det
-tFd            t
-tg3efghefi     t
-t333         * t
-t       defgheft
-t             3t
-t   d       d  t
-t   3dS  W  3  t
-teeeeeeeeeeeeeet
+images/personalized_blocs.png -- Tilesheet
+2 2                -- Number of tiles in tilesheet
+1212121212121212
+3 *          * 3
+3 W           D3
+121    212   212
+3       3      3
+3      W       3
+3   1212121    3
+3    3   3   212
+3F3            3
+1212121212     3
+1212         * 3
+3       12121212
+3             12
+3   3       3  3
+3   12S  W  3  3
+1212121212121212

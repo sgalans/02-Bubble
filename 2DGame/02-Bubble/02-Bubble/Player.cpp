@@ -48,7 +48,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	bGodKeyPressed = false;
 	bBombKeyPressed = false;
 	bBombRequested = false;
-	lives = 2;
+	lives = 3;
 	maxLives = 3;
 	nBombs = 1;
 	firePower = 1; // Fire Up items extend it

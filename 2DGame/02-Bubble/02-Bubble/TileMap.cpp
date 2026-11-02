@@ -29,12 +29,12 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 	{
 		if(map[i] != -1)
 			continue;
-		bushTexture.loadFromFile("images/Starter Tiles Platformer/SwampTiles/Bush_2_16x16.png", TEXTURE_PIXEL_FORMAT_RGBA);
+		bushTexture.loadFromFile("images/personalized_blocs.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), glm::vec2(1.f), &bushTexture, &program);
+		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), glm::vec2(0.5f), &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
-		bushSprite->addKeyframe(0, glm::vec2(0.f));
+		bushSprite->addKeyframe(0, glm::vec2(0.5f));
 		bushSprite->changeAnimation(0);
 		break;
 	}
