@@ -23,12 +23,13 @@ Nivells:
  - nivell3 []
  - nivell4 []
  - nivell5 [] 
+ - implementar memòria entre nivells
  - porta de sortida [x] -> falta trobat textura per la porta
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
  - compte enrere del nivell [x] 
  - que passa quan el temps arriba a 0 [] 
- - posicio inicial del player llegida del fitxer de nivell [] 
+ - posicio inicial del player llegida del fitxer de nivell [x] // @; sense marcador conserva l'inici per defecte
 
 Moviment:
  - fet [x]

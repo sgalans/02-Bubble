@@ -128,7 +128,7 @@ bool TileMap::loadLevel(const string &levelFile)
 				map[j*mapSize.x+i] = -1;
 			else if(tile >= '!' && tile <= '%')
 				map[j*mapSize.x+i] = 36 + (tile - '!');
-			else if(isupper(tile))
+			else if(isupper(tile) || tile == '@')
 			{
 				// Item letters are bushes with a hidden power-up; enemies start in air.
 				map[j*mapSize.x+i] = (tile == 'B' || tile == 'F' || tile == 'S' || tile == 'P') ? -1 : 0;

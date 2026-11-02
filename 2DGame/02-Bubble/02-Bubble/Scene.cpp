@@ -94,7 +94,7 @@ void Scene::init(const string &levelFile)
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, D = exit door
+// W = Walker, R = Runner, Z = Shooter, D = exit door, @ = player start
 // and the item letters listed in Item::typeFromLetter mark bushes hiding power-ups.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
@@ -102,6 +102,12 @@ void Scene::spawnFromLevel()
 	const vector<TileMap::Spawn> &spawns = map->getSpawns();
 	for(unsigned int i = 0; i < spawns.size(); i++)
 	{
+		if(spawns[i].type == '@')
+		{
+			player->setPosition(glm::vec2(spawns[i].tile * map->getTileSize()));
+			continue;
+		}
+
 		Item::ItemType itemType;
 		if(Item::typeFromLetter(spawns[i].type, itemType))
 		{

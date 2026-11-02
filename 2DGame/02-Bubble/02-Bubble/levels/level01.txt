@@ -17,5 +17,5 @@ images/personalized_blocs.png -- Tilesheet
 5       12121215
 5             35
 5   1       2  5
-5   32S  W  3  5
+5 @ 32S  W  3  5
 5212331212123215
