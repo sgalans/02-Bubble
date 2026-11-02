@@ -29,14 +29,15 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 	{
 		if(map[i] != -1)
 			continue;
-		bushTexture.loadFromFile("images/personalized_blocs.png", TEXTURE_PIXEL_FORMAT_RGBA);
+		bushTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		// Tile 4 starts at column 1, row 1 in the 16-pixel tilesheet.
+		// Tile 4 starts at column 0, row 1 in the 3x3 tilesheet.
 		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
 		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
-		bushSprite->addKeyframe(0, bushTexSize);
+		bushSprite->setAnimationSpeed(0, 1);
+		bushSprite->addKeyframe(0, glm::vec2(0.f, bushTexSize.y));
 		bushSprite->changeAnimation(0);
 		break;
 	}
@@ -130,8 +131,10 @@ bool TileMap::loadLevel(const string &levelFile)
 				map[j*mapSize.x+i] = 36 + (tile - '!');
 			else if(isupper(tile) || tile == '@')
 			{
-				// Item letters are bushes with a hidden power-up; enemies start in air.
-				map[j*mapSize.x+i] = (tile == 'B' || tile == 'F' || tile == 'S' || tile == 'P') ? -1 : 0;
+				// Items hide in bushes; key gates block movement and flames.
+				map[j*mapSize.x+i] = (tile == 'B' || tile == 'F' || tile == 'S' || tile == 'P' || tile == 'K') ? -1 : 0;
+				if(tile == 'L')
+					map[j*mapSize.x+i] = -2;
 				Spawn spawn = { tile, glm::ivec2(i, j) };
 				spawns.push_back(spawn);
 			}
@@ -288,6 +291,14 @@ bool TileMap::isWall(int x, int y) const
 bool TileMap::destroyDestructible(int x, int y)
 {
 	if(!insideMap(x, y) || map[y*mapSize.x+x] != -1)
+		return false;
+	map[y*mapSize.x+x] = 0;
+	return true;
+}
+
+bool TileMap::openKeyGate(int x, int y)
+{
+	if(!insideMap(x, y) || map[y*mapSize.x+x] != -2)
 		return false;
 	map[y*mapSize.x+x] = 0;
 	return true;

@@ -6,7 +6,7 @@
 #include "TileMap.h"
 
 
-// A power-up that occupies a single cell of the tile map and does not fall.
+// An item that occupies a single cell of the tile map and does not fall.
 // It stays hidden until its bush is destroyed, then waits for player contact.
 // Scene applies its effect, marks it collected and deletes it.
 // Scene owns the items and shares one icon sheet between all of them.
@@ -14,7 +14,7 @@
 class Item
 {
 public:
-	enum ItemType { BOMB_UP, FIRE_UP, SPEED_UP, BOMB_PROOF, N_TYPES };
+	enum ItemType { BOMB_UP, FIRE_UP, SPEED_UP, BOMB_PROOF, KEY, N_TYPES };
 
 public:
 	Item();

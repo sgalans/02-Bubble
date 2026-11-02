@@ -64,8 +64,10 @@ private:
 	std::vector<Bomb *> bombs;
 	std::vector<Item *> items;
 	Door *door; // NULL if the level file has no D
+	std::vector<Door *> keyGates;
+	bool hasKey;
 	std::vector<Projectile *> projectiles;
-	Texture bombTexture, explosionTexture, itemTexture;
+	Texture bombTexture, explosionTexture, itemTexture, personalizedTexture;
 	HUD *hud;
 	Text endTitleText, endHintText; // Death and win screens
 	int score;

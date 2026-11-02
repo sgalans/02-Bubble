@@ -31,6 +31,7 @@ Scene::Scene()
 	map = NULL;
 	player = NULL;
 	door = NULL;
+	hasKey = false;
 	hud = NULL;
 }
 
@@ -51,6 +52,8 @@ Scene::~Scene()
 		delete projectiles[i];
 	if(door != NULL)
 		delete door;
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+		delete keyGates[i];
 	if(hud != NULL)
 		delete hud;
 }
@@ -77,6 +80,9 @@ void Scene::init(const string &levelFile)
 	itemTexture.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	itemTexture.setMinFilter(GL_NEAREST);
 	itemTexture.setMagFilter(GL_NEAREST);
+	personalizedTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	personalizedTexture.setMinFilter(GL_NEAREST);
+	personalizedTexture.setMagFilter(GL_NEAREST);
 
 	spawnFromLevel();
 
@@ -94,7 +100,7 @@ void Scene::init(const string &levelFile)
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, D = exit door, @ = player start
+// W = Walker, R = Runner, Z = Shooter, D = exit, L = key gate, @ = player
 // and the item letters listed in Item::typeFromLetter mark bushes hiding power-ups.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
@@ -112,6 +118,14 @@ void Scene::spawnFromLevel()
 		if(Item::typeFromLetter(spawns[i].type, itemType))
 		{
 			spawnItem(itemType, spawns[i].tile);
+			continue;
+		}
+
+		if(spawns[i].type == 'L')
+		{
+			Door *gate = new Door();
+			gate->init(spawns[i].tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, texProgram, true);
+			keyGates.push_back(gate);
 			continue;
 		}
 
@@ -161,7 +175,8 @@ void Scene::spawnFromLevel()
 void Scene::spawnItem(Item::ItemType type, const glm::ivec2 &tile)
 {
 	Item *item = new Item();
-	item->init(type, tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
+	Texture *sheet = type == Item::KEY ? &personalizedTexture : &itemTexture;
+	item->init(type, tile, glm::ivec2(SCREEN_X, SCREEN_Y), map, sheet, texProgram);
 	items.push_back(item);
 }
 
@@ -175,7 +190,10 @@ void Scene::collectItems()
 		if(items[i]->isAvailable() &&
 		   boxesOverlap(player->getPosition(), player->getSize(), items[i]->getPosition(), items[i]->getSize()))
 		{
-			player->applyItem(items[i]->getType());
+			if(items[i]->getType() == Item::KEY)
+				hasKey = true;
+			else
+				player->applyItem(items[i]->getType());
 			items[i]->collect();
 			Audio::instance().play(Audio::ITEM_PICKUP);
 		}
@@ -268,7 +286,7 @@ void Scene::update(int deltaTime)
 	updateDoor(deltaTime);
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
-	            player->getFirePower(), int(enemies.size()), timeLeft);
+	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey);
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -398,6 +416,24 @@ void Scene::removeDeadEnemies()
 // the centre of his body is inside the open door.
 void Scene::updateDoor(int deltaTime)
 {
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+	{
+		Door *gate = keyGates[i];
+		gate->update(deltaTime);
+		// The closed gate is solid, so include flush contact in the overlap test.
+		if(!gate->isOpen() && hasKey && player->isAlive() &&
+		   boxesOverlap(player->getPosition() - glm::vec2(1.f), player->getSize() + glm::ivec2(2),
+		                gate->getPosition(), gate->getSize()))
+		{
+			gate->open();
+			if(gate->isOpen())
+			{
+				hasKey = false;
+				Audio::instance().play(Audio::MENU_SELECT);
+			}
+		}
+	}
+
 	if(door == NULL)
 		return;
 	door->update(deltaTime);
@@ -468,6 +504,8 @@ void Scene::render()
 	map->render();
 	if(door != NULL)
 		door->render();
+	for(unsigned int i = 0; i < keyGates.size(); i++)
+		keyGates[i]->render();
 	for(unsigned int i = 0; i < items.size(); i++)
 		items[i]->render();
 	for(unsigned int i = 0; i < bombs.size(); i++)

@@ -8,6 +8,7 @@
 
 // The level exit. It occupies a single cell of the tile map and starts closed.
 // Scene opens it once every enemy is dead; touching it while open clears the level.
+// A key gate is a separate solid passage; opening it removes its map collision.
 
 class Door
 {
@@ -16,7 +17,8 @@ public:
 	~Door();
 
 public:
-	void init(const glm::ivec2 &tile, const glm::ivec2 &tileMapPos, TileMap *tileMap, ShaderProgram &shaderProgram);
+	void init(const glm::ivec2 &tile, const glm::ivec2 &tileMapPos, TileMap *tileMap, ShaderProgram &shaderProgram,
+	          bool keyGate = false);
 	void update(int deltaTime);
 	void render();
 
@@ -27,7 +29,7 @@ public:
 
 private:
 	glm::ivec2 tileMapDispl, tile;
-	bool bOpen;
+	bool bOpen, keyGate;
 	Texture spritesheet;
 	Sprite *sprite;
 	TileMap *map;

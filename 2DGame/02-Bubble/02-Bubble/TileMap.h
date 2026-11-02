@@ -15,8 +15,8 @@
 // method draws the whole map independently of what is visible.
 // Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
 // * marks a solid bush that explosions can destroy.
-// B/F/S/P mark bushes hiding items; other uppercase letters mark enemies
-// in empty cells. @ marks the player start. All are stored as spawn points.
+// B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
+// W/R/Z mark enemies, D the exit and @ the player start. All are spawn points.
 
 
 class TileMap
@@ -61,6 +61,7 @@ public:
 	// True for map tiles and for anything outside the map (ignores bombs)
 	bool isWall(int x, int y) const;
 	bool destroyDestructible(int x, int y);
+	bool openKeyGate(int x, int y);
 
 	// Bomb mirror map, in tile coordinates
 	bool setBomb(int x, int y);

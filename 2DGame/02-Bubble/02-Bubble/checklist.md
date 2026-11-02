@@ -20,7 +20,7 @@ Enemy:
 Nivells:
  - nivell1 [] 
  - nivell2 []
- - nivell3 []
+ - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
  - nivell4 []
  - nivell5 [] 
  - implementar memòria entre nivells
@@ -45,6 +45,7 @@ Objectes:
  - Fire Up [x]
  - Speed Up [x]
  - Bomb Proof [x]
+ - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
  - Cor (protegeix d'un cop) [] opcional
  - objectes surten en destruir tiles []
 
@@ -56,6 +57,7 @@ Gameplay:
  - bombes alineades amb els tiles [x]
  - reaccio en cadena [x]
  - tiles destructibles [x]
+ - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
 
 Tecles debug:
  - G god mode [x]

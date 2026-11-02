@@ -1,56 +1,66 @@
-# Blocs del nivell 1
+# Blocs i marcadors dels nivells
 
-El tileset `images/level01_tiles.png` té 10 columnes × 4 files de peces de 16 × 16 píxels. La numeració comença a 1, d'esquerra a dreta i de dalt a baix. Els noms següents descriuen l'aspecte de cada peça.
+El tileset actual és [images/personalized.png](images/personalized.png):
+**48×48 píxels**, amb **3 columnes × 3 files** de tiles de **16×16**.
+La numeració comença a 1, d'esquerra a dreta i de dalt a baix.
 
-Totes aquestes peces són sòlides, incloses les que semblen fullatge o pendents: el dibuix no canvia la forma rectangular de la col·lisió. Només `*` és destruïble. Un espai representa una casella buida; les majúscules continuen reservades a enemics i objectes.
+## Peces del tileset
 
-Obre `blocs.html` al navegador per veure cada codi al costat de la seva imatge ampliada.
+Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 
-| Número | Codi al mapa | Aspecte |
-|---|---|---|
-| 1 | `1` | Barres verticals verdes |
-| 2 | `2` | Trama diagonal verda |
-| 3 | `3` | Roca verda arrodonida |
-| 4 | `4` | Roca amb vora d'herba |
-| 5 | `5` | Herba amb puntes penjants |
-| 6 | `6` | Roca amb espiral vegetal (A) |
-| 7 | `7` | Roca amb espiral vegetal (B) |
-| 8 | `8` | Roca amb anella vegetal |
-| 9 | `9` | Herba penjant, variant A |
-| 10 | `a` | Herba penjant, variant B |
-| 11 | `b` | Base de barres verticals |
-| 12 | `c` | Trama de rombes |
-| 13 | `d` | Herba amb arrels, extrem esquerre |
-| 14 | `e` | Herba amb arrels, variant A |
-| 15 | `f` | Herba amb arrels, variant B |
-| 16 | `g` | Herba amb arrels, variant C |
-| 17 | `h` | Herba amb arrels, variant D |
-| 18 | `i` | Herba amb arrels, extrem dret |
-| 19 | `j` | Maons verds rectangulars |
-| 20 | `k` | Bloc llis amb vores dentades |
-| 21 | `l` | Terra verda amb vora inferior |
-| 22 | `m` | Terra marró amb pedres, variant A |
-| 23 | `n` | Terra marró amb pedres, variant B |
-| 24 | `o` | Maons fins en filades |
-| 25 | `p` | Trama diagonal de roca, variant A |
-| 26 | `q` | Trama diagonal de roca, variant B |
-| 27 | `r` | Trama diagonal de roca, variant C |
-| 28 | `s` | Maons horitzontals irregulars |
-| 29 | `t` | Pedra de carreus grans |
-| 30 | `u` | Roca verda clapejada |
-| 31 | `v` | Trama de branques o esquerdes |
-| 32 | `w` | Fullatge dens, variant A |
-| 33 | `x` | Fullatge dens, variant B |
-| 34 | `y` | Maons petits en vertical |
-| 35 | `z` | Carreus rectangulars en vertical |
-| 36 | `!` | Franges diagonals amples |
-| 37 | `"` | Franges diagonals fines |
-| 38 | `#` | Trama diagonal irregular |
-| 39 | `$` | Mosaic de pedres irregulars |
-| 40 | `%` | Trama de rombes amb molsa |
-| — | `*` | Arbust sòlid destruïble (`SwampTiles/Bush_2_16x16.png`) |
+| Peça | Píxel (x, y) | Aspecte | Ús al mapa |
+| --- | --- | --- | --- |
+| 1 | (0, 0) | Terra amb herba, variant A | `1`: bloc sòlid |
+| 2 | (16, 0) | Terra amb herba, variant B | `2`: bloc sòlid |
+| 3 | (32, 0) | Terra sense herba / tronc | `3`: bloc sòlid |
+| 4 | (0, 16) | Arbust | `*` o una lletra d'objecte |
+| 5 | (16, 16) | Pedra | `5`: bloc sòlid indestructible |
+| 6 | (32, 16) | Clau | `K`: amagada dins d'un arbust |
+| 7 | (0, 32) | Porta amb pany | `L`: pas bloquejat fins a fer servir la clau |
+| 8, 9 | (16, 32), (32, 32) | Caselles buides del tileset | No utilitzar |
 
-Els quatre arbustos són a les caselles (columna, fila), comptant des d'1: **(7,15), (14,11), (2,9), (9,6)**. Bloquegen el moviment i la propagació del foc. Una explosió els elimina i s'atura en aquella casella.
+Els blocs numèrics tenen col·lisió rectangular completa i són indestructibles.
+Per posar un **arbust destructible**, utilitza `*`, no `4`: escriure `4`
+només dibuixa l'arbust com un bloc indestructible. Igualment, `6` i `7`
+només dibuixen blocs estàtics; la clau i la porta funcionals es creen amb `K` i `L`.
 
-Per amagar un power-up, substitueix `*` per `S` (patins), `F` (abast de foc), `B` (més bombes) o `P` (protecció contra bombes pròpies). La casella continua sent un arbust sòlid; l'objecte només es veu i es pot recollir quan l'arbust desapareix. `*` és un arbust buit. Al nivell 1, **(7,15)** amaga els patins i **(9,6)** amaga el Fire Up.
+## Marcadors del mapa
 
+| Codi | Significat |
+| --- | --- |
+| espai | Casella buida |
+| `@` | Posició inicial del jugador |
+| `W` | Walker |
+| `R` | Runner |
+| `Z` | Shooter |
+| `D` | Sortida del nivell: s'obre quan no queden enemics |
+| `L` | Porta amb pany: bloqueja el moviment i les explosions |
+| `*` | Arbust sense objecte |
+| `B` | Arbust amb Bomb Up: +1 bomba simultània |
+| `F` | Arbust amb Fire Up: +1 tile d'abast de l'explosió |
+| `S` | Arbust amb Speed Up: augmenta la velocitat |
+| `P` | Arbust amb Bomb Proof: protegeix de les bombes pròpies |
+| `K` | Arbust amb una clau |
+
+Els arbustos bloquegen el moviment i el foc. Una explosió els destrueix
+i s'atura en aquella casella. L'objecte amagat apareix quan desapareix
+l'arbust i es recull en tocar-lo.
+
+La clau es mostra al HUD mentre el jugador la porta. Tocar una porta `L`
+amb la clau obre el pas permanentment i consumeix la clau. Les explosions
+no poden obrir aquesta porta. `D` és la sortida del nivell i funciona
+independentment del pany.
+
+## Capçalera dels nivells
+
+Després de la mida del mapa, indica aquestes dades per utilitzar el tileset actual:
+
+```text
+16 16              -- Tile size & block size
+images/personalized.png -- Tilesheet
+3 3                -- Number of tiles in tilesheet
+```
+
+Cada fila de la graella ha de tenir exactament l'amplada declarada del mapa,
+inclosos els espais finals. Vegeu [levels/README.md](levels/README.md)
+per al format dels nivells i la distribució de la cambra del nivell 3.

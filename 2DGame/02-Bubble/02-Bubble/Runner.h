@@ -5,7 +5,7 @@
 #include "Enemy.h"
 #include "Player.h"
 
-//Enemy that runs at the player and turns around when it stops seeing the player
+// Enemy that charges at the player and turns at walls and platform edges.
 
 class Runner : public Enemy
 {
@@ -18,6 +18,7 @@ public:
 	void setPlayer(const Player *target);
 
 private:
+	bool hasFloorBelow(int x, int width) const;
 	bool seesPlayer() const;
 	void setDirection(int newDirection);
 
