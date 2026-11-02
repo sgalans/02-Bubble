@@ -17,12 +17,15 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 5 | (16, 16) | Pedra | `5`: bloc sòlid indestructible |
 | 6 | (32, 16) | Clau | `K`: amagada dins d'un arbust |
 | 7 | (0, 32) | Porta amb pany | `L`: pas bloquejat fins a fer servir la clau |
-| 8, 9 | (16, 32), (32, 32) | Caselles buides del tileset | No utilitzar |
+| 8 | (16, 32) | Sortida tancada | `D`: mentre queden enemics |
+| 9 | (32, 32) | Sortida oberta | `D`: quan no queden enemics |
 
 Els blocs numèrics tenen col·lisió rectangular completa i són indestructibles.
 Per posar un **arbust destructible**, utilitza `*`, no `4`: escriure `4`
 només dibuixa l'arbust com un bloc indestructible. Igualment, `6` i `7`
 només dibuixen blocs estàtics; la clau i la porta funcionals es creen amb `K` i `L`.
+La sortida es col·loca amb `D` i canvia automàticament de la peça 8 a la 9
+quan no queden enemics; escriure `8` o `9` només crea un bloc estàtic.
 
 ## Marcadors del mapa
 

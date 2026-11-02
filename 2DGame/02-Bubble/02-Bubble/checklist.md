@@ -1,7 +1,7 @@
 Interface:
  - Menu principal [] //ara nomes es un selector de nivells, falta menu amb Jugar / Instruccions / Credits / Sortir
  - Instruccions []
- - Credits []
+ - Crèdits []
  - HUD vides [x]
  - HUD temps restant [x] //vermell i parpellejant els ultims 30s
  - HUD enemics restants [x]
@@ -18,12 +18,15 @@ Enemy:
  - Boss [] 
 
 Nivells:
- - nivell1 [] 
- - nivell2 []
+ - nivell1 [x] 
+ - millorar nivell 1 []
+ - nivell2 [x]
+ - millorar nivell 2 []
  - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
+ - millorar nivell 3 []
  - nivell4 []
  - nivell5 [] 
- - implementar memòria entre nivells
+ - implementar memòria entre nivells []
  - porta de sortida [x] -> falta trobat textura per la porta
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
@@ -58,6 +61,7 @@ Gameplay:
  - reaccio en cadena [x]
  - tiles destructibles [x]
  - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
+ - millora de càmera
 
 Tecles debug:
  - G god mode [x]
