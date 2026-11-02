@@ -34,7 +34,7 @@ Moviment:
  - fet [x]
 
 Vides:
- - 3 vides [] 
+ - 3 vides [x] 
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn / reiniciar nivell en perdre una vida []
 
@@ -54,7 +54,7 @@ Gameplay:
  - bombes maten enemics i player [x]
  - bombes alineades amb els tiles [x]
  - reaccio en cadena [x]
- - tiles destructibles []
+ - tiles destructibles [x]
 
 Tecles debug:
  - G god mode [x]
