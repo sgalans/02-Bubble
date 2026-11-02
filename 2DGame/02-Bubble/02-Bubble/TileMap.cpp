@@ -32,9 +32,11 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 		bushTexture.loadFromFile("images/personalized_blocs.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), glm::vec2(0.5f), &bushTexture, &program);
+		// Tile 4 starts at column 1, row 1 in the 16-pixel tilesheet.
+		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
+		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
-		bushSprite->addKeyframe(0, glm::vec2(0.5f));
+		bushSprite->addKeyframe(0, bushTexSize);
 		bushSprite->changeAnimation(0);
 		break;
 	}
