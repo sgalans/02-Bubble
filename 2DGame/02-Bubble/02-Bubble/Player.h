@@ -14,6 +14,13 @@
 class Player
 {
 public:
+	struct PowerUps
+	{
+		int nBombs, firePower;
+		float moveSpeed;
+		bool bombProof;
+	};
+
 	Player();
 	~Player();
 
@@ -41,6 +48,8 @@ public:
 	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+	PowerUps getPowerUps() const;
+	void setPowerUps(const PowerUps &powerUps);
 
 private:
 	void updateSpritePosition();

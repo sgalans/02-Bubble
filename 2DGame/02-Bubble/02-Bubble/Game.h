@@ -18,7 +18,7 @@ class Game
 {
 
 private:
-	Game() { scene = NULL; currentLevel = 0; }
+	Game() { scene = NULL; currentLevel = 0; nextLevelWithPowerUps = 0; }
 	
 public:
 	static Game &instance()
@@ -45,6 +45,7 @@ private:
 	void startLevel(int level);
 	void backToMenu();
 	void levelCleared();
+	void preservePowerUpsForNextLevel();
 
 private:
 	enum GameState { MENU, PLAYING };
@@ -56,6 +57,8 @@ private:
 	Menu menu;
 	Scene *scene; // Only exists while a level is being played
 	int currentLevel; // Level being played, 1..MENU_NUM_LEVELS
+	Player::PowerUps nextPowerUps;
+	int nextLevelWithPowerUps; // 0 if no completed level can be continued
 
 };
 

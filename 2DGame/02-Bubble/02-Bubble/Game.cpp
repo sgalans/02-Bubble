@@ -11,6 +11,7 @@ void Game::init()
 	Audio::instance().init();
 	menu.init();
 	state = MENU;
+	nextLevelWithPowerUps = 0;
 }
 
 bool Game::update(int deltaTime)
@@ -45,8 +46,6 @@ void Game::keyPressed(int key)
 		// Leaving from the win screen still counts the level as beaten.
 		if(state == PLAYING)
 		{
-			if(scene->isCleared())
-				menu.unlockLevel(currentLevel + 1);
 			backToMenu();
 		}
 		else
@@ -91,12 +90,22 @@ void Game::startLevel(int level)
 	Audio::instance().play(Audio::MENU_SELECT);
 	scene = new Scene();
 	scene->init(Menu::levelFile(level));
+	if(level == nextLevelWithPowerUps)
+		scene->setPowerUps(nextPowerUps);
+	nextLevelWithPowerUps = 0;
 	currentLevel = level;
 	state = PLAYING;
 }
 
 void Game::backToMenu()
 {
+	if(scene->isCleared())
+	{
+		menu.unlockLevel(currentLevel + 1);
+		preservePowerUpsForNextLevel();
+	}
+	else
+		nextLevelWithPowerUps = 0;
 	delete scene;
 	scene = NULL;
 	state = MENU;
@@ -108,12 +117,19 @@ void Game::levelCleared()
 {
 	int next = currentLevel + 1;
 	menu.unlockLevel(next);
+	preservePowerUpsForNextLevel();
 	delete scene;
 	scene = NULL;
 	if(next <= MENU_NUM_LEVELS && menu.isPlayable(next))
 		startLevel(next);
 	else
 		state = MENU;
+}
+
+void Game::preservePowerUpsForNextLevel()
+{
+	nextPowerUps = scene->getPowerUps();
+	nextLevelWithPowerUps = currentLevel + 1;
 }
 
 

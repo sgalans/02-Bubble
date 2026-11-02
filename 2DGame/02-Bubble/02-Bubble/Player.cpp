@@ -286,6 +286,20 @@ void Player::applyItem(Item::ItemType type)
 	}
 }
 
+Player::PowerUps Player::getPowerUps() const
+{
+	PowerUps powerUps = { nBombs, firePower, moveSpeed, bombProof };
+	return powerUps;
+}
+
+void Player::setPowerUps(const PowerUps &powerUps)
+{
+	nBombs = powerUps.nBombs;
+	firePower = powerUps.firePower;
+	moveSpeed = powerUps.moveSpeed;
+	bombProof = powerUps.bombProof;
+}
+
 void Player::setTileMap(TileMap *tileMap)
 {
 	map = tileMap;
