@@ -2,9 +2,9 @@
 #include "Runner.h"
 
 
-#define WALKING_SPEED 1.0f
-#define RUNNER_SPEED 2.0f
-#define FALL_STEP 4
+#define WALKING_SPEED 0.75f
+#define RUNNER_SPEED 1.5f
+#define FALL_STEP 3
 
 // How far ahead the runner can spot the player, in tiles.
 #define SIGHT_RANGE_TILES 8
@@ -98,7 +98,9 @@ void Runner::update(int deltaTime)
 		setDirection(1 - direction);
 	}
 
-	int speed = int(chasing ? RUNNER_SPEED : WALKING_SPEED);
+	horizontalRemainder += chasing ? RUNNER_SPEED : WALKING_SPEED;
+	int speed = int(horizontalRemainder);
+	horizontalRemainder -= speed;
 	if(direction == 0)
 	{
 		posEnemy.x -= speed;

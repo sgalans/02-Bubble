@@ -48,13 +48,14 @@ private:
 	bool bBombKeyPressed;
 	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
-	float verticalPosition, verticalVelocity;
+	float verticalPosition, verticalVelocity, horizontalRemainder;
+	int moveDirection;
 	bool shortJumpActive;
 	int lives, maxLives;
 	int invulnTime;
 	int nBombs;
 	int firePower; // flame length in tiles
-	int moveSpeed; // pixels per frame
+	float moveSpeed; // pixels per frame
 	bool bombProof;
 	Texture spritesheet;
 	Sprite *sprite;

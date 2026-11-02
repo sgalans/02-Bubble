@@ -10,6 +10,7 @@ Enemy::Enemy()
 	map = NULL;
 	lives = 1;
 	hitCooldown = 0;
+	horizontalRemainder = 0.f;
 }
 
 void Enemy::takeHit()
@@ -45,6 +46,7 @@ void Enemy::setTileMap(TileMap *tileMap)
 void Enemy::setPosition(const glm::vec2 &pos)
 {
 	posEnemy = pos;
+	horizontalRemainder = 0.f;
 	updateSpritePosition();
 }
 
