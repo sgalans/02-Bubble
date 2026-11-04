@@ -28,8 +28,8 @@ enum MainEntry { MAIN_PLAY, MAIN_INSTRUCTIONS, MAIN_CREDITS, MAIN_NUM_ENTRIES };
 static const char *MAIN_LABELS[MAIN_NUM_ENTRIES] = { "PLAY", "INSTRUCTIONS", "CREDITS" };
 
 // Text of the info screens, one line per "\n". Left blank for now.
-static const char *INSTRUCTIONS_TEXT = "";
-static const char *CREDITS_TEXT = "";
+static const char *INSTRUCTIONS_TEXT = "USE ARROW KEYS TO MOVE\nSPACE FOR THE BOMB\nCOLLECT POWER-UPS TO HELP YOU\nKILL ALL ENEMIES TO OPEN THE DOOR";
+static const char *CREDITS_TEXT = "MADE BY:\nSergi Galans and Oriol Valencia";
 
 
 Menu::Menu()
