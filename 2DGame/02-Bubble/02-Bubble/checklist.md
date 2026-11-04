@@ -15,7 +15,7 @@ Enemy:
  - walker [x]
  - runner [x]
  - shooter [x]
- - Boss [] 
+ - Boss [x] 
 
 Nivells:
  - nivell1 [x] 
@@ -68,7 +68,7 @@ Gameplay:
 
 Tecles debug:
  - G god mode [x]
- - K matar tots els enemics i obrir porta []
+ - K matar tots els enemics i obrir porta [x]
  - 1-5 carregar nivell [] //nomes funciona des del menu, ha de funcionar tambe jugant
 
 General (polish):

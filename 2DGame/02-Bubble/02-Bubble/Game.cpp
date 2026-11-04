@@ -58,6 +58,9 @@ void Game::keyPressed(int key)
 		levelCleared();
 		return;
 	}
+	// Debug: K wipes out every enemy, which also opens the exit door
+	if(state == PLAYING && key == GLFW_KEY_K)
+		scene->killAllEnemies();
 	if(state == MENU)
 		menu.keyPressed(key);
 	keys[key] = true;

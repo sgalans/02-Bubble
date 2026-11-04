@@ -457,6 +457,19 @@ void Scene::updateDoor(int deltaTime)
 	}
 }
 
+// Removes every enemy and any balls still in flight. updateDoor opens the
+// exit on the next frame because no enemies are left.
+void Scene::killAllEnemies()
+{
+	if(cleared)
+		return;
+	for(unsigned int i = 0; i < enemies.size(); i++)
+		enemies[i]->kill();
+	removeDeadEnemies();
+	for(unsigned int i = 0; i < projectiles.size(); i++)
+		projectiles[i]->destroy();
+}
+
 bool Scene::playerTouches(const Enemy *enemy) const
 {
 	return boxesOverlap(player->getPosition(), player->getSize(), enemy->getPosition(), enemy->getSize());
