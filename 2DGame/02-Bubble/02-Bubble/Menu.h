@@ -23,6 +23,8 @@ public:
 	void render();
 
 	void keyPressed(int key);
+	// Escape: goes back one screen. Returns false on the main screen, so the game can quit
+	bool back();
 
 	// Returns the chosen level (1..MENU_NUM_LEVELS) once, or 0 if none was chosen
 	int takeChosenLevel();
@@ -36,14 +38,24 @@ public:
 	bool isPlayable(int level) const;
 
 private:
+	enum Screen { MAIN, LEVELS, INSTRUCTIONS, CREDITS };
+
 	void initShaders();
 	void moveSelection(int step);
+	void mainKeyPressed(int key);
+	void levelsKeyPressed(int key);
+	void renderMain();
+	void renderLevels();
+	void renderTextScreen(const std::string &title, const std::string &body);
+	void renderArrow(const std::string &label, float y, const glm::vec4 &color);
 
 private:
 	ShaderProgram program;
 	Text titleText, entryText, footerText;
 	bool available[MENU_NUM_LEVELS]; // The level file exists
 	bool unlocked[MENU_NUM_LEVELS]; // Level 1 always, the rest once the previous one is beaten
+	Screen screen;
+	int mainSelected; // Entry highlighted on the main screen
 	int selected, chosen;
 	float currentTime;
 

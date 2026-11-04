@@ -18,10 +18,24 @@
 #define ENTRY_SPACING 45
 #define FOOTER_Y 430
 #define BLINK_PERIOD 500
+#define MAIN_FIRST_ENTRY_Y 200
+#define MAIN_ENTRY_SPACING 50
+#define TEXT_FIRST_LINE_Y 140
+#define TEXT_LINE_SPACING 24
+
+// Entries of the main screen, in order
+enum MainEntry { MAIN_PLAY, MAIN_INSTRUCTIONS, MAIN_CREDITS, MAIN_NUM_ENTRIES };
+static const char *MAIN_LABELS[MAIN_NUM_ENTRIES] = { "PLAY", "INSTRUCTIONS", "CREDITS" };
+
+// Text of the info screens, one line per "\n". Left blank for now.
+static const char *INSTRUCTIONS_TEXT = "";
+static const char *CREDITS_TEXT = "";
 
 
 Menu::Menu()
 {
+	screen = MAIN;
+	mainSelected = 0;
 	selected = 0;
 	chosen = 0;
 	currentTime = 0.0f;
@@ -52,6 +66,8 @@ void Menu::init()
 		selected++;
 	chosen = 0;
 	currentTime = 0.0f;
+	screen = MAIN;
+	mainSelected = MAIN_PLAY;
 }
 
 void Menu::update(int deltaTime)
@@ -66,6 +82,64 @@ void Menu::render()
 	program.setUniformMatrix4f("modelview", glm::mat4(1.0f));
 	program.setUniform2f("texCoordDispl", 0.f, 0.f);
 
+	switch(screen)
+	{
+	case MAIN:
+		renderMain();
+		break;
+	case LEVELS:
+		renderLevels();
+		break;
+	case INSTRUCTIONS:
+		renderTextScreen("INSTRUCTIONS", INSTRUCTIONS_TEXT);
+		break;
+	case CREDITS:
+		renderTextScreen("CREDITS", CREDITS_TEXT);
+		break;
+	}
+}
+
+void Menu::renderMain()
+{
+	titleText.renderCentered("MAIN MENU", TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+
+	for(int i = 0; i < MAIN_NUM_ENTRIES; i++)
+	{
+		float y = float(MAIN_FIRST_ENTRY_Y + i * MAIN_ENTRY_SPACING);
+		glm::vec4 color = (i == mainSelected) ? glm::vec4(1.f, 1.f, 0.3f, 1.f) : glm::vec4(1.f, 1.f, 1.f, 1.f);
+		entryText.renderCentered(MAIN_LABELS[i], y, SCREEN_WIDTH, color);
+		if(i == mainSelected)
+			renderArrow(MAIN_LABELS[i], y, color);
+	}
+
+	footerText.renderCentered("ARROWS: MOVE  ENTER: SELECT  ESC: EXIT", FOOTER_Y, SCREEN_WIDTH,
+	                          glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+}
+
+void Menu::renderTextScreen(const string &title, const string &body)
+{
+	titleText.renderCentered(title, TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+
+	stringstream lines(body);
+	string line;
+	for(int i = 0; getline(lines, line); i++)
+		footerText.renderCentered(line, float(TEXT_FIRST_LINE_Y + i * TEXT_LINE_SPACING), SCREEN_WIDTH,
+		                          glm::vec4(1.f, 1.f, 1.f, 1.f));
+
+	footerText.renderCentered("ESC: BACK", FOOTER_Y, SCREEN_WIDTH, glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+}
+
+// Blinking arrow to the left of the selected entry
+void Menu::renderArrow(const string &label, float y, const glm::vec4 &color)
+{
+	if(int(currentTime / BLINK_PERIOD) % 2 != 0)
+		return;
+	float x = (SCREEN_WIDTH - entryText.width(label)) / 2.f - entryText.width("> ");
+	entryText.render(">", glm::vec2(x, y), color);
+}
+
+void Menu::renderLevels()
+{
 	titleText.renderCentered("SELECT LEVEL", TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
 
 	for(int i = 0; i < MENU_NUM_LEVELS; i++)
@@ -83,19 +157,71 @@ void Menu::render()
 			color = glm::vec4(1.f, 1.f, 1.f, 1.f);
 		entryText.renderCentered(label.str(), y, SCREEN_WIDTH, color);
 
-		// Blinking arrow to the left of the selected entry
-		if(i == selected && int(currentTime / BLINK_PERIOD) % 2 == 0)
-		{
-			float x = (SCREEN_WIDTH - entryText.width(label.str())) / 2.f - entryText.width("> ");
-			entryText.render(">", glm::vec2(x, y), color);
-		}
+		if(i == selected)
+			renderArrow(label.str(), y, color);
 	}
 
-	footerText.renderCentered("ARROWS: MOVE  ENTER: PLAY  ESC: EXIT", FOOTER_Y, SCREEN_WIDTH,
+	footerText.renderCentered("ARROWS: MOVE  ENTER: PLAY  ESC: BACK", FOOTER_Y, SCREEN_WIDTH,
 	                          glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
 }
 
 void Menu::keyPressed(int key)
+{
+	switch(screen)
+	{
+	case MAIN:
+		mainKeyPressed(key);
+		break;
+	case LEVELS:
+		levelsKeyPressed(key);
+		break;
+	default:
+		// The info screens only react to Escape, which Game routes to back()
+		break;
+	}
+}
+
+void Menu::mainKeyPressed(int key)
+{
+	switch(key)
+	{
+	case GLFW_KEY_UP:
+	case GLFW_KEY_W:
+		mainSelected = (mainSelected + MAIN_NUM_ENTRIES - 1) % MAIN_NUM_ENTRIES;
+		Audio::instance().play(Audio::MENU_MOVE);
+		currentTime = 0.0f;
+		break;
+	case GLFW_KEY_DOWN:
+	case GLFW_KEY_S:
+		mainSelected = (mainSelected + 1) % MAIN_NUM_ENTRIES;
+		Audio::instance().play(Audio::MENU_MOVE);
+		currentTime = 0.0f;
+		break;
+	case GLFW_KEY_ENTER:
+	case GLFW_KEY_KP_ENTER:
+	case GLFW_KEY_SPACE:
+		Audio::instance().play(Audio::MENU_SELECT);
+		if(mainSelected == MAIN_PLAY)
+			screen = LEVELS;
+		else if(mainSelected == MAIN_INSTRUCTIONS)
+			screen = INSTRUCTIONS;
+		else
+			screen = CREDITS;
+		currentTime = 0.0f;
+		break;
+	}
+}
+
+bool Menu::back()
+{
+	if(screen == MAIN)
+		return false;
+	screen = MAIN;
+	currentTime = 0.0f;
+	return true;
+}
+
+void Menu::levelsKeyPressed(int key)
 {
 	switch(key)
 	{

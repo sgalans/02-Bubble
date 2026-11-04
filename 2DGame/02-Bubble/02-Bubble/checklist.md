@@ -1,5 +1,5 @@
 Interface:
- - Menu principal [] //ara nomes es un selector de nivells, falta menu amb Jugar / Instruccions / Credits / Sortir
+ - Menu principal [x] //ara nomes es un selector de nivells, falta menu amb Jugar / Instruccions / Credits / Sortir
  - Instruccions []
  - Crèdits []
  - HUD vides [x]

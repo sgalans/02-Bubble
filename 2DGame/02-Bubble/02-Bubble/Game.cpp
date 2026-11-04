@@ -42,13 +42,14 @@ void Game::keyPressed(int key)
 {
 	if(key == GLFW_KEY_ESCAPE) // Escape code
 	{
-		// Escape leaves the level first, and quits only from the menu.
+		// Escape leaves the level first, then steps back through the menu
+		// screens, and quits only from the main menu.
 		// Leaving from the win screen still counts the level as beaten.
 		if(state == PLAYING)
 		{
 			backToMenu();
 		}
-		else
+		else if(!menu.back())
 			bPlay = false;
 		return;
 	}
