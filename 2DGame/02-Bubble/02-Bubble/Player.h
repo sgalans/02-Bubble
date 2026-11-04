@@ -32,6 +32,8 @@ public:
 	void setTileMap(TileMap *tileMap);
 	// Position uses the sprite's top-left; getPosition returns the hitbox's top-left.
 	void setPosition(const glm::vec2 &pos);
+	// Moves the player there and remembers it as the respawn point after losing a life.
+	void setSpawnPoint(const glm::vec2 &pos);
 	glm::vec2 getPosition() const { return glm::vec2(tileMapDispl.x + posPlayer.x, tileMapDispl.y + posPlayer.y); }
 	glm::ivec2 getSize() const { return sizePlayer; }
 
@@ -61,6 +63,7 @@ private:
 	bool bBombKeyPressed;
 	bool bBombRequested;
 	glm::ivec2 tileMapDispl, posPlayer, sizePlayer;
+	glm::vec2 spawnPoint; // sprite top-left, same convention as setPosition
 	float verticalPosition, verticalVelocity, horizontalRemainder;
 	int moveDirection;
 	bool shortJumpActive;

@@ -32,7 +32,6 @@ Nivells:
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
  - compte enrere del nivell [x] 
- - que passa quan el temps arriba a 0 [] 
  - posicio inicial del player llegida del fitxer de nivell [x] // @; sense marcador conserva l'inici per defecte
 
 Moviment:
@@ -44,7 +43,7 @@ Moviment:
 Vides:
  - 3 vides [x] 
  - perdre vida en tocar enemic / projectil / explosio [x]
- - respawn / reiniciar nivell en perdre una vida []
+ - respawn / reiniciar nivell en perdre una vida [x]
 
 
 Objectes:

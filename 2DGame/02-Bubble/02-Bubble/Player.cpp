@@ -94,8 +94,9 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	sprite->setFlipX(false);
 	tileMapDispl = tileMapPos;
 	posPlayer = glm::ivec2(HITBOX_INSET_X, 0);
+	spawnPoint = glm::vec2(0.f);
 	updateSpritePosition();
-	
+
 }
 
 void Player::update(int deltaTime)
@@ -244,6 +245,9 @@ void Player::loseLife()
 		if(lives > 0)
 			lives--;
 		Audio::instance().play(Audio::PLAYER_HURT);
+		// Back to the start; on the last life he stays where he died for the game over.
+		if(lives > 0)
+			setPosition(spawnPoint);
 	}
 }
 
@@ -314,6 +318,12 @@ void Player::setPosition(const glm::vec2 &pos)
 	moveDirection = 0;
 	shortJumpActive = false;
 	updateSpritePosition();
+}
+
+void Player::setSpawnPoint(const glm::vec2 &pos)
+{
+	spawnPoint = pos;
+	setPosition(pos);
 }
 
 void Player::updateSpritePosition()
