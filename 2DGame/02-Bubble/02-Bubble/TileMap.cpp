@@ -32,12 +32,12 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 		bushTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		// Tile 4 starts at column 0, row 1 in the 3x3 tilesheet.
+		// Tile 4 is at column 3, row 0 in the 4x4 tilesheet.
 		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
 		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
 		bushSprite->setAnimationSpeed(0, 1);
-		bushSprite->addKeyframe(0, glm::vec2(0.f, bushTexSize.y));
+		bushSprite->addKeyframe(0, glm::vec2(3.f * bushTexSize.x, 0.f));
 		bushSprite->changeAnimation(0);
 		break;
 	}
@@ -148,6 +148,34 @@ bool TileMap::loadLevel(const string &levelFile)
 		fin.get(tile);
 #endif
 	}
+	// Optional bridge links use zero-based tile coordinates after the grid.
+	bridgeMoves.clear();
+	while(getline(fin, line))
+	{
+		istringstream link(line);
+		string marker;
+		BridgeMove move;
+		if(!(link >> marker) || marker != "BRIDGE")
+			continue;
+		if(!(link >> move.trigger.x >> move.trigger.y >> move.source.x >> move.source.y >> move.target.x >> move.target.y))
+			continue;
+		if(!insideMap(move.trigger.x, move.trigger.y) || !insideMap(move.source.x, move.source.y) ||
+		   !insideMap(move.target.x, move.target.y))
+			continue;
+		if(map[move.trigger.y * mapSize.x + move.trigger.x] != 12 ||
+		   map[move.source.y * mapSize.x + move.source.x] != 10 ||
+		   map[move.target.y * mapSize.x + move.target.x] != 0 ||
+		   abs(move.trigger.x - move.source.x) + abs(move.trigger.y - move.source.y) != 1)
+			continue;
+		bool duplicate = false;
+		for(unsigned int i = 0; i < bridgeMoves.size(); i++)
+		{
+			if(bridgeMoves[i].trigger == move.trigger || bridgeMoves[i].source == move.source || bridgeMoves[i].target == move.target)
+				duplicate = true;
+		}
+		if(!duplicate)
+			bridgeMoves.push_back(move);
+	}
 	fin.close();
 
 	bombMap = new int[mapSize.x * mapSize.y];
@@ -158,6 +186,17 @@ bool TileMap::loadLevel(const string &levelFile)
 }
 
 void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
+{
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	updateTileVertices();
+	posLocation = program.bindVertexAttribute("position", 2, 4*sizeof(float), 0);
+	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+}
+
+void TileMap::updateTileVertices()
 {
 	int tile;
 	glm::vec2 posTile, texCoordTile[2], halfTexel;
@@ -174,7 +213,7 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 			{
 				// Non-empty tile
 				nTiles++;
-				posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + j * tileSize);
+				posTile = glm::vec2(position.x + i * tileSize, position.y + j * tileSize);
 				texCoordTile[0] = glm::vec2(float((tile-1)%tilesheetSize.x) / tilesheetSize.x, float((tile-1)/tilesheetSize.x) / tilesheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + tileTexSize;
 				//texCoordTile[0] += halfTexel;
@@ -197,13 +236,8 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 		}
 	}
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-	posLocation = program.bindVertexAttribute("position", 2, 4*sizeof(float), 0);
-	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), vertices.empty() ? NULL : &vertices[0], GL_STATIC_DRAW);
 }
 
 // Collision tests for axis aligned bounding boxes.
@@ -288,11 +322,51 @@ bool TileMap::isWall(int x, int y) const
 	return !insideMap(x, y) || map[y*mapSize.x+x] != 0;
 }
 
-bool TileMap::destroyDestructible(int x, int y)
+bool TileMap::destroyDestructible(int x, int y, std::vector<glm::ivec2> *explodedBlocks)
 {
-	if(!insideMap(x, y) || map[y*mapSize.x+x] != -1)
+	if(!insideMap(x, y))
+		return false;
+	int tile = map[y*mapSize.x+x];
+	if(tile != -1 && tile != 12)
 		return false;
 	map[y*mapSize.x+x] = 0;
+	if(tile == 12)
+	{
+		static const glm::ivec2 directions[] = { glm::ivec2(0, -1), glm::ivec2(0, 1), glm::ivec2(-1, 0), glm::ivec2(1, 0) };
+		vector<glm::ivec2> pending;
+		pending.push_back(glm::ivec2(x, y));
+		for(unsigned int next = 0; next < pending.size(); next++)
+		{
+			// Copy the cell: pushing neighbours may reallocate the queue.
+			glm::ivec2 cell = pending[next];
+			if(explodedBlocks != NULL)
+				explodedBlocks->push_back(cell);
+			for(unsigned int i = 0; i < bridgeMoves.size(); i++)
+			{
+				const BridgeMove &move = bridgeMoves[i];
+				if(move.trigger != cell)
+					continue;
+				int &source = map[move.source.y * mapSize.x + move.source.x];
+				int &target = map[move.target.y * mapSize.x + move.target.x];
+				if(source == 10 && target == 0)
+				{
+					source = 0;
+					target = 10;
+				}
+			}
+			for(int d = 0; d < 4; d++)
+			{
+				glm::ivec2 neighbour = cell + directions[d];
+				if(!insideMap(neighbour.x, neighbour.y) || map[neighbour.y * mapSize.x + neighbour.x] != 12)
+					continue;
+				// Clear on enqueue so cycles cannot activate a block twice.
+				map[neighbour.y * mapSize.x + neighbour.x] = 0;
+				pending.push_back(neighbour);
+			}
+		}
+		// Keep rendered tiles and collision geometry in sync.
+		updateTileVertices();
+	}
 	return true;
 }
 

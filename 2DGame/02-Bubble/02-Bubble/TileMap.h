@@ -15,6 +15,7 @@
 // method draws the whole map independently of what is visible.
 // Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
 // * marks a solid bush that explosions can destroy.
+// c marks a destructible switch; optional BRIDGE lines move an adjacent a.
 // B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
 // W/R/Z/X mark enemies (X is the 2x2-tile boss), D the exit and @ the player start. All are spawn points.
 
@@ -60,7 +61,7 @@ public:
 
 	// True for map tiles and for anything outside the map (ignores bombs)
 	bool isWall(int x, int y) const;
-	bool destroyDestructible(int x, int y);
+	bool destroyDestructible(int x, int y, std::vector<glm::ivec2> *explodedBlocks = NULL);
 	bool openKeyGate(int x, int y);
 
 	// Bomb mirror map, in tile coordinates
@@ -71,8 +72,14 @@ public:
 	void solidifyBomb(int x, int y);
 
 private:
+	struct BridgeMove
+	{
+		glm::ivec2 trigger, source, target;
+	};
+
 	bool loadLevel(const string &levelFile);
 	void prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program);
+	void updateTileVertices();
 	bool insideMap(int x, int y) const;
 	bool isSolid(int x, int y) const;
 
@@ -90,6 +97,7 @@ private:
 	int *map;
 	int *bombMap;
 	std::vector<Spawn> spawns;
+	std::vector<BridgeMove> bridgeMoves;
 
 };
 
