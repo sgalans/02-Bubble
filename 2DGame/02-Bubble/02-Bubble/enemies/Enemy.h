@@ -2,8 +2,8 @@
 #define _ENEMY_INCLUDE
 
 
-#include "Sprite.h"
-#include "TileMap.h"
+#include "../Sprite.h"
+#include "../TileMap.h"
 
 
 // Abstract base for every enemy. It owns the sprite, the tile map reference

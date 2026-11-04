@@ -2,8 +2,8 @@
 #define _PROJECTILE_INCLUDE
 
 
-#include "Sprite.h"
-#include "TileMap.h"
+#include "../Sprite.h"
+#include "../TileMap.h"
 
 
 // A small ball fired by a Shooter. It flies in a straight line, ignoring

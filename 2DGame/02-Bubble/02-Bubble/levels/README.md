@@ -16,6 +16,7 @@ els espais finals. `personalized.png` té una graella de **3×3** tiles de 16×1
 | `D` | Sortida; s'obre quan no queden enemics |
 | `@` | Inici del jugador |
 | `W`, `R`, `Z` | Walker, Runner, Shooter |
+| `X` | Boss (arbre de 2×2 tiles; la lletra marca el tile superior esquerre) |
 
 La clau apareix en destruir l'arbust `K`. Cal recollir-la i tocar la porta `L`
 per obrir el pas permanentment. Obrir una porta consumeix la clau.

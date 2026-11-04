@@ -3,7 +3,7 @@
 
 
 #include "Enemy.h"
-#include "Player.h"
+#include "../Player.h"
 
 
 // Enemy that stays where it is and, while the player is in range and no wall

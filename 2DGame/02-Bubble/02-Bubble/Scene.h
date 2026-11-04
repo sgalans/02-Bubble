@@ -7,11 +7,11 @@
 #include "ShaderProgram.h"
 #include "TileMap.h"
 #include "Player.h"
-#include "Enemy.h"
+#include "enemies/Enemy.h"
 #include "Bomb.h"
 #include "Item.h"
 #include "Door.h"
-#include "Projectile.h"
+#include "enemies/Projectile.h"
 #include "HUD.h"
 #include "Text.h"
 

@@ -12,7 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimKeyframes.h" />
-    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="enemies\Enemy.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="Menu.h" />
@@ -25,16 +25,17 @@
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileMap.h" />
-    <ClInclude Include="Runner.h" />
-    <ClInclude Include="Walker.h" />
+    <ClInclude Include="enemies\Runner.h" />
+    <ClInclude Include="enemies\Walker.h" />
     <ClInclude Include="Bomb.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="Door.h" />
-    <ClInclude Include="Shooter.h" />
-    <ClInclude Include="Projectile.h" />
+    <ClInclude Include="enemies\Shooter.h" />
+    <ClInclude Include="enemies\Boss.h" />
+    <ClInclude Include="enemies\Projectile.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="enemies\Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Menu.cpp" />
@@ -48,13 +49,14 @@
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileMap.cpp" />
-    <ClCompile Include="Runner.cpp" />
-    <ClCompile Include="Walker.cpp" />
+    <ClCompile Include="enemies\Runner.cpp" />
+    <ClCompile Include="enemies\Walker.cpp" />
     <ClCompile Include="Bomb.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="Door.cpp" />
-    <ClCompile Include="Shooter.cpp" />
-    <ClCompile Include="Projectile.cpp" />
+    <ClCompile Include="enemies\Shooter.cpp" />
+    <ClCompile Include="enemies\Boss.cpp" />
+    <ClCompile Include="enemies\Projectile.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5BE6CA2A-E5A8-40CC-9015-047CE0C78036}</ProjectGuid>

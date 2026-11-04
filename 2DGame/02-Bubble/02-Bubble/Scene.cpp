@@ -4,9 +4,10 @@
 #include "Scene.h"
 #include "Game.h"
 #include "Audio.h"
-#include "Walker.h"
-#include "Runner.h"
-#include "Shooter.h"
+#include "enemies/Walker.h"
+#include "enemies/Runner.h"
+#include "enemies/Shooter.h"
+#include "enemies/Boss.h"
 
 
 #define SCREEN_X 32
@@ -100,7 +101,7 @@ void Scene::init(const string &levelFile)
 }
 
 // Creates one enemy or item per letter found in the level file:
-// W = Walker, R = Runner, Z = Shooter, D = exit, L = key gate, @ = player
+// W = Walker, R = Runner, Z = Shooter, X = Boss, D = exit, L = key gate, @ = player
 // and the item letters listed in Item::typeFromLetter mark bushes hiding power-ups.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
@@ -159,6 +160,13 @@ void Scene::spawnFromLevel()
 			Shooter *shooter = new Shooter();
 			shooter->setPlayer(player);
 			enemy = shooter;
+			break;
+		}
+		case 'X':
+		{
+			Boss *boss = new Boss();
+			boss->setPlayer(player);
+			enemy = boss;
 			break;
 		}
 		default:
@@ -276,7 +284,8 @@ void Scene::update(int deltaTime)
 		if(player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
 		glm::vec2 shotOrigin, shotVelocity;
-		if(enemies[i]->takeShot(shotOrigin, shotVelocity))
+		// The boss can fire several balls at once
+		while(enemies[i]->takeShot(shotOrigin, shotVelocity))
 			spawnProjectile(shotOrigin, shotVelocity);
 	}
 	updateProjectiles(deltaTime);
