@@ -17,8 +17,8 @@
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
-#define SPEED_UP_INCREMENT 0.5f
-#define MAX_MOVE_SPEED 3.f
+#define SPEED_UP_INCREMENT 0.25f
+#define MAX_MOVE_SPEED 2.25f
 #define PLAYER_SPRITE_WIDTH 16
 #define PLAYER_HEIGHT 16
 #define HITBOX_INSET_X 2
