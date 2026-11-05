@@ -1,32 +1,31 @@
 # Blocs i marcadors dels nivells
 
 El tileset actual és [images/personalized.png](images/personalized.png):
-**64×80 píxels**, amb **4 columnes × 5 files** de tiles de **16×16**.
+**80×80 píxels**, amb **5 columnes × 5 files** de tiles de **16×16**.
 La numeració comença a 1, d'esquerra a dreta i de dalt a baix.
 
 ## Peces del tileset
 
 Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 
-| Peça | Píxel (x, y) | Aspecte | Ús al mapa |
+| Índex | Codi al mapa | Píxel (x, y) | Peça i ús |
 | --- | --- | --- | --- |
-| 1 | (0, 0) | Terra amb herba, variant A | `1`: bloc sòlid |
-| 2 | (16, 0) | Terra amb herba, variant B | `2`: bloc sòlid |
-| 3 | (32, 0) | Terra sense herba / tronc | `3`: bloc sòlid |
-| 4 | (48, 0) | Arbust | `*` o una lletra d'objecte |
-| 5 | (0, 16) | Pedra | `5`: bloc sòlid indestructible |
-| 6 | (16, 16) | Clau | `K`: amagada dins d'un arbust |
-| 7 | (32, 16) | Porta amb pany | `L`: pas bloquejat fins a fer servir la clau |
-| 8 | (48, 16) | Sortida tancada | `D`: mentre queden enemics |
-| 9 | (0, 32) | Sortida oberta | `D`: quan no queden enemics |
-| 10 | (16, 32) | Maons vermellosos | `a`: plataforma que desapareix en trepitjar-la |
-| 11 | (32, 32) | Maons, variant B | `b`: bloc sòlid |
-| 12 | (48, 32) | Maons, variant C | `c`: bloc sòlid |
-| 13 | (0, 48) | Terra / pedra clara | `d`: bloc sòlid |
-| 14 | (16, 48) | Bloc gris amb marca vermella | Sense ús actual |
-| 15–17 | (32, 48), (48, 48), (0, 64) | Fotogrames d'explosió antics | Sense ús actual |
-| 18 | (16, 64) | Cel | Fons decoratiu de `Scene`, sense col·lisió |
-| 19–20 | (32, 64), (48, 64) | Meitats esquerra i dreta del núvol | `C`: peça de 32×16 al fons, sense col·lisió |
+| 1–3 | `1`, `2`, `3` | (0, 0), (16, 0), (32, 0) | Terra sòlida. |
+| 4 | `*`, `B`, `F`, `S`, `P`, `K` | (48, 0) | Arbust destructible, buit o amb objecte. |
+| 5 | `5` | (64, 0) | Pedra indestructible. |
+| 6 | `K` | (0, 16) | Clau amagada en un arbust. |
+| 7 | `L` | (16, 16) | Porta amb pany. |
+| 8 | `D` | (32, 16) | Sortida tancada. |
+| 9 | `D`, `L` oberta | (48, 16) | Porta oberta. |
+| 10 | `a` | (64, 16) | Plataforma de maons temporal. |
+| 11–12 | `b`, `c` | (0, 32), (16, 32) | Fotogrames dels maons; estàtics si s'escriuen al mapa. |
+| 13 | `d` | (32, 32) | Terra / pedra clara sòlida. |
+| 14 | — | (48, 32) | Bloc gris antic, sense ús. |
+| 15–17 | — | (64, 32), (0, 48), (16, 48) | Explosió antiga, sense ús. |
+| 18 | — | (32, 48) | Cel decoratiu. |
+| 19–20 | `C` | (48, 48), (64, 48) | Núvol de 2×1 tiles, sense col·lisió. |
+| 21–23 | `T` | (0, 64), (16, 64), (32, 64) | Trampolí: 9, 12 i 16 píxels d'alçada. |
+| 24–25 | `U` | (48, 64), (64, 64) | Botó preparat i comprimit; sense col·lisió. |
 
 El cel es repeteix per cobrir tota la vista dels nivells. Col·loca els núvols
 manualment amb `C` a la graella, deixant un espai a la dreta (`C `).
@@ -50,11 +49,32 @@ i desapareixen temporalment quan el jugador els trepitja.
 El bloc gris i els seus fotogrames d'explosió es conserven a la imatge,
 però no s'utilitzen als nivells ni tenen cap mecànica especial.
 
+## Trampolí (`T`)
+
+El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels
+d'alçada, alineat amb la base del tile; els 7 píxels superiors són buits.
+S'activa amb un botó `U` situat exactament 4 tiles a la dreta i a la mateixa fila.
+Una explosió que arriba al botó des de qualsevol direcció, inclòs el centre,
+el comprimeix durant 1 segon i activa el trampolí. El botó no té col·lisió,
+no atura el foc i no es destrueix. Els impactes durant la recàrrega s'ignoren.
+El vincle amb el trampolí funciona encara que hi hagi blocs entremig;
+l'explosió sí que necessita arribar fins al botó. Sense `T` al destí,
+només es comprimeix el botó. Un trampolí actiu no reinicia el seu cicle.
+El trampolí bloqueja les flames i no es destrueix; cap explosió directa l'activa.
+L'animació és 9→12→16→12→9 píxels. Es manté completament estès durant 1 segon abans de baixar; el cicle complet dura aproximadament 1,4 segons.
+El jugador es manté sobre la superfície i, en arribar als 16 píxels, rep
+un impuls de 10 tiles d'alçada des de la superfície elevada, sense prémer salt.
+Els sostres aturen l'ascens. Sense jugador a sobre, s'anima igualment.
+Un nou impacte mentre està actiu no reinicia l'animació. Els enemics segueixen
+la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.
+
 ## Marcadors del mapa
 
 | Codi | Significat |
 | --- | --- |
 | espai | Casella buida |
+| `T` | Trampolí activat pel botó de 4 tiles a la dreta; impulsa 10 tiles |
+| `U` | Botó sense col·lisió: una explosió activa el `T` de 4 tiles a l'esquerra |
 | `C` | Núvol decoratiu de 2×1 tiles, sense col·lisió; marca la meitat esquerra |
 | `@` | Posició inicial del jugador |
 | `W` | Walker |
@@ -85,7 +105,7 @@ Després de la mida del mapa, indica aquestes dades per utilitzar el tileset act
 ```text
 16 16              -- Tile size & block size
 images/personalized.png -- Tilesheet
-4 5                -- Number of tiles in tilesheet
+5 5                -- Number of tiles in tilesheet
 ```
 
 Cada fila de la graella ha de tenir exactament l'amplada declarada del mapa,

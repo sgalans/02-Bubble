@@ -1,9 +1,8 @@
 # Format dels nivells
 
 Cada fila ha de tenir exactament l'amplada indicada a la capçalera, inclosos
-els espais finals. `personalized.png` té una graella de **4×5** tiles de 16×16.
-La capçalera ha d'indicar `4 5`. La peça clara abans codificada amb `b`
-ara és la peça 13 (`d`); els nivells s'han adaptat per conservar-ne l'aspecte.
+els espais finals. `personalized.png` té una graella de **5×5** tiles de 16×16.
+La capçalera ha d'indicar `5 5`. Els índexs 1–20 es conserven; els retalls s'han adaptat a les 5 columnes.
 Els retalls especials segueixen les coordenades de [../blocs.md](../blocs.md).
 
 El cel (peça 18) cobreix automàticament tot el fons. Els núvols es posen
@@ -12,7 +11,7 @@ ocupant visualment la seva casella i la de la dreta. Deixa un espai a la dreta
 del marcador per mostrar el núvol complet (`C `); no cal un segon marcador.
 Cap de les dues meitats té col·lisió. Sense `C`, només es veu el cel.
 El núvol queda darrere dels blocs i les entitats. Substitueix espais per `C`
-sense afegir columnes a la fila. L'atles continua sent de 64×80 píxels: `4 5`.
+sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 
 | Símbol | Significat |
 | --- | --- |
@@ -24,6 +23,8 @@ sense afegir columnes a la fila. L'atles continua sent de 64×80 píxels: `4 5`.
 | `a` | Plataforma temporal: desapareix en trepitjar-la i torna a aparèixer |
 | `b`, `c`, `d` | Blocs sòlids indestructibles de l'atles |
 | `*` | Arbust destructible |
+| `T` | Trampolí: alçades 9/12/16 píxels, impuls de 10 tiles; activat pel botó |
+| `U` | Botó sense col·lisió: activa el `T` exactament 4 tiles a l'esquerra |
 | `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o Bomb Proof |
 | `K` | Arbust amb una clau |
 | `L` | Porta amb pany; sòlida i immune a explosions |
@@ -54,3 +55,23 @@ Al nivell 3, la cambra ocupa les columnes 9–22 i files 1–14 (coordenades
 començant per zero): **14×14 tiles interiors**, amb marc de pedra a les
 columnes 8 i 23 i files 0 i 15. L'únic accés és `L` a (23, 12).
 La clau és al braç esquerre de la U i la sortida és dins de la cambra.
+
+## Trampolí (`T`)
+
+El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels
+d'alçada, alineat amb la base del tile; els 7 píxels superiors són buits.
+Col·loca el botó amb `U`, a la mateixa fila i exactament 4 columnes a la dreta:
+`T   U`. Una explosió que arriba al botó des de qualsevol direcció, o una
+bomba que explota a la seva casella, activa el trampolí i comprimeix el botó.
+El botó torna a estar preparat després d'1 segon; durant aquest temps ignora
+nous impactes. No té col·lisió, no es destrueix ni atura les flames.
+La connexió botó/trampolí funciona encara que hi hagi blocs entremig;
+els blocs sí que poden tapar el botó i impedir que l'explosió l'assoleixi.
+Si no hi ha `T` exactament al destí, només s'anima el botó.
+El trampolí atura les flames i no s'activa mai per una explosió directa.
+L'animació és 9→12→16→12→9 píxels. Es manté completament estès durant 1 segon abans de baixar; el cicle complet dura aproximadament 1,4 segons.
+El jugador es manté sobre la superfície i, en arribar als 16 píxels, rep
+un impuls de 10 tiles d'alçada des de la superfície elevada, sense prémer salt.
+Els sostres aturen l'ascens. Sense jugador a sobre, s'anima igualment.
+Un nou impacte mentre està actiu no reinicia l'animació. Els enemics segueixen
+la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.

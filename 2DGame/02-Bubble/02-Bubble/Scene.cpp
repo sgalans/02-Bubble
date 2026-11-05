@@ -25,6 +25,7 @@
 #define END_TITLE_SIZE 32
 #define END_HINT_SIZE 16
 #define END_LINE_SPACING 24
+#define EXIT_NOTICE_TIME 3000 // ms
 
 // Final victory picture (160x80), drawn at 4x and centred vertically
 #define END_SCREEN_FILE "images/EndScreen.png"
@@ -37,6 +38,8 @@ Scene::Scene()
 	player = NULL;
 	door = NULL;
 	hasKey = false;
+	showKeyHint = false;
+	exitNoticeTime = 0;
 	hud = NULL;
 	skySprite = NULL;
 	cloudSprite = NULL;
@@ -94,20 +97,20 @@ void Scene::init(const string &levelFile)
 	personalizedTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	personalizedTexture.setMinFilter(GL_NEAREST);
 	personalizedTexture.setMagFilter(GL_NEAREST);
-	// The last row holds sky, then the two adjacent halves of a cloud.
+	// Row 3 holds sky, then the two adjacent halves of a cloud.
 	glm::vec2 atlasSize(float(personalizedTexture.width()), float(personalizedTexture.height()));
 	float tileSize = float(map->getTileSize());
 	skySprite = Sprite::createSprite(glm::vec2(tileSize), glm::vec2(16.f) / atlasSize,
 	                                 &personalizedTexture, &texProgram);
 	skySprite->setNumberAnimations(1);
 	skySprite->setAnimationSpeed(0, 1);
-	skySprite->addKeyframe(0, glm::vec2(16.f, 64.f) / atlasSize);
+	skySprite->addKeyframe(0, glm::vec2(32.f, 48.f) / atlasSize);
 	skySprite->changeAnimation(0);
 	cloudSprite = Sprite::createSprite(glm::vec2(2.f * tileSize, tileSize), glm::vec2(32.f, 16.f) / atlasSize,
 	                                   &personalizedTexture, &texProgram);
 	cloudSprite->setNumberAnimations(1);
 	cloudSprite->setAnimationSpeed(0, 1);
-	cloudSprite->addKeyframe(0, glm::vec2(32.f, 64.f) / atlasSize);
+	cloudSprite->addKeyframe(0, glm::vec2(48.f, 48.f) / atlasSize);
 	cloudSprite->changeAnimation(0);
 
 	spawnFromLevel();
@@ -293,7 +296,15 @@ void Scene::update(int deltaTime)
 	// Everything stops on the win screen
 	if(cleared)
 		return;
+	if(player->isExiting())
+	{
+		player->update(deltaTime);
+		updateCamera();
+		cleared = player->hasEnteredExit();
+		return;
+	}
 	currentTime += deltaTime;
+	exitNoticeTime = glm::max(0, exitNoticeTime - deltaTime);
 	// The clock stops once the player is out of lives. Running out of time
 	// kills him outright, which brings up the death screen.
 	if(player->isAlive())
@@ -311,7 +322,44 @@ void Scene::update(int deltaTime)
 		if(!enemies[i]->isDead())
 			occupiedBoxes.push_back(glm::ivec4(glm::ivec2(enemies[i]->getPosition()) - map->getPosition(), enemies[i]->getSize()));
 	}
+	int ridingTrampoline = -1;
+	vector<int> enemyTrampolines(enemies.size(), -1);
+	vector<int> previousSpringTops;
+	const vector<TileMap::Trampoline> &springs = map->getTrampolines();
+	glm::ivec2 playerPos = glm::ivec2(player->getPosition()) - map->getPosition();
+	for(unsigned int i = 0; i < springs.size(); i++)
+	{
+		int left = springs[i].tile.x * map->getTileSize();
+		int top = map->getTrampolineTop(springs[i]);
+		previousSpringTops.push_back(top);
+		for(unsigned int j = 0; j < enemies.size(); j++)
+		{
+			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
+			glm::ivec2 size = enemies[j]->getSize();
+			if(pos.y + size.y == top && pos.x < left + map->getTileSize() && left < pos.x + size.x)
+				enemyTrampolines[j] = int(i);
+		}
+		if(player->isStandingOnSurface(map->getTrampolineTop(springs[i])) &&
+		   playerPos.x < left + map->getTileSize() && left < playerPos.x + player->getSize().x)
+		{
+			ridingTrampoline = int(i);
+		}
+	}
 	map->update(deltaTime, occupiedBoxes);
+	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
+		int spring = enemyTrampolines[i];
+		if(spring >= 0)
+		{
+			int shift = map->getTrampolineTop(springs[spring]) - previousSpringTops[spring];
+			enemies[i]->setPosition(enemies[i]->getPosition() - glm::vec2(map->getPosition()) + glm::vec2(0, shift));
+		}
+	}
+	if(ridingTrampoline >= 0)
+	{
+		const TileMap::Trampoline &spring = springs[ridingTrampoline];
+		player->liftByTrampoline(map->getTrampolineTop(spring), spring.launched);
+	}
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();
@@ -337,7 +385,8 @@ void Scene::update(int deltaTime)
 	updateDoor(deltaTime);
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
-	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey);
+	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey,
+	            player->getSpeedUpLevel(), player->isBombProof());
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -451,6 +500,7 @@ void Scene::applyExplosionDamage()
 
 void Scene::removeDeadEnemies()
 {
+	bool hadEnemies = !enemies.empty();
 	for(unsigned int i = 0; i < enemies.size(); )
 	{
 		if(enemies[i]->isDead())
@@ -461,12 +511,18 @@ void Scene::removeDeadEnemies()
 		else
 			i++;
 	}
+	if(hadEnemies && enemies.empty())
+		exitNoticeTime = EXIT_NOTICE_TIME;
 }
 
 // The door opens once no enemies are left. The player clears the level when
 // the centre of his body is inside the open door.
 void Scene::updateDoor(int deltaTime)
 {
+	showKeyHint = false;
+	glm::ivec2 playerFeet = glm::ivec2(player->getPosition()) - map->getPosition();
+	playerFeet += glm::ivec2(player->getSize().x / 2, player->getSize().y - 1);
+	glm::ivec2 playerTile = playerFeet / map->getTileSize();
 	for(unsigned int i = 0; i < keyGates.size(); i++)
 	{
 		Door *gate = keyGates[i];
@@ -483,6 +539,13 @@ void Scene::updateDoor(int deltaTime)
 				Audio::instance().play(Audio::MENU_SELECT);
 			}
 		}
+		if(!gate->isOpen() && !hasKey && player->isAlive())
+		{
+			glm::ivec2 gateTile = (glm::ivec2(gate->getPosition()) - map->getPosition()) / map->getTileSize();
+			glm::ivec2 distance = glm::abs(playerTile - gateTile);
+			if(distance.x + distance.y == 1)
+				showKeyHint = true;
+		}
 	}
 
 	if(door == NULL)
@@ -495,7 +558,11 @@ void Scene::updateDoor(int deltaTime)
 		glm::vec2 center = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
 		glm::vec2 doorMin = door->getPosition(), doorMax = doorMin + glm::vec2(door->getSize());
 		if(center.x >= doorMin.x && center.x < doorMax.x && center.y >= doorMin.y && center.y < doorMax.y)
-			cleared = true;
+		{
+			player->enterExit(door->getPosition());
+			showKeyHint = false;
+			exitNoticeTime = 0;
+		}
 	}
 }
 
@@ -658,8 +725,23 @@ void Scene::render()
 	hud->render();
 	if(cleared)
 		renderEndScreen("YOU WIN", glm::vec4(1.f, 0.85f, 0.2f, 1.f), "PRESS ENTER TO CONTINUE");
-	else if(!player->isAlive())
+	else if(player->isGameOver())
 		renderEndScreen("YOU ARE DEAD", glm::vec4(1.f, 0.f, 0.f, 1.f), "PRESS ESC TO RETURN TO MAIN MENU");
+	else if(player->isAlive())
+	{
+		float noticeY = (SCREEN_HEIGHT - END_TITLE_SIZE) / 2.f;
+		if(exitNoticeTime > 0)
+		{
+			endTitleText.renderCentered("EXIT!", noticeY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endTitleText.renderCentered("EXIT!", noticeY, SCREEN_WIDTH, glm::vec4(1.f, 0.85f, 0.2f, 1.f));
+		}
+		if(showKeyHint)
+		{
+			float hintY = noticeY + END_TITLE_SIZE + END_LINE_SPACING;
+			endHintText.renderCentered("You need a key", hintY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endHintText.renderCentered("You need a key", hintY, SCREEN_WIDTH, glm::vec4(1.f));
+		}
+	}
 }
 
 // Title centred on screen with a smaller white hint under it. Game::keyPressed

@@ -2,7 +2,7 @@
 #include "Walker.h"
 
 
-#define WALKER_SPEED 0.5f
+#define WALKER_SPEED 0.3f
 #define FALL_STEP 2
 
 // Draw and collide at the source art's native size.

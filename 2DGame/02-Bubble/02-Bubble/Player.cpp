@@ -7,13 +7,20 @@
 
 
 #define HIGH_JUMP_HEIGHT_TILES 3
+#define TRAMPOLINE_JUMP_HEIGHT_TILES 10
 #define SHORT_JUMP_HEIGHT_TILES 2
 #define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
 #define SHORT_JUMP_DURATION 0.5f
 #define MAX_VERTICAL_STEP_TIME (1.f / 120.f)
 #define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define MAX_FALL_SPEED_TILES 15.f // tiles per second
-#define INVULNERABILITY_TIME 2000 //ms
+#define INVULNERABILITY_TIME 3000 // ms after respawning
+#define DEATH_TIME 1500 // ms
+#define DEATH_FRAMES 4
+#define EXIT_TIME 1000 // ms
+#define EXIT_ALIGN_TIME 300 // ms
+#define BLINK_CYCLE 360 // ms
+#define BLINK_VISIBLE_TIME 288 // 80% visible, 20% hidden
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
@@ -27,13 +34,14 @@
 
 enum PlayerAnims
 {
-	STAND, MOVE, JUMP_UP, JUMP_DOWN
+	STAND, MOVE, JUMP_UP, JUMP_DOWN, ENTER_EXIT
 };
 
 
 Player::Player()
 {
 	sprite = NULL;
+	deathSprite = NULL;
 	map = NULL;
 }
 
@@ -41,6 +49,7 @@ Player::~Player()
 {
 	if (sprite != NULL)
 		delete sprite;
+	delete deathSprite;
 }
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
@@ -62,6 +71,9 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	moveSpeed = BASE_MOVE_SPEED;
 	bombProof = false;
 	invulnTime = 0;
+	deathTime = blinkTime = 0;
+	exiting = false;
+	exitTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet.setMinFilter(GL_NEAREST);
@@ -75,7 +87,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	glm::vec2 jumpUpFrame(86.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpDownFrame(69.f / spritesheet.width(), 2.f / spritesheet.height());
 	sprite = Sprite::createSprite(glm::vec2(PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT), frameSize, &spritesheet, &shaderProgram);
-	sprite->setNumberAnimations(4);
+	sprite->setNumberAnimations(5);
 	
 		sprite->setAnimationSpeed(STAND, 8);
 		sprite->addKeyframe(STAND, standFrame);
@@ -90,8 +102,22 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		sprite->setAnimationSpeed(JUMP_DOWN, 8);
 		sprite->addKeyframe(JUMP_DOWN, jumpDownFrame);
 		
+	sprite->setAnimationSpeed(ENTER_EXIT, 1);
+	sprite->addKeyframe(ENTER_EXIT, glm::vec2(19.f / spritesheet.width(), 20.f / spritesheet.height()));
 	sprite->changeAnimation(STAND);
 	sprite->setFlipX(false);
+	// The death sequence on row 2 includes a 17-pixel-wide burst.
+	deathSprite = Sprite::createSprite(glm::vec2(17.f, 18.f),
+	                                  glm::vec2(17.f / spritesheet.width(), 18.f / spritesheet.height()),
+	                                  &spritesheet, &shaderProgram);
+	deathSprite->setNumberAnimations(DEATH_FRAMES);
+	const float deathFrameX[DEATH_FRAMES] = { 54.f, 71.f, 89.f, 107.f };
+	for(int frame = 0; frame < DEATH_FRAMES; frame++)
+	{
+		deathSprite->setAnimationSpeed(frame, 1);
+		deathSprite->addKeyframe(frame, glm::vec2(deathFrameX[frame] / spritesheet.width(), 19.f / spritesheet.height()));
+	}
+	deathSprite->changeAnimation(0);
 	tileMapDispl = tileMapPos;
 	posPlayer = glm::ivec2(HITBOX_INSET_X, 0);
 	spawnPoint = glm::vec2(0.f);
@@ -101,11 +127,55 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 
 void Player::update(int deltaTime)
 {
+	if(exiting)
+	{
+		exitTime += glm::clamp(deltaTime, 0, EXIT_TIME - exitTime);
+		float align = glm::min(float(exitTime) / EXIT_ALIGN_TIME, 1.f);
+		posPlayer = glm::ivec2(exitStart + (exitTarget - exitStart) * align);
+		if(exitTime < EXIT_ALIGN_TIME)
+			sprite->update(deltaTime);
+		else
+		{
+			if(sprite->animation() != ENTER_EXIT)
+				sprite->changeAnimation(ENTER_EXIT);
+			sprite->setFlipX(false);
+			float progress = float(exitTime - EXIT_ALIGN_TIME) / (EXIT_TIME - EXIT_ALIGN_TIME);
+			sprite->setScale(1.f - progress * progress);
+		}
+		updateSpritePosition();
+		return;
+	}
+	bool godKeyPressed = Game::instance().getKey(GLFW_KEY_G);
+	if(lives > 0 && godKeyPressed && !bGodKeyPressed)
+	{
+		invensible = !invensible;
+		blinkTime = 0;
+	}
+	bGodKeyPressed = godKeyPressed;
+	if(isDying())
+	{
+		deathTime = max(0, deathTime - max(0, deltaTime));
+		int frame = min((DEATH_TIME - deathTime) * DEATH_FRAMES / DEATH_TIME, DEATH_FRAMES - 1);
+		deathSprite->changeAnimation(frame);
+		// Held actions must be released before they can fire after respawning.
+		bBombKeyPressed = Game::instance().getKey(GLFW_KEY_SPACE);
+		bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W)
+		                  || Game::instance().getKey(GLFW_KEY_S);
+		if(deathTime == 0 && lives > 0)
+		{
+			setPosition(spawnPoint);
+			sprite->changeAnimation(STAND);
+			invulnTime = INVULNERABILITY_TIME;
+			blinkTime = 0;
+		}
+		return;
+	}
 	// Out of lives: stay put and stop animating until the game handles it.
 	if(lives <= 0)
 		return;
 	if(invulnTime > 0)
 		invulnTime = max(0, invulnTime - deltaTime);
+	blinkTime = (blinkTime + max(0, deltaTime) % BLINK_CYCLE) % BLINK_CYCLE;
 
 	glm::ivec2 previousPos = posPlayer;
 	bool highJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP)
@@ -212,9 +282,6 @@ void Player::update(int deltaTime)
 	}
 	if(grounded)
 		map->stepOnPlatforms(posPlayer, sizePlayer);
-	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
-		invensible = !invensible;
-	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
 
 	// Scene owns the bombs, so the player only asks for one on each key press
 	if(Game::instance().getKey(GLFW_KEY_SPACE) && !bBombKeyPressed)
@@ -239,34 +306,99 @@ void Player::update(int deltaTime)
 
 void Player::render()
 {
+	if(exiting)
+	{
+		if(!hasEnteredExit())
+			sprite->render();
+		return;
+	}
+	if(isDying() || lives <= 0)
+	{
+		deathSprite->render();
+		return;
+	}
+	if(isInvulnerable() && blinkTime >= BLINK_VISIBLE_TIME)
+		return;
 	sprite->render();
+}
+
+void Player::liftByTrampoline(int top, bool launch)
+{
+	if(!isAlive())
+		return;
+	int targetY = top - sizePlayer.y;
+	int direction = targetY < posPlayer.y ? -1 : 1;
+	while(posPlayer.y != targetY)
+	{
+		posPlayer.y += direction;
+		bool collided = direction < 0
+			? map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y)
+			: map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
+		if(collided)
+			break;
+	}
+	verticalPosition = float(posPlayer.y);
+	if(launch)
+	{
+		shortJumpActive = false;
+		const float gravity = 8.f * HIGH_JUMP_HEIGHT_TILES * map->getTileSize() / (HIGH_JUMP_DURATION * HIGH_JUMP_DURATION);
+		verticalVelocity = -sqrt(2.f * gravity * TRAMPOLINE_JUMP_HEIGHT_TILES * map->getTileSize());
+	}
+	updateSpritePosition();
+}
+
+void Player::enterExit(const glm::vec2 &doorPosition)
+{
+	if(!isAlive())
+		return;
+	exiting = true;
+	exitTime = 0;
+	exitStart = glm::vec2(posPlayer);
+	exitTarget = doorPosition - glm::vec2(tileMapDispl) + glm::vec2(HITBOX_INSET_X, 0);
+	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	bBombRequested = false;
+	sprite->setScale(1.f);
+	sprite->setFlipX(exitTarget.x > exitStart.x);
+	sprite->changeAnimation(MOVE);
+}
+
+bool Player::hasEnteredExit() const
+{
+	return exiting && exitTime >= EXIT_TIME;
 }
 
 void Player::loseLife()
 {
-	if(invulnTime <= 0 && !invensible){
-		invulnTime = INVULNERABILITY_TIME;
-		if(lives > 0)
-			lives--;
-		Audio::instance().play(Audio::PLAYER_HURT);
-		// Back to the start; on the last life he stays where he died for the game over.
-		if(lives > 0)
-			setPosition(spawnPoint);
-	}
+	if(!isAlive() || isInvulnerable())
+		return;
+	lives--;
+	startDeath();
+}
+
+void Player::startDeath()
+{
+	deathTime = DEATH_TIME;
+	invulnTime = 0;
+	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	bBombRequested = false;
+	deathSprite->changeAnimation(0);
+	Audio::instance().play(Audio::PLAYER_HURT);
 }
 
 void Player::loseAllLives()
 {
-	if(lives <= 0)
+	if(lives <= 0 || exiting)
 		return;
 	lives = 0;
-	Audio::instance().play(Audio::PLAYER_HURT);
+	startDeath();
 }
 
 // Returns whether the player pressed the bomb key since the last call
 bool Player::takeBombRequest()
 {
-	bool requested = bBombRequested;
+	bool requested = bBombRequested && isAlive();
 	bBombRequested = false;
 
 	return requested;
@@ -298,6 +430,11 @@ Player::PowerUps Player::getPowerUps() const
 {
 	PowerUps powerUps = { nBombs, firePower, moveSpeed, bombProof };
 	return powerUps;
+}
+
+int Player::getSpeedUpLevel() const
+{
+	return int(round((moveSpeed - BASE_MOVE_SPEED) / SPEED_UP_INCREMENT));
 }
 
 void Player::setPowerUps(const PowerUps &powerUps)
@@ -333,6 +470,7 @@ void Player::setSpawnPoint(const glm::vec2 &pos)
 void Player::updateSpritePosition()
 {
 	sprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 0)));
+	deathSprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 1)));
 }
 
 

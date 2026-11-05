@@ -2,8 +2,8 @@
 #include "Runner.h"
 
 
-#define WALKING_SPEED 0.75f
-#define RUNNER_SPEED 1.5f
+#define WALKING_SPEED 0.45f
+#define RUNNER_SPEED 0.9f
 #define FALL_STEP 3
 
 // How far ahead the runner can spot the player, in tiles.
@@ -129,7 +129,7 @@ void Runner::update(int deltaTime)
 }
 
 // The runner only looks ahead: the player has to be in front of it, at about
-// the same height and within range. Walls do not block its view.
+// the same height and within range, with no map blocks between them.
 bool Runner::seesPlayer() const
 {
 	if(player == NULL || !player->isAlive())
@@ -150,7 +150,21 @@ bool Runner::seesPlayer() const
 		gap = playerPos.x - (posEnemy.x + sizeEnemy.x);
 	// A negative gap down to -size means the boxes overlap; further than that
 	// and the player is behind us.
-	return gap >= -sizeEnemy.x && gap <= SIGHT_RANGE_TILES * map->getTileSize();
+	if(gap < -sizeEnemy.x || gap > SIGHT_RANGE_TILES * map->getTileSize())
+		return false;
+
+	// Cast horizontally through the height shared by both hitboxes.
+	int top = glm::max(posEnemy.y, playerPos.y);
+	int bottom = glm::min(posEnemy.y + sizeEnemy.y, playerPos.y + playerSize.y);
+	int row = (top + (bottom - top) / 2) / map->getTileSize();
+	int from = (posEnemy.x + sizeEnemy.x / 2) / map->getTileSize();
+	int to = (playerPos.x + playerSize.x / 2) / map->getTileSize();
+	for(int x = glm::min(from, to); x <= glm::max(from, to); x++)
+	{
+		if(map->isWall(x, row))
+			return false;
+	}
+	return true;
 }
 
 

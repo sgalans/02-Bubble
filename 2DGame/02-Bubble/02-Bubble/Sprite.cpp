@@ -34,6 +34,7 @@ Sprite::Sprite(const glm::vec2 &quadSize, const glm::vec2 &sizeInSpritesheet, Te
 	position = glm::vec2(0.f);
 	size = quadSize;
 	flipX = false;
+	scale = 1.f;
 }
 
 Sprite::~Sprite()
@@ -59,6 +60,12 @@ void Sprite::update(int deltaTime)
 void Sprite::render() const
 {
 	glm::mat4 modelview = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.f));
+	if(scale != 1.f)
+	{
+		modelview = glm::translate(modelview, glm::vec3(size / 2.f, 0.f));
+		modelview = glm::scale(modelview, glm::vec3(scale, scale, 1.f));
+		modelview = glm::translate(modelview, glm::vec3(-size / 2.f, 0.f));
+	}
 	if(flipX)
 	{
 		// Mirror around the quad's vertical centre so it stays in the same spot.

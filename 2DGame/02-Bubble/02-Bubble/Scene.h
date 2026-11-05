@@ -31,7 +31,7 @@ public:
 	void update(int deltaTime);
 	void render();
 
-	// True once the player has walked into the open door. The level freezes and shows the win screen.
+	// True after the player finishes entering the open door and the win screen appears.
 	bool isCleared() const { return cleared; }
 	Player::PowerUps getPowerUps() const { return player->getPowerUps(); }
 	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
@@ -74,6 +74,8 @@ private:
 	Door *door; // NULL if the level file has no D
 	std::vector<Door *> keyGates;
 	bool hasKey;
+	bool showKeyHint;
+	int exitNoticeTime;
 	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture, personalizedTexture;
 	Sprite *skySprite, *cloudSprite;

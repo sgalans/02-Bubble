@@ -1,7 +1,7 @@
 #include "Door.h"
 
 
-// Tiles 7-9 hold the key gate, closed exit and open exit in the 4x5 atlas.
+// Tiles 7-9 hold the key gate, closed exit and open exit in the 5x5 atlas.
 
 
 enum DoorAnims
@@ -40,9 +40,9 @@ void Door::init(const glm::ivec2 &tile, const glm::ivec2 &tileMapPos, TileMap *t
 	// Every animation needs a speed, even with one keyframe: Sprite::update loops forever at 0
 	sprite->setAnimationSpeed(CLOSED, 1);
 	sprite->setAnimationSpeed(OPEN, 1);
-	glm::vec2 closedFrame = glm::vec2(keyGate ? 2.f : 3.f, 1.f) * frameSize;
+	glm::vec2 closedFrame = glm::vec2(keyGate ? 1.f : 2.f, 1.f) * frameSize;
 	sprite->addKeyframe(CLOSED, closedFrame);
-	sprite->addKeyframe(OPEN, glm::vec2(0.f, 2.f) * frameSize);
+	sprite->addKeyframe(OPEN, glm::vec2(3.f, 1.f) * frameSize);
 	sprite->changeAnimation(CLOSED);
 	sprite->setPosition(getPosition());
 }
