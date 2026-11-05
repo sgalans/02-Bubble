@@ -111,6 +111,7 @@ void Game::startLevel(int level)
 	Audio::instance().play(Audio::MENU_SELECT);
 	scene = new Scene();
 	scene->init(Menu::levelFile(level));
+	scene->setFinalLevel(level == MENU_NUM_LEVELS);
 	if(level == nextLevelWithPowerUps)
 		scene->setPowerUps(nextPowerUps);
 	nextLevelWithPowerUps = 0;

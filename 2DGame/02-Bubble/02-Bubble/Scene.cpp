@@ -26,6 +26,10 @@
 #define END_HINT_SIZE 16
 #define END_LINE_SPACING 24
 
+// Final victory picture (160x80), drawn at 4x and centred vertically
+#define END_SCREEN_FILE "images/EndScreen.png"
+#define END_SCREEN_SCALE 4
+
 
 Scene::Scene()
 {
@@ -36,12 +40,14 @@ Scene::Scene()
 	hud = NULL;
 	skySprite = NULL;
 	cloudSprite = NULL;
+	endScreenSprite = NULL;
 }
 
 Scene::~Scene()
 {
 	delete skySprite;
 	delete cloudSprite;
+	delete endScreenSprite;
 	texProgram.free();
 	if(map != NULL)
 		delete map;
@@ -571,9 +577,57 @@ void Scene::renderBackground()
 	}
 }
 
+void Scene::setFinalLevel(bool final)
+{
+	delete endScreenSprite;
+	endScreenSprite = NULL;
+	if(!final)
+		return;
+	endScreenTexture.loadFromFile(END_SCREEN_FILE, TEXTURE_PIXEL_FORMAT_RGBA);
+	endScreenTexture.setMinFilter(GL_NEAREST);
+	endScreenTexture.setMagFilter(GL_NEAREST);
+	glm::vec2 size(float(END_SCREEN_SCALE * endScreenTexture.width()),
+	               float(END_SCREEN_SCALE * endScreenTexture.height()));
+	endScreenSprite = Sprite::createSprite(size, glm::vec2(1.f, 1.f), &endScreenTexture, &texProgram);
+	endScreenSprite->setNumberAnimations(1);
+	endScreenSprite->setAnimationSpeed(0, 1);
+	endScreenSprite->addKeyframe(0, glm::vec2(0.f, 0.f));
+	endScreenSprite->changeAnimation(0);
+	endScreenSprite->setPosition(glm::vec2((SCREEN_WIDTH - size.x) / 2.f, (SCREEN_HEIGHT - size.y) / 2.f));
+}
+
+// Beating the last level: the picture on a black background with the title over it
+void Scene::renderFinalScreen()
+{
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.0f); // Game's normal clear colour
+
+	texProgram.use();
+	texProgram.setUniformMatrix4f("projection", glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f));
+	texProgram.setUniformMatrix4f("modelview", glm::mat4(1.0f));
+	texProgram.setUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
+	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);
+	endScreenSprite->render();
+
+	float imageTop = (SCREEN_HEIGHT - END_SCREEN_SCALE * endScreenTexture.height()) / 2.f;
+	float imageBottom = SCREEN_HEIGHT - imageTop;
+	endTitleText.renderCentered("YOU WIN", imageTop + END_LINE_SPACING, SCREEN_WIDTH,
+	                            glm::vec4(1.f, 0.85f, 0.2f, 1.f));
+	endHintText.renderCentered("PRESS ENTER TO RETURN TO MAIN MENU",
+	                           imageBottom + (imageTop - END_HINT_SIZE) / 2.f, SCREEN_WIDTH,
+	                           glm::vec4(1.f, 1.f, 1.f, 1.f));
+}
+
 void Scene::render()
 {
 	glm::mat4 modelview;
+
+	if(cleared && endScreenSprite != NULL)
+	{
+		renderFinalScreen();
+		return;
+	}
 
 	texProgram.use();
 	projection = glm::ortho(cameraPos.x, cameraPos.x + cameraSize.x, cameraPos.y + cameraSize.y, cameraPos.y);

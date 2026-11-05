@@ -37,6 +37,8 @@ public:
 	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
 	// Debug cheat: every enemy dies and the exit door opens
 	void killAllEnemies();
+	// The last level shows the end-of-game picture instead of the normal win screen
+	void setFinalLevel(bool final);
 
 private:
 	void initShaders();
@@ -50,6 +52,7 @@ private:
 	void renderBackground();
 	void updateDoor(int deltaTime);
 	void renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint);
+	void renderFinalScreen();
 	void tryPlayerBomb();
 	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
 	void chainExplosions();
@@ -74,6 +77,8 @@ private:
 	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture, personalizedTexture;
 	Sprite *skySprite, *cloudSprite;
+	Texture endScreenTexture;
+	Sprite *endScreenSprite; // NULL unless this is the final level
 	std::vector<glm::ivec2> cloudTiles;
 	HUD *hud;
 	Text endTitleText, endHintText; // Death and win screens
