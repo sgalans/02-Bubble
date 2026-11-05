@@ -74,6 +74,8 @@ private:
 	Door *door; // NULL if the level file has no D
 	std::vector<Door *> keyGates;
 	bool hasKey;
+	bool showKeyHint;
+	int exitNoticeTime;
 	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture, personalizedTexture;
 	Sprite *skySprite, *cloudSprite;

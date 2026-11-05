@@ -25,6 +25,7 @@
 #define END_TITLE_SIZE 32
 #define END_HINT_SIZE 16
 #define END_LINE_SPACING 24
+#define EXIT_NOTICE_TIME 3000 // ms
 
 // Final victory picture (160x80), drawn at 4x and centred vertically
 #define END_SCREEN_FILE "images/EndScreen.png"
@@ -37,6 +38,8 @@ Scene::Scene()
 	player = NULL;
 	door = NULL;
 	hasKey = false;
+	showKeyHint = false;
+	exitNoticeTime = 0;
 	hud = NULL;
 	skySprite = NULL;
 	cloudSprite = NULL;
@@ -294,6 +297,7 @@ void Scene::update(int deltaTime)
 	if(cleared)
 		return;
 	currentTime += deltaTime;
+	exitNoticeTime = glm::max(0, exitNoticeTime - deltaTime);
 	// The clock stops once the player is out of lives. Running out of time
 	// kills him outright, which brings up the death screen.
 	if(player->isAlive())
@@ -451,6 +455,7 @@ void Scene::applyExplosionDamage()
 
 void Scene::removeDeadEnemies()
 {
+	bool hadEnemies = !enemies.empty();
 	for(unsigned int i = 0; i < enemies.size(); )
 	{
 		if(enemies[i]->isDead())
@@ -461,12 +466,18 @@ void Scene::removeDeadEnemies()
 		else
 			i++;
 	}
+	if(hadEnemies && enemies.empty())
+		exitNoticeTime = EXIT_NOTICE_TIME;
 }
 
 // The door opens once no enemies are left. The player clears the level when
 // the centre of his body is inside the open door.
 void Scene::updateDoor(int deltaTime)
 {
+	showKeyHint = false;
+	glm::ivec2 playerFeet = glm::ivec2(player->getPosition()) - map->getPosition();
+	playerFeet += glm::ivec2(player->getSize().x / 2, player->getSize().y - 1);
+	glm::ivec2 playerTile = playerFeet / map->getTileSize();
 	for(unsigned int i = 0; i < keyGates.size(); i++)
 	{
 		Door *gate = keyGates[i];
@@ -482,6 +493,13 @@ void Scene::updateDoor(int deltaTime)
 				hasKey = false;
 				Audio::instance().play(Audio::MENU_SELECT);
 			}
+		}
+		if(!gate->isOpen() && !hasKey && player->isAlive())
+		{
+			glm::ivec2 gateTile = (glm::ivec2(gate->getPosition()) - map->getPosition()) / map->getTileSize();
+			glm::ivec2 distance = glm::abs(playerTile - gateTile);
+			if(distance.x + distance.y == 1)
+				showKeyHint = true;
 		}
 	}
 
@@ -660,6 +678,21 @@ void Scene::render()
 		renderEndScreen("YOU WIN", glm::vec4(1.f, 0.85f, 0.2f, 1.f), "PRESS ENTER TO CONTINUE");
 	else if(!player->isAlive())
 		renderEndScreen("YOU ARE DEAD", glm::vec4(1.f, 0.f, 0.f, 1.f), "PRESS ESC TO RETURN TO MAIN MENU");
+	else
+	{
+		float noticeY = (SCREEN_HEIGHT - END_TITLE_SIZE) / 2.f;
+		if(exitNoticeTime > 0)
+		{
+			endTitleText.renderCentered("EXIT!", noticeY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endTitleText.renderCentered("EXIT!", noticeY, SCREEN_WIDTH, glm::vec4(1.f, 0.85f, 0.2f, 1.f));
+		}
+		if(showKeyHint)
+		{
+			float hintY = noticeY + END_TITLE_SIZE + END_LINE_SPACING;
+			endHintText.renderCentered("You need a key", hintY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endHintText.renderCentered("You need a key", hintY, SCREEN_WIDTH, glm::vec4(1.f));
+		}
+	}
 }
 
 // Title centred on screen with a smaller white hint under it. Game::keyPressed
