@@ -2,7 +2,7 @@ TILEMAP
 32 32              -- Size of tile map in tiles
 16 16              -- Tile size & block size
 images/personalized.png -- Tilesheet
-4 4                -- Number of tiles in tilesheet
+4 5                -- Number of tiles in tilesheet
 55555555555555555555555555555555
 5                  5           5
 5     *            5 R         5
@@ -17,9 +17,9 @@ images/personalized.png -- Tilesheet
 51212121212     3K**R   333    5
 5   W   3       3335333333     5
 5  212  3    * S  3533         5
-5  333  3    bbb   5           5
+5  333  3    ddd   5           5
 5  333  3                      5
-5  333  3      2        bbb    5
+5  333  3      2        ddd    5
 5  333  L     131              5
 5  333121212123332121          5
 5                   3     *    5
@@ -27,7 +27,7 @@ images/personalized.png -- Tilesheet
 5          3      3 312121212125
 5          3      3            5
 5     W    3      3            5
-5   bbbb   3  R 2              5
+5   dddd   3  R 2              5
 5         2312123212121212121215
 5                              5
 5  1           2          W    5

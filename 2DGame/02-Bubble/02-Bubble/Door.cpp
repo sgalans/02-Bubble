@@ -1,7 +1,7 @@
 #include "Door.h"
 
 
-// Tiles 7-9 hold the key gate, closed exit and open exit in the 4x4 atlas.
+// Tiles 7-9 hold the key gate, closed exit and open exit in the 4x5 atlas.
 
 
 enum DoorAnims

@@ -19,7 +19,6 @@
 // explosions.png is a regular grid of 16x16 frames: one column per
 // FlamePiece and one row per intensity, from weakest to strongest.
 #define N_INTENSITIES 3
-#define BLOCK_EXPLOSION_FRAMES 3
 
 
 enum BombAnims
@@ -36,7 +35,6 @@ Bomb::Bomb()
 {
 	sprite = NULL;
 	flameSprite = NULL;
-	blockExplosionSprite = NULL;
 	map = NULL;
 }
 
@@ -46,11 +44,10 @@ Bomb::~Bomb()
 		delete sprite;
 	if(flameSprite != NULL)
 		delete flameSprite;
-	delete blockExplosionSprite;
 }
 
 void Bomb::init(const glm::ivec2 &tile, int range, const glm::ivec2 &tileMapPos, TileMap *tileMap,
-                Texture *bombSheet, Texture *flameSheet, Texture *blockSheet, ShaderProgram &shaderProgram)
+                Texture *bombSheet, Texture *flameSheet, ShaderProgram &shaderProgram)
 {
 	this->tile = tile;
 	this->range = range;
@@ -89,15 +86,7 @@ void Bomb::init(const glm::ivec2 &tile, int range, const glm::ivec2 &tileMapPos,
 			flameSprite->addKeyframe(anim, glm::vec2(float(piece) / N_PIECES, float(intensity) / N_INTENSITIES));
 		}
 	}
-	// Tiles 14-16 in personalized.png, played once across the explosion lifetime.
-	glm::vec2 blockFrameSize(16.f / blockSheet->width(), 16.f / blockSheet->height());
-	blockExplosionSprite = Sprite::createSprite(glm::vec2(getSize()), blockFrameSize, blockSheet, &shaderProgram);
-	blockExplosionSprite->setNumberAnimations(BLOCK_EXPLOSION_FRAMES);
-	for(int frame = 0; frame < BLOCK_EXPLOSION_FRAMES; frame++)
-	{
-		blockExplosionSprite->setAnimationSpeed(frame, 1);
-		blockExplosionSprite->addKeyframe(frame, glm::vec2(float(frame + 1), 3.f) * blockFrameSize);
-	}
+
 }
 
 void Bomb::update(int deltaTime)
@@ -127,15 +116,6 @@ void Bomb::render()
 		int intensity = INTENSITY_SEQUENCE[step];
 		for(unsigned int i = 0; i < flames.size(); i++)
 		{
-			if(flames[i].piece == BLOCK_EXPLOSION)
-			{
-				int frame = glm::clamp((EXPLOSION_TIME - timer) * BLOCK_EXPLOSION_FRAMES / EXPLOSION_TIME,
-				                       0, BLOCK_EXPLOSION_FRAMES - 1);
-				blockExplosionSprite->changeAnimation(frame);
-				blockExplosionSprite->setPosition(tilePosition(flames[i].tile));
-				blockExplosionSprite->render();
-				continue;
-			}
 			flameSprite->changeAnimation(flames[i].piece * N_INTENSITIES + intensity);
 			flameSprite->setPosition(tilePosition(flames[i].tile));
 			flameSprite->render();
@@ -196,7 +176,6 @@ void Bomb::spreadFlames()
 	static const FlamePiece arms[4] = { ARM_V, ARM_V, ARM_H, ARM_H };
 
 	Flame center = { tile, CENTER };
-	std::vector<glm::ivec2> explodedBlocks;
 	flames.clear();
 	flames.push_back(center);
 	for(int d = 0; d < 4; d++)
@@ -205,7 +184,7 @@ void Bomb::spreadFlames()
 		for(int i = 1; i <= range; i++)
 		{
 			glm::ivec2 cell = tile + dirs[d] * i;
-			bool destroyedBlock = map->destroyDestructible(cell.x, cell.y, &explodedBlocks);
+			bool destroyedBlock = map->destroyDestructible(cell.x, cell.y);
 			if(!destroyedBlock && map->isWall(cell.x, cell.y))
 				break;
 			Flame flame = { cell, arms[d] };
@@ -215,23 +194,5 @@ void Bomb::spreadFlames()
 		}
 		if(int(flames.size()) > armStart)
 			flames.back().piece = ends[d];
-	}
-	// Chained blocks burn for the same duration and deal the same damage.
-	for(unsigned int i = 0; i < explodedBlocks.size(); i++)
-	{
-		bool covered = false;
-		for(unsigned int j = 0; j < flames.size(); j++)
-		{
-			if(flames[j].tile == explodedBlocks[i])
-			{
-				flames[j].piece = BLOCK_EXPLOSION;
-				covered = true;
-			}
-		}
-		if(!covered)
-		{
-			Flame flame = { explodedBlocks[i], BLOCK_EXPLOSION };
-			flames.push_back(flame);
-		}
 	}
 }

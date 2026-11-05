@@ -330,7 +330,7 @@ bool Scene::placeBomb(const glm::ivec2 &tile, int range, bool playerOwned)
 	if(!map->setBomb(tile.x, tile.y))
 		return false;
 	Bomb *bomb = new Bomb();
-	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, &personalizedTexture, texProgram);
+	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
 	bomb->setPlayerOwned(playerOwned);
 	bombs.push_back(bomb);
 	Audio::instance().play(Audio::BOMB_PLACE);

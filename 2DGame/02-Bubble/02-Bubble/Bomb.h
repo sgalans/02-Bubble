@@ -18,7 +18,7 @@ public:
 	enum BombState { FUSE, EXPLODING, DONE };
 
 	// Columns of explosions.png, in order
-	enum FlamePiece { CENTER, ARM_H, ARM_V, END_UP, END_DOWN, END_LEFT, END_RIGHT, N_PIECES, BLOCK_EXPLOSION };
+	enum FlamePiece { CENTER, ARM_H, ARM_V, END_UP, END_DOWN, END_LEFT, END_RIGHT, N_PIECES };
 
 	struct Flame
 	{
@@ -32,7 +32,7 @@ public:
 
 public:
 	void init(const glm::ivec2 &tile, int range, const glm::ivec2 &tileMapPos, TileMap *tileMap,
-	          Texture *bombSheet, Texture *flameSheet, Texture *blockSheet, ShaderProgram &shaderProgram);
+	          Texture *bombSheet, Texture *flameSheet, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
 	void render();
 
@@ -61,7 +61,7 @@ private:
 	BombState state;
 	int timer;
 	bool playerOwned;
-	Sprite *sprite, *flameSprite, *blockExplosionSprite;
+	Sprite *sprite, *flameSprite;
 	TileMap *map;
 	std::vector<Flame> flames;
 

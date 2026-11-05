@@ -1,7 +1,7 @@
 # Blocs i marcadors dels nivells
 
 El tileset actual és [images/personalized.png](images/personalized.png):
-**64×64 píxels**, amb **4 columnes × 4 files** de tiles de **16×16**.
+**64×80 píxels**, amb **4 columnes × 5 files** de tiles de **16×16**.
 La numeració comença a 1, d'esquerra a dreta i de dalt a baix.
 
 ## Peces del tileset
@@ -20,22 +20,20 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 8 | (48, 16) | Sortida tancada | `D`: mentre queden enemics |
 | 9 | (0, 32) | Sortida oberta | `D`: quan no queden enemics |
 | 10 | (16, 32) | Maons vermellosos | `a`: bloc sòlid |
-| 11 | (32, 32) | Terra / pedra clara | `b`: bloc sòlid |
-| 12 | (48, 32) | Bloc gris amb una marca diagonal vermella | `c`: bloc sòlid destructible, activador del pont |
-| 13 | (0, 48) | Casella buida | No utilitzar com a bloc |
-| 14–16 | (16, 48), (32, 48), (48, 48) | Animació d'explosió del `c` | Tres fotogrames en ordre durant 600 ms |
+| 11 | (32, 32) | Maons, variant B | `b`: bloc sòlid |
+| 12 | (48, 32) | Maons, variant C | `c`: bloc sòlid |
+| 13 | (0, 48) | Terra / pedra clara | `d`: bloc sòlid |
+| 14 | (16, 48) | Bloc gris amb marca vermella | Sense ús actual |
+| 15–17 | (32, 48), (48, 48), (0, 64) | Fotogrames d'explosió antics | Sense ús actual |
+| 18–20 | (16, 64), (32, 64), (48, 64) | Caselles buides | No utilitzar com a blocs |
 
-Els blocs numèrics tenen col·lisió rectangular completa i són indestructibles.
-El `c` és destructible amb explosions i atura el foc. Si té un enllaç `BRIDGE`
-al final del nivell, mou el seu `a` adjacent al destí configurat; el `a` segueix
-sent sòlid i indestructible. Tots els `c` connectats pels costats exploten en
-cadena al mateix instant, cadascun amb les seves flames i el seu moviment.
-Vegeu [levels/README.md](levels/README.md).
-Per posar un **arbust destructible**, utilitza `*`, no `4`: escriure `4`
-només dibuixa l'arbust com un bloc indestructible. Igualment, `6` i `7`
-només dibuixen blocs estàtics; la clau i la porta funcionals es creen amb `K` i `L`.
-La sortida es col·loca amb `D` i canvia automàticament de la peça 8 a la 9
-quan no queden enemics; escriure `8` o `9` només crea un bloc estàtic.
+Tots els codis de tile positius creen blocs sòlids indestructibles.
+Per posar un **arbust destructible**, utilitza `*`, no `4`.
+La clau i les portes funcionals es creen amb `K`, `L` i `D`;
+els codis `6`, `7`, `8` i `9` només creen blocs estàtics.
+El pont del nivell 2 és permanent: els quatre `a` ja són als seus destins.
+El bloc gris i els seus fotogrames d'explosió es conserven a la imatge,
+però no s'utilitzen als nivells ni tenen cap mecànica especial.
 
 ## Marcadors del mapa
 
@@ -71,7 +69,7 @@ Després de la mida del mapa, indica aquestes dades per utilitzar el tileset act
 ```text
 16 16              -- Tile size & block size
 images/personalized.png -- Tilesheet
-4 4                -- Number of tiles in tilesheet
+4 5                -- Number of tiles in tilesheet
 ```
 
 Cada fila de la graella ha de tenir exactament l'amplada declarada del mapa,

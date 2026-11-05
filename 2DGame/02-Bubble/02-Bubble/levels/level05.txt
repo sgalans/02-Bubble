@@ -2,7 +2,7 @@ TILEMAP
 24 12              -- Size of tile map in tiles
 16 16              -- Tile size & block size
 images/personalized.png -- Tilesheet
-4 4                -- Number of tiles in tilesheet
+4 5                -- Number of tiles in tilesheet
 555555555555555555555555
 5                     D5
 5                      5
