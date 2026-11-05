@@ -30,6 +30,10 @@
 #define IDLE_B_X 36.f
 #define ATTACK_X 70.f
 #define HURT_X 104.f
+#define BOSS_DEATH_TIME 4000 // ms before the exit may open
+#define DEATH_BLINK_START 2000 // ms
+#define PARTICLE_SIZE 8
+#define PARTICLE_COUNT 6
 
 
 enum BossAnims
@@ -48,6 +52,13 @@ Boss::Boss()
 	flightTarget = 0;
 	nPendingShots = 0;
 	livesLastFrame = BOSS_LIVES;
+	deathElapsed = 0;
+	particleSprite = NULL;
+}
+
+Boss::~Boss()
+{
+	delete particleSprite;
 }
 
 void Boss::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
@@ -84,6 +95,16 @@ void Boss::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	flightTarget = 0;
 	nPendingShots = 0;
 	updateSpritePosition();
+	deathElapsed = 0;
+	particleSprite = Sprite::createSprite(glm::vec2(PARTICLE_SIZE),
+	                                     glm::vec2(float(PARTICLE_SIZE) / spritesheet.width(), float(PARTICLE_SIZE) / spritesheet.height()),
+	                                     &spritesheet, &shaderProgram);
+	particleSprite->setNumberAnimations(3);
+	for(int frame = 0; frame < 3; frame++)
+	{
+		particleSprite->setAnimationSpeed(frame, 1);
+		particleSprite->addKeyframe(frame, glm::vec2((223.f + 10.f * frame) / spritesheet.width(), 540.f / spritesheet.height()));
+	}
 }
 
 void Boss::setPlayer(const Player *target)
@@ -93,6 +114,13 @@ void Boss::setPlayer(const Player *target)
 
 void Boss::update(int deltaTime)
 {
+	if(isDead())
+	{
+		if(state != DYING)
+			setState(DYING);
+		deathElapsed += glm::clamp(deltaTime, 0, BOSS_DEATH_TIME - deathElapsed);
+		return;
+	}
 	sprite->update(deltaTime);
 
 	// Losing a life since the last frame means an explosion just hit us.
@@ -154,6 +182,58 @@ void Boss::setState(State newState)
 		stateTimer = HURT_TIME;
 		sprite->changeAnimation(HURT_FACE);
 		break;
+	case DYING:
+		deathElapsed = 0;
+		nPendingShots = 0;
+		sprite->changeAnimation(HURT_FACE);
+		break;
+	}
+}
+
+void Boss::takeHit()
+{
+	Enemy::takeHit();
+	if(isDead() && state != DYING)
+		setState(DYING);
+}
+
+void Boss::kill()
+{
+	Enemy::kill();
+	if(state != DYING)
+		setState(DYING);
+}
+
+bool Boss::isReadyToRemove() const
+{
+	return isDead() && deathElapsed >= BOSS_DEATH_TIME;
+}
+
+void Boss::render()
+{
+	if(!isDead())
+	{
+		Enemy::render();
+		return;
+	}
+	if(isReadyToRemove())
+		return;
+	if(deathElapsed < DEATH_BLINK_START || Player::isBlinkVisible(deathElapsed - DEATH_BLINK_START))
+		sprite->render();
+	// Stagger short three-frame bursts; their full 8x8 bounds stay inside the body.
+	for(int i = 0; i < PARTICLE_COUNT; i++)
+	{
+		int pulse = (deathElapsed + i * 83) / 100;
+		int frame = pulse % 5;
+		if(frame >= 3)
+			continue;
+		unsigned int seed = (static_cast<unsigned int>(i) + 1u) * 73856093u
+		                    ^ static_cast<unsigned int>(pulse / 5) * 19349663u;
+		glm::vec2 offset(float(seed % (BOSS_WIDTH - PARTICLE_SIZE + 1)),
+		                 float((seed / 25) % (BOSS_HEIGHT - PARTICLE_SIZE + 1)));
+		particleSprite->changeAnimation(frame);
+		particleSprite->setPosition(getPosition() + offset);
+		particleSprite->render();
 	}
 }
 

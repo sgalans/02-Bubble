@@ -86,6 +86,14 @@ preparació, recuperació i dany. Durant aquestes pauses queda suspès a l'aire.
 Els projectils continuen xocant amb blocs i bombes; les explosions poden
 fer mal al boss i el contacte amb el seu cos fa mal al jugador.
 
+En perdre l'última vida, el boss es queda quiet amb la postura de cop
+durant 4 segons i deixa de disparar o fer mal per contacte. Dins dels seus
+32×32 apareixen esclats dels tres fotogrames de partícules de 8×8 de
+`bomberman.png`, a (223,540), (233,540) i (243,540).
+A partir del segon 2, el cos parpelleja amb el mateix ritme que el jugador;
+les partícules continuen visibles. Al segon 4 es retira el boss i s'obre
+la sortida si no queden altres enemics. `K` també respecta aquesta animació.
+
 ## Trampolí (`T`)
 
 El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels

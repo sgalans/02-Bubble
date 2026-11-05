@@ -317,7 +317,7 @@ void Player::render()
 		deathSprite->render();
 		return;
 	}
-	if(isInvulnerable() && blinkTime >= BLINK_VISIBLE_TIME)
+	if(isInvulnerable() && !isBlinkVisible(blinkTime))
 		return;
 	sprite->render();
 }
@@ -345,6 +345,11 @@ void Player::liftByTrampoline(int top, bool launch)
 		verticalVelocity = -sqrt(2.f * gravity * TRAMPOLINE_JUMP_HEIGHT_TILES * map->getTileSize());
 	}
 	updateSpritePosition();
+}
+
+bool Player::isBlinkVisible(int elapsedTime)
+{
+	return max(0, elapsedTime) % BLINK_CYCLE < BLINK_VISIBLE_TIME;
 }
 
 void Player::enterExit(const glm::vec2 &doorPosition)

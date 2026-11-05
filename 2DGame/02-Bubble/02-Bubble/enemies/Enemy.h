@@ -28,10 +28,11 @@ public:
 
 	// Damage from explosions. After a hit the enemy ignores further hits for a
 	// moment, so one explosion only takes one life from enemies with several.
-	void takeHit();
+	virtual void takeHit();
 	void updateHitCooldown(int deltaTime);
-	void kill() { lives = 0; }
+	virtual void kill() { lives = 0; }
 	bool isDead() const { return lives <= 0; }
+	virtual bool isReadyToRemove() const { return isDead(); }
 
 	// Enemies that fire return true once per shot, with the projectile's
 	// starting centre and velocity. Scene creates the projectile.

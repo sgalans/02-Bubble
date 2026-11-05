@@ -374,7 +374,7 @@ void Scene::update(int deltaTime)
 	{
 		enemies[i]->update(deltaTime);
 		enemies[i]->updateHitCooldown(deltaTime);
-		if(player->isAlive() && playerTouches(enemies[i]))
+		if(!enemies[i]->isDead() && player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
 		glm::vec2 shotOrigin, shotVelocity;
 		// The boss can fire several balls at once
@@ -506,7 +506,7 @@ void Scene::removeDeadEnemies()
 	bool hadEnemies = !enemies.empty();
 	for(unsigned int i = 0; i < enemies.size(); )
 	{
-		if(enemies[i]->isDead())
+		if(enemies[i]->isReadyToRemove())
 		{
 			delete enemies[i];
 			enemies.erase(enemies.begin() + i);
@@ -569,8 +569,8 @@ void Scene::updateDoor(int deltaTime)
 	}
 }
 
-// Removes every enemy and any balls still in flight. updateDoor opens the
-// exit on the next frame because no enemies are left.
+// K kills every enemy and clears projectiles. The boss finishes its death
+// animation before removal; updateDoor opens the exit once the list is empty.
 void Scene::killAllEnemies()
 {
 	if(cleared)
@@ -593,7 +593,7 @@ bool Scene::someoneInside(const Bomb *bomb) const
 		return true;
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
-		if(boxesOverlap(enemies[i]->getPosition(), enemies[i]->getSize(), bomb->getPosition(), bomb->getSize()))
+		if(!enemies[i]->isDead() && boxesOverlap(enemies[i]->getPosition(), enemies[i]->getSize(), bomb->getPosition(), bomb->getSize()))
 			return true;
 	}
 

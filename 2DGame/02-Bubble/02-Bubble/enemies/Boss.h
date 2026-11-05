@@ -13,16 +13,21 @@ class Boss : public Enemy
 {
 public:
 	Boss();
+	~Boss();
 
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
+	void render();
+	void takeHit();
+	void kill();
+	bool isReadyToRemove() const;
 	bool isFlying() const { return true; }
 
 	void setPlayer(const Player *target);
 	bool takeShot(glm::vec2 &origin, glm::vec2 &velocity);
 
 private:
-	enum State { FLY, WINDUP, RECOVER, HURT };
+	enum State { FLY, WINDUP, RECOVER, HURT, DYING };
 
 	void fly(int deltaTime);
 	glm::vec2 flightPoint(int index) const;
@@ -43,6 +48,8 @@ private:
 	int livesLastFrame;
 	glm::vec2 shotOrigins[MAX_SHOTS], shotVelocities[MAX_SHOTS];
 	int nPendingShots;
+	int deathElapsed;
+	Sprite *particleSprite;
 };
 
 
