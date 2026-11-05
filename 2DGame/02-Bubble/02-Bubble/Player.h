@@ -57,6 +57,7 @@ public:
 	bool isDying() const { return deathTime > 0; }
 	bool isGameOver() const { return lives <= 0 && !isDying(); }
 	bool isInvulnerable() const { return exiting || isDying() || invulnTime > 0 || invensible; }
+	static bool isBlinkVisible(int elapsedTime);
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
 	PowerUps getPowerUps() const;

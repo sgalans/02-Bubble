@@ -320,7 +320,7 @@ void Scene::update(int deltaTime)
 		occupiedBoxes.push_back(glm::ivec4(glm::ivec2(player->getPosition()) - map->getPosition(), player->getSize()));
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
-		if(!enemies[i]->isDead())
+		if(!enemies[i]->isDead() && !enemies[i]->isFlying())
 			occupiedBoxes.push_back(glm::ivec4(glm::ivec2(enemies[i]->getPosition()) - map->getPosition(), enemies[i]->getSize()));
 	}
 	int ridingTrampoline = -1;
@@ -335,6 +335,8 @@ void Scene::update(int deltaTime)
 		previousSpringTops.push_back(top);
 		for(unsigned int j = 0; j < enemies.size(); j++)
 		{
+			if(enemies[j]->isFlying())
+				continue;
 			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
 			glm::ivec2 size = enemies[j]->getSize();
 			if(pos.y + size.y == top && pos.x < left + map->getTileSize() && left < pos.x + size.x)
@@ -372,7 +374,7 @@ void Scene::update(int deltaTime)
 	{
 		enemies[i]->update(deltaTime);
 		enemies[i]->updateHitCooldown(deltaTime);
-		if(player->isAlive() && playerTouches(enemies[i]))
+		if(!enemies[i]->isDead() && player->isAlive() && playerTouches(enemies[i]))
 			player->loseLife();
 		glm::vec2 shotOrigin, shotVelocity;
 		// The boss can fire several balls at once
@@ -504,7 +506,7 @@ void Scene::removeDeadEnemies()
 	bool hadEnemies = !enemies.empty();
 	for(unsigned int i = 0; i < enemies.size(); )
 	{
-		if(enemies[i]->isDead())
+		if(enemies[i]->isReadyToRemove())
 		{
 			delete enemies[i];
 			enemies.erase(enemies.begin() + i);
@@ -567,8 +569,8 @@ void Scene::updateDoor(int deltaTime)
 	}
 }
 
-// Removes every enemy and any balls still in flight. updateDoor opens the
-// exit on the next frame because no enemies are left.
+// K kills every enemy and clears projectiles. The boss finishes its death
+// animation before removal; updateDoor opens the exit once the list is empty.
 void Scene::killAllEnemies()
 {
 	if(cleared)
@@ -591,7 +593,7 @@ bool Scene::someoneInside(const Bomb *bomb) const
 		return true;
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
-		if(boxesOverlap(enemies[i]->getPosition(), enemies[i]->getSize(), bomb->getPosition(), bomb->getSize()))
+		if(!enemies[i]->isDead() && boxesOverlap(enemies[i]->getPosition(), enemies[i]->getSize(), bomb->getPosition(), bomb->getSize()))
 			return true;
 	}
 

@@ -15,7 +15,7 @@ Enemy:
  - walker [x]
  - runner [x]
  - shooter [x]
- - Boss [x] //arbre 2x2 (X), dispara diverses boles
+ - Boss [x] //arbre volador 2x2 (X), recorregut diagonal creuat entre quatre cantonades simètriques; ignora blocs, el frenen les bombes; dispara 3 boles
 
 Nivells:
  - nivell1 [x] 
@@ -79,7 +79,8 @@ General (polish):
  - Musica de fons [] //Audio::playMusic existeix pero no es crida enlloc i no hi ha cap fitxer de musica a sounds/
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
- - Animacions [] //falten: mort enemics, tile destruint-se, HUD
+ - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
+ - Animacions [] //falten: mort dels enemics normals, tile destruint-se, HUD
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
