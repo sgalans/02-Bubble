@@ -150,7 +150,7 @@ void HUD::renderStats()
 	stringstream speed;
 	speed << "SPEED " << speedUpLevel + 1;
 	renderText(speed.str(), col3, white);
-	renderText(bombProof ? "PROOF ON" : "PROOF OFF", col3 + row2,
+	renderText(bombProof ? "VEST ON" : "VEST OFF", col3 + row2,
 	           bombProof ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
 	program->setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
 }
