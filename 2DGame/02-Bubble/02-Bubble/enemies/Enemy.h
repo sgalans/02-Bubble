@@ -19,6 +19,7 @@ public:
 	virtual void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram) = 0;
 	virtual void update(int deltaTime) = 0;
 	virtual void render();
+	virtual bool isFlying() const { return false; }
 
 	void setTileMap(TileMap *tileMap);
 	void setPosition(const glm::vec2 &pos);

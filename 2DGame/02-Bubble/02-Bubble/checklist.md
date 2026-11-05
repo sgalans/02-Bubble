@@ -15,7 +15,7 @@ Enemy:
  - walker [x]
  - runner [x]
  - shooter [x]
- - Boss [x] //arbre 2x2 (X), dispara diverses boles
+ - Boss [x] //arbre volador 2x2 (X), recorregut diagonal creuat entre quatre cantonades simètriques; ignora blocs, el frenen les bombes; dispara 3 boles
 
 Nivells:
  - nivell1 [x] 

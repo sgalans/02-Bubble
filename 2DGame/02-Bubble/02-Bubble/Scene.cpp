@@ -320,7 +320,7 @@ void Scene::update(int deltaTime)
 		occupiedBoxes.push_back(glm::ivec4(glm::ivec2(player->getPosition()) - map->getPosition(), player->getSize()));
 	for(unsigned int i = 0; i < enemies.size(); i++)
 	{
-		if(!enemies[i]->isDead())
+		if(!enemies[i]->isDead() && !enemies[i]->isFlying())
 			occupiedBoxes.push_back(glm::ivec4(glm::ivec2(enemies[i]->getPosition()) - map->getPosition(), enemies[i]->getSize()));
 	}
 	int ridingTrampoline = -1;
@@ -335,6 +335,8 @@ void Scene::update(int deltaTime)
 		previousSpringTops.push_back(top);
 		for(unsigned int j = 0; j < enemies.size(); j++)
 		{
+			if(enemies[j]->isFlying())
+				continue;
 			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
 			glm::ivec2 size = enemies[j]->getSize();
 			if(pos.y + size.y == top && pos.x < left + map->getTileSize() && left < pos.x + size.x)
