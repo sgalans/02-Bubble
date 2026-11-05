@@ -28,6 +28,9 @@ public:
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
 	void render();
+	void enterExit(const glm::vec2 &doorPosition);
+	bool isExiting() const { return exiting; }
+	bool hasEnteredExit() const;
 	
 	void setTileMap(TileMap *tileMap);
 	// Position uses the sprite's top-left; getPosition returns the hitbox's top-left.
@@ -47,10 +50,10 @@ public:
 	int getSpeedUpLevel() const;
 	// Own bombs do not hurt him (other bombs still do)
 	bool isBombProof() const { return bombProof; }
-	bool isAlive() const { return lives > 0 && !isDying(); }
+	bool isAlive() const { return lives > 0 && !isDying() && !exiting; }
 	bool isDying() const { return deathTime > 0; }
 	bool isGameOver() const { return lives <= 0 && !isDying(); }
-	bool isInvulnerable() const { return isDying() || invulnTime > 0 || invensible; }
+	bool isInvulnerable() const { return exiting || isDying() || invulnTime > 0 || invensible; }
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
 	PowerUps getPowerUps() const;
@@ -74,6 +77,9 @@ private:
 	int lives, maxLives;
 	int invulnTime;
 	int deathTime, blinkTime;
+	bool exiting;
+	int exitTime;
+	glm::vec2 exitStart, exitTarget;
 	int nBombs;
 	int firePower; // flame length in tiles
 	float moveSpeed; // pixels per frame

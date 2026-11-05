@@ -296,6 +296,13 @@ void Scene::update(int deltaTime)
 	// Everything stops on the win screen
 	if(cleared)
 		return;
+	if(player->isExiting())
+	{
+		player->update(deltaTime);
+		updateCamera();
+		cleared = player->hasEnteredExit();
+		return;
+	}
 	currentTime += deltaTime;
 	exitNoticeTime = glm::max(0, exitNoticeTime - deltaTime);
 	// The clock stops once the player is out of lives. Running out of time
@@ -514,7 +521,11 @@ void Scene::updateDoor(int deltaTime)
 		glm::vec2 center = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
 		glm::vec2 doorMin = door->getPosition(), doorMax = doorMin + glm::vec2(door->getSize());
 		if(center.x >= doorMin.x && center.x < doorMax.x && center.y >= doorMin.y && center.y < doorMax.y)
-			cleared = true;
+		{
+			player->enterExit(door->getPosition());
+			showKeyHint = false;
+			exitNoticeTime = 0;
+		}
 	}
 }
 

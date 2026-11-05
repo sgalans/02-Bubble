@@ -16,6 +16,8 @@
 #define INVULNERABILITY_TIME 3000 // ms after respawning
 #define DEATH_TIME 1500 // ms
 #define DEATH_FRAMES 4
+#define EXIT_TIME 1000 // ms
+#define EXIT_ALIGN_TIME 300 // ms
 #define BLINK_CYCLE 360 // ms
 #define BLINK_VISIBLE_TIME 288 // 80% visible, 20% hidden
 #define MAX_BOMBS 5
@@ -31,7 +33,7 @@
 
 enum PlayerAnims
 {
-	STAND, MOVE, JUMP_UP, JUMP_DOWN
+	STAND, MOVE, JUMP_UP, JUMP_DOWN, ENTER_EXIT
 };
 
 
@@ -69,6 +71,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	bombProof = false;
 	invulnTime = 0;
 	deathTime = blinkTime = 0;
+	exiting = false;
+	exitTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet.setMinFilter(GL_NEAREST);
@@ -82,7 +86,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	glm::vec2 jumpUpFrame(86.f / spritesheet.width(), 2.f / spritesheet.height());
 	glm::vec2 jumpDownFrame(69.f / spritesheet.width(), 2.f / spritesheet.height());
 	sprite = Sprite::createSprite(glm::vec2(PLAYER_SPRITE_WIDTH, PLAYER_HEIGHT), frameSize, &spritesheet, &shaderProgram);
-	sprite->setNumberAnimations(4);
+	sprite->setNumberAnimations(5);
 	
 		sprite->setAnimationSpeed(STAND, 8);
 		sprite->addKeyframe(STAND, standFrame);
@@ -97,6 +101,8 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		sprite->setAnimationSpeed(JUMP_DOWN, 8);
 		sprite->addKeyframe(JUMP_DOWN, jumpDownFrame);
 		
+	sprite->setAnimationSpeed(ENTER_EXIT, 1);
+	sprite->addKeyframe(ENTER_EXIT, glm::vec2(19.f / spritesheet.width(), 20.f / spritesheet.height()));
 	sprite->changeAnimation(STAND);
 	sprite->setFlipX(false);
 	// The death sequence on row 2 includes a 17-pixel-wide burst.
@@ -120,6 +126,24 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 
 void Player::update(int deltaTime)
 {
+	if(exiting)
+	{
+		exitTime += glm::clamp(deltaTime, 0, EXIT_TIME - exitTime);
+		float align = glm::min(float(exitTime) / EXIT_ALIGN_TIME, 1.f);
+		posPlayer = glm::ivec2(exitStart + (exitTarget - exitStart) * align);
+		if(exitTime < EXIT_ALIGN_TIME)
+			sprite->update(deltaTime);
+		else
+		{
+			if(sprite->animation() != ENTER_EXIT)
+				sprite->changeAnimation(ENTER_EXIT);
+			sprite->setFlipX(false);
+			float progress = float(exitTime - EXIT_ALIGN_TIME) / (EXIT_TIME - EXIT_ALIGN_TIME);
+			sprite->setScale(1.f - progress * progress);
+		}
+		updateSpritePosition();
+		return;
+	}
 	bool godKeyPressed = Game::instance().getKey(GLFW_KEY_G);
 	if(lives > 0 && godKeyPressed && !bGodKeyPressed)
 	{
@@ -281,6 +305,12 @@ void Player::update(int deltaTime)
 
 void Player::render()
 {
+	if(exiting)
+	{
+		if(!hasEnteredExit())
+			sprite->render();
+		return;
+	}
 	if(isDying() || lives <= 0)
 	{
 		deathSprite->render();
@@ -289,6 +319,27 @@ void Player::render()
 	if(isInvulnerable() && blinkTime >= BLINK_VISIBLE_TIME)
 		return;
 	sprite->render();
+}
+
+void Player::enterExit(const glm::vec2 &doorPosition)
+{
+	if(!isAlive())
+		return;
+	exiting = true;
+	exitTime = 0;
+	exitStart = glm::vec2(posPlayer);
+	exitTarget = doorPosition - glm::vec2(tileMapDispl) + glm::vec2(HITBOX_INSET_X, 0);
+	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	bBombRequested = false;
+	sprite->setScale(1.f);
+	sprite->setFlipX(exitTarget.x > exitStart.x);
+	sprite->changeAnimation(MOVE);
+}
+
+bool Player::hasEnteredExit() const
+{
+	return exiting && exitTime >= EXIT_TIME;
 }
 
 void Player::loseLife()
@@ -312,7 +363,7 @@ void Player::startDeath()
 
 void Player::loseAllLives()
 {
-	if(lives <= 0)
+	if(lives <= 0 || exiting)
 		return;
 	lives = 0;
 	startDeath();
