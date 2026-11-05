@@ -24,16 +24,15 @@ Nivells:
  - millorar nivell 2 [x]
  - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
  - millorar nivell 3 [x]
- - nivell4 [] //level04.txt es un placeholder: sala buida 24x12, sense enemics, sense arbustos ni objectes
+ - nivell4 [x]
  - nivell5 [] //level05.txt es un placeholder: nomes boss + 2 plataformes, sense arbustos ni objectes
- - cada nivell te enemics a eliminar + porta de sortida [] //falta al nivell 4
  - memòria dels power-ups entre nivells consecutius [x]
- - pensar en què fer amb els power-ups acomulats en cas de perdre una vida o morir []
+ - ara mateix si tens items acumulats però surts al menú els items acumulats es perden -> mirar què fer []
  - porta de sortida [x] //textures de porta tancada/oberta i porta amb pany a personalized.png
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
  - compte enrere del nivell [x] //180 s per tots els nivells
- - posicio inicial del player llegida del fitxer de nivell [x] // @; sense marcador conserva l'inici per defecte
+ - posicio inicial del player llegida del fitxer de nivell [x] // @
 
 Moviment:
  - fet [x]
@@ -80,7 +79,7 @@ General (polish):
  - Musica de fons [] //Audio::playMusic existeix pero no es crida enlloc i no hi ha cap fitxer de musica a sounds/
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
- - Animacions [] //falten: mort player/enemics, tile destruint-se, obrir porta, HUD
+ - Animacions [] //falten: mort enemics, tile destruint-se, HUD
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
