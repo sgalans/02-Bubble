@@ -27,7 +27,7 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 18 | — | (32, 48) | Cel decoratiu. |
 | 19–20 | `C` | (48, 48), (64, 48) | Núvol de 2×1 tiles, sense col·lisió. |
 | 21–23 | `T` | (0, 64), (16, 64), (32, 64) | Trampolí: 9, 12 i 16 píxels d'alçada. |
-| 24–25 | `U` | (48, 64), (64, 64) | Botó preparat i comprimit; sense col·lisió. |
+| 24–25 | `U`, `V` | (48, 64), (64, 64) | Botó preparat i comprimit; `V` gira la textura 90° per al terra. Sense col·lisió. |
 
 El cel es repeteix per cobrir tota la vista dels nivells. Col·loca els núvols
 manualment amb `C` a la graella, deixant un espai a la dreta (`C `).
@@ -55,7 +55,9 @@ però no s'utilitzen als nivells ni tenen cap mecànica especial.
 
 El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels
 d'alçada, alineat amb la base del tile; els 7 píxels superiors són buits.
-S'activa amb un botó `U` situat exactament 4 tiles a la dreta i a la mateixa fila.
+S'activa amb un botó `U` (paret) o `V` (terra) exactament 4 tiles a la dreta
+i a la mateixa fila. `V` gira les dues textures 90° i es recolza a la base
+de la casella; posa el terra sòlid a la fila de sota. No s'activa trepitjant-lo.
 Una explosió que arriba al botó des de qualsevol direcció, inclòs el centre,
 el comprimeix durant 1 segon i activa el trampolí. El botó no té col·lisió,
 no atura el foc i no es destrueix. Els impactes durant la recàrrega s'ignoren.
@@ -77,6 +79,7 @@ la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.
 | espai | Casella buida |
 | `T` | Trampolí activat pel botó de 4 tiles a la dreta; impulsa 10 tiles |
 | `U` | Botó sense col·lisió: una explosió activa el `T` de 4 tiles a l'esquerra |
+| `V` | Versió de terra del botó `U`, girada 90°; mateix comportament |
 | `C` | Núvol decoratiu de 2×1 tiles, sense col·lisió; marca la meitat esquerra |
 | `@` | Posició inicial del jugador |
 | `W` | Walker |

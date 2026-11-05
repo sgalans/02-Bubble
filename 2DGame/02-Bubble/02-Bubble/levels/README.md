@@ -26,6 +26,7 @@ sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 | `*` | Arbust destructible |
 | `T` | Trampolí: alçades 9/12/16 píxels, impuls de 10 tiles; activat pel botó |
 | `U` | Botó sense col·lisió: activa el `T` exactament 4 tiles a l'esquerra |
+| `V` | El mateix botó, girat 90° per situar-lo al terra; mateixa activació i recàrrega |
 | `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o Bomb Proof |
 | `K` | Arbust amb una clau |
 | `L` | Porta amb pany; sòlida i immune a explosions |
@@ -66,8 +67,11 @@ graella; no utilitza enllaços de moviment addicionals després de les files.
 
 El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels
 d'alçada, alineat amb la base del tile; els 7 píxels superiors són buits.
-Col·loca el botó amb `U`, a la mateixa fila i exactament 4 columnes a la dreta:
-`T   U`. Una explosió que arriba al botó des de qualsevol direcció, o una
+Col·loca el botó amb `U` (paret) o `V` (terra, textura girada 90°),
+a la mateixa fila i exactament 4 columnes a la dreta: `T   U` o `T   V`.
+El botó de terra es dibuixa a la base de la seva casella: posa el terra sòlid
+a la fila de sota. No s'activa trepitjant-lo; tots dos funcionen amb explosions.
+Una explosió que arriba al botó des de qualsevol direcció, o una
 bomba que explota a la seva casella, activa el trampolí i comprimeix el botó.
 El botó torna a estar preparat després d'1 segon; durant aquest temps ignora
 nous impactes. No té col·lisió, no es destrueix ni atura les flames.

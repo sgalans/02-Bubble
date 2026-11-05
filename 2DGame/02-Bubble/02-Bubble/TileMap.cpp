@@ -117,6 +117,8 @@ void TileMap::render() const
 	{
 		buttonSprite->changeAnimation(buttons[i].rechargeTime > 0 ? 1 : 0);
 		buttonSprite->setPosition(glm::vec2(position + buttons[i].tile * tileSize));
+		// Clockwise rotation puts the right-edge wall button on the tile's floor.
+		buttonSprite->setRotation(buttons[i].onFloor ? 1.57079632679f : 0.f);
 		buttonSprite->render();
 	}
 	for(unsigned int i = 0; i < trampolines.size(); i++)
@@ -311,10 +313,10 @@ bool TileMap::loadLevel(const string &levelFile)
 			}
 			else if(tile >= '!' && tile <= '%')
 				map[j*mapSize.x+i] = 36 + (tile - '!');
-			else if(tile == 'U')
+			else if(tile == 'U' || tile == 'V')
 			{
 				map[j*mapSize.x+i] = 0;
-				TrampolineButton button = { glm::ivec2(i, j), 0 };
+				TrampolineButton button = { glm::ivec2(i, j), 0, tile == 'V' };
 				buttons.push_back(button);
 			}
 			else if(tile == 'T')

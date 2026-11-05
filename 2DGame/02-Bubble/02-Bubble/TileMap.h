@@ -18,7 +18,7 @@
 // * marks a solid bush that explosions can destroy.
 // a marks a platform that crumbles when the player steps on it.
 // C marks a decorative two-tile cloud with no collision.
-// T marks a trampoline; U marks its explosion-activated button four tiles to the right.
+// T marks a trampoline; U/V mark its wall/floor button four tiles to the right.
 // B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
 // W/R/Z/X mark enemies (X is the 2x2-tile boss), D the exit and @ the player start. All are spawn points.
 
@@ -90,6 +90,7 @@ private:
 	{
 		glm::ivec2 tile;
 		int rechargeTime;
+		bool onFloor;
 	};
 
 	struct CrumblingPlatform

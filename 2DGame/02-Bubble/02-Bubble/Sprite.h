@@ -37,6 +37,7 @@ public:
 	// Mirrors the quad horizontally in place, so one set of frames can face both ways.
 	void setFlipX(bool flip);
 	void setScale(float value) { scale = value; }
+	void setRotation(float radians) { rotation = radians; }
 
 private:
 	Texture *texture;
@@ -47,6 +48,7 @@ private:
 	glm::vec2 position, size;
 	bool flipX;
 	float scale;
+	float rotation;
 	int currentAnimation, currentKeyframe;
 	float timeAnimation;
 	glm::vec2 texCoordDispl;

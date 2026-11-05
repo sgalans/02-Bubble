@@ -35,6 +35,7 @@ Sprite::Sprite(const glm::vec2 &quadSize, const glm::vec2 &sizeInSpritesheet, Te
 	size = quadSize;
 	flipX = false;
 	scale = 1.f;
+	rotation = 0.f;
 }
 
 Sprite::~Sprite()
@@ -60,9 +61,10 @@ void Sprite::update(int deltaTime)
 void Sprite::render() const
 {
 	glm::mat4 modelview = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.f));
-	if(scale != 1.f)
+	if(scale != 1.f || rotation != 0.f)
 	{
 		modelview = glm::translate(modelview, glm::vec3(size / 2.f, 0.f));
+		modelview = glm::rotate(modelview, rotation, glm::vec3(0.f, 0.f, 1.f));
 		modelview = glm::scale(modelview, glm::vec3(scale, scale, 1.f));
 		modelview = glm::translate(modelview, glm::vec3(-size / 2.f, 0.f));
 	}
