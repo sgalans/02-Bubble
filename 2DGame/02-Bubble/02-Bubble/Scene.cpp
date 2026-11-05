@@ -270,6 +270,16 @@ void Scene::update(int deltaTime)
 		if(timeLeft == 0)
 			player->loseAllLives();
 	}
+	// Map updates precede movement so disappearing support takes effect immediately.
+	vector<glm::ivec4> occupiedBoxes;
+	if(player->isAlive())
+		occupiedBoxes.push_back(glm::ivec4(glm::ivec2(player->getPosition()) - map->getPosition(), player->getSize()));
+	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
+		if(!enemies[i]->isDead())
+			occupiedBoxes.push_back(glm::ivec4(glm::ivec2(enemies[i]->getPosition()) - map->getPosition(), enemies[i]->getSize()));
+	}
+	map->update(deltaTime, occupiedBoxes);
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();

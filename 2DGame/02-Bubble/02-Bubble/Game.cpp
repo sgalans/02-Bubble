@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <fstream>
 #include "Game.h"
 #include "Audio.h"
 
@@ -40,6 +41,22 @@ void Game::render()
 
 void Game::keyPressed(int key)
 {
+	// Debug: jump straight to any level, bypassing menu unlocks.
+	if(key >= GLFW_KEY_1 && key <= GLFW_KEY_5)
+	{
+		if(keys[key])
+			return;
+		keys[key] = true;
+		int level = key - GLFW_KEY_1 + 1;
+		std::ifstream levelFile(Menu::levelFile(level));
+		if(!levelFile.is_open())
+			return;
+		delete scene;
+		scene = NULL;
+		nextLevelWithPowerUps = 0;
+		startLevel(level);
+		return;
+	}
 	if(key == GLFW_KEY_ESCAPE) // Escape code
 	{
 		// Escape leaves the level first, then steps back through the menu

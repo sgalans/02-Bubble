@@ -160,6 +160,8 @@ void Player::update(int deltaTime)
 		}
 	}
 	bool startJump = grounded && jumpKeyPressed && !bJumpKeyPressed;
+	if(grounded)
+		map->stepOnPlatforms(posPlayer, sizePlayer);
 	if(supportedBeforeMove && !grounded)
 	{
 		// Skip the slow start from rest when stepping off a platform or bomb.
@@ -208,6 +210,8 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
+	if(grounded)
+		map->stepOnPlatforms(posPlayer, sizePlayer);
 	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
 		invensible = !invensible;
 	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);

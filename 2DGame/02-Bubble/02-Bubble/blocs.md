@@ -19,7 +19,7 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 7 | (32, 16) | Porta amb pany | `L`: pas bloquejat fins a fer servir la clau |
 | 8 | (48, 16) | Sortida tancada | `D`: mentre queden enemics |
 | 9 | (0, 32) | Sortida oberta | `D`: quan no queden enemics |
-| 10 | (16, 32) | Maons vermellosos | `a`: bloc sòlid |
+| 10 | (16, 32) | Maons vermellosos | `a`: plataforma que desapareix en trepitjar-la |
 | 11 | (32, 32) | Maons, variant B | `b`: bloc sòlid |
 | 12 | (48, 32) | Maons, variant C | `c`: bloc sòlid |
 | 13 | (0, 48) | Terra / pedra clara | `d`: bloc sòlid |
@@ -27,11 +27,19 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 15–17 | (32, 48), (48, 48), (0, 64) | Fotogrames d'explosió antics | Sense ús actual |
 | 18–20 | (16, 64), (32, 64), (48, 64) | Caselles buides | No utilitzar com a blocs |
 
-Tots els codis de tile positius creen blocs sòlids indestructibles.
+Els codis de tile positius creen blocs sòlids indestructibles, excepte `a`.
+En trepitjar un `a` per sobre, el jugador activa una animació de desaparició
+10→11→12 que dura 1 segon. El bloc continua sent sòlid fins que desapareix.
+Després de 2 segons absent, reapareix durant 1 segon amb 12→11→10.
+Recupera la col·lisió en acabar, esperant si hi ha el jugador, un enemic o
+una bomba dins de la casella. Tornar-lo a trepitjar no reinicia el compte.
+Les explosions no l'activen ni el destrueixen. `b` i `c` escrits al mapa
+continuen sent blocs estàtics, encara que es facin servir com a fotogrames.
 Per posar un **arbust destructible**, utilitza `*`, no `4`.
 La clau i les portes funcionals es creen amb `K`, `L` i `D`;
 els codis `6`, `7`, `8` i `9` només creen blocs estàtics.
-El pont del nivell 2 és permanent: els quatre `a` ja són als seus destins.
+Els quatre `a` del pont del nivell 2 ja són als seus destins en començar
+i desapareixen temporalment quan el jugador els trepitja.
 El bloc gris i els seus fotogrames d'explosió es conserven a la imatge,
 però no s'utilitzen als nivells ni tenen cap mecànica especial.
 

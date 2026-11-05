@@ -12,7 +12,8 @@ Els retalls especials segueixen les coordenades de [../blocs.md](../blocs.md).
 | `1`, `2` | Terra amb herba |
 | `3` | Terra / tronc |
 | `5` | Pedra indestructible |
-| `a`, `b`, `c`, `d` | Blocs sòlids indestructibles de l'atles |
+| `a` | Plataforma temporal: desapareix en trepitjar-la i torna a aparèixer |
+| `b`, `c`, `d` | Blocs sòlids indestructibles de l'atles |
 | `*` | Arbust destructible |
 | `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o Bomb Proof |
 | `K` | Arbust amb una clau |
@@ -27,8 +28,15 @@ per obrir el pas permanentment. Obrir una porta consumeix la clau.
 La icona de la clau al HUD indica que el jugador la porta.
 `K` al mapa és independent de la tecla de depuració `K`.
 
+Els `a` desapareixen 1 segon després de trepitjar-los per sobre, amb els
+fotogrames 10→11→12. Continuen sòlids durant aquest segon. Després de 2 segons
+absents, reapareixen amb els mateixos fotogrames al revés durant 1 segon.
+Recuperen la col·lisió al final; si la casella està ocupada pel jugador,
+un enemic o una bomba, esperen que quedi lliure. Cada bloc té el seu compte
+independent i no es reinicia en trepitjar-lo de nou mentre està actiu.
+
 Al nivell 2, el pont està disponible des del començament: quatre blocs `a`
-fixos a (14, 4), (17, 4), (20, 4) i (23, 4), amb coordenades començant per zero.
+a (14, 4), (17, 4), (20, 4) i (23, 4), amb coordenades començant per zero.
 Hi ha dos tiles buits entre blocs i són un tile per sota de la plataforma de
 sortida, per deixar espai per saltar sota el sostre. No hi ha activadors ni
 blocs que es moguin; el nivell només conté la graella, sense enllaços addicionals.
