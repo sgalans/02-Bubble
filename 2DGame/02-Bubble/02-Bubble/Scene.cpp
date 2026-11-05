@@ -676,9 +676,9 @@ void Scene::render()
 	hud->render();
 	if(cleared)
 		renderEndScreen("YOU WIN", glm::vec4(1.f, 0.85f, 0.2f, 1.f), "PRESS ENTER TO CONTINUE");
-	else if(!player->isAlive())
+	else if(player->isGameOver())
 		renderEndScreen("YOU ARE DEAD", glm::vec4(1.f, 0.f, 0.f, 1.f), "PRESS ESC TO RETURN TO MAIN MENU");
-	else
+	else if(player->isAlive())
 	{
 		float noticeY = (SCREEN_HEIGHT - END_TITLE_SIZE) / 2.f;
 		if(exitNoticeTime > 0)

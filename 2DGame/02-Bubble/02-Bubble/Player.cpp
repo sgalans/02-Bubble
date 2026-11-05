@@ -13,7 +13,11 @@
 #define MAX_VERTICAL_STEP_TIME (1.f / 120.f)
 #define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define MAX_FALL_SPEED_TILES 15.f // tiles per second
-#define INVULNERABILITY_TIME 2000 //ms
+#define INVULNERABILITY_TIME 3000 // ms after respawning
+#define DEATH_TIME 1500 // ms
+#define DEATH_FRAMES 4
+#define BLINK_CYCLE 360 // ms
+#define BLINK_VISIBLE_TIME 288 // 80% visible, 20% hidden
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
@@ -34,6 +38,7 @@ enum PlayerAnims
 Player::Player()
 {
 	sprite = NULL;
+	deathSprite = NULL;
 	map = NULL;
 }
 
@@ -41,6 +46,7 @@ Player::~Player()
 {
 	if (sprite != NULL)
 		delete sprite;
+	delete deathSprite;
 }
 
 void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
@@ -62,6 +68,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	moveSpeed = BASE_MOVE_SPEED;
 	bombProof = false;
 	invulnTime = 0;
+	deathTime = blinkTime = 0;
 	invensible = false;
 	spritesheet.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	spritesheet.setMinFilter(GL_NEAREST);
@@ -92,6 +99,18 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		
 	sprite->changeAnimation(STAND);
 	sprite->setFlipX(false);
+	// The death sequence on row 2 includes a 17-pixel-wide burst.
+	deathSprite = Sprite::createSprite(glm::vec2(17.f, 18.f),
+	                                  glm::vec2(17.f / spritesheet.width(), 18.f / spritesheet.height()),
+	                                  &spritesheet, &shaderProgram);
+	deathSprite->setNumberAnimations(DEATH_FRAMES);
+	const float deathFrameX[DEATH_FRAMES] = { 54.f, 71.f, 89.f, 107.f };
+	for(int frame = 0; frame < DEATH_FRAMES; frame++)
+	{
+		deathSprite->setAnimationSpeed(frame, 1);
+		deathSprite->addKeyframe(frame, glm::vec2(deathFrameX[frame] / spritesheet.width(), 19.f / spritesheet.height()));
+	}
+	deathSprite->changeAnimation(0);
 	tileMapDispl = tileMapPos;
 	posPlayer = glm::ivec2(HITBOX_INSET_X, 0);
 	spawnPoint = glm::vec2(0.f);
@@ -101,11 +120,37 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 
 void Player::update(int deltaTime)
 {
+	bool godKeyPressed = Game::instance().getKey(GLFW_KEY_G);
+	if(lives > 0 && godKeyPressed && !bGodKeyPressed)
+	{
+		invensible = !invensible;
+		blinkTime = 0;
+	}
+	bGodKeyPressed = godKeyPressed;
+	if(isDying())
+	{
+		deathTime = max(0, deathTime - max(0, deltaTime));
+		int frame = min((DEATH_TIME - deathTime) * DEATH_FRAMES / DEATH_TIME, DEATH_FRAMES - 1);
+		deathSprite->changeAnimation(frame);
+		// Held actions must be released before they can fire after respawning.
+		bBombKeyPressed = Game::instance().getKey(GLFW_KEY_SPACE);
+		bJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP) || Game::instance().getKey(GLFW_KEY_W)
+		                  || Game::instance().getKey(GLFW_KEY_S);
+		if(deathTime == 0 && lives > 0)
+		{
+			setPosition(spawnPoint);
+			sprite->changeAnimation(STAND);
+			invulnTime = INVULNERABILITY_TIME;
+			blinkTime = 0;
+		}
+		return;
+	}
 	// Out of lives: stay put and stop animating until the game handles it.
 	if(lives <= 0)
 		return;
 	if(invulnTime > 0)
 		invulnTime = max(0, invulnTime - deltaTime);
+	blinkTime = (blinkTime + max(0, deltaTime) % BLINK_CYCLE) % BLINK_CYCLE;
 
 	glm::ivec2 previousPos = posPlayer;
 	bool highJumpKeyPressed = Game::instance().getKey(GLFW_KEY_UP)
@@ -212,9 +257,6 @@ void Player::update(int deltaTime)
 	}
 	if(grounded)
 		map->stepOnPlatforms(posPlayer, sizePlayer);
-	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
-		invensible = !invensible;
-	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
 
 	// Scene owns the bombs, so the player only asks for one on each key press
 	if(Game::instance().getKey(GLFW_KEY_SPACE) && !bBombKeyPressed)
@@ -239,20 +281,33 @@ void Player::update(int deltaTime)
 
 void Player::render()
 {
+	if(isDying() || lives <= 0)
+	{
+		deathSprite->render();
+		return;
+	}
+	if(isInvulnerable() && blinkTime >= BLINK_VISIBLE_TIME)
+		return;
 	sprite->render();
 }
 
 void Player::loseLife()
 {
-	if(invulnTime <= 0 && !invensible){
-		invulnTime = INVULNERABILITY_TIME;
-		if(lives > 0)
-			lives--;
-		Audio::instance().play(Audio::PLAYER_HURT);
-		// Back to the start; on the last life he stays where he died for the game over.
-		if(lives > 0)
-			setPosition(spawnPoint);
-	}
+	if(!isAlive() || isInvulnerable())
+		return;
+	lives--;
+	startDeath();
+}
+
+void Player::startDeath()
+{
+	deathTime = DEATH_TIME;
+	invulnTime = 0;
+	verticalVelocity = 0.f;
+	horizontalRemainder = 0.f;
+	bBombRequested = false;
+	deathSprite->changeAnimation(0);
+	Audio::instance().play(Audio::PLAYER_HURT);
 }
 
 void Player::loseAllLives()
@@ -260,13 +315,13 @@ void Player::loseAllLives()
 	if(lives <= 0)
 		return;
 	lives = 0;
-	Audio::instance().play(Audio::PLAYER_HURT);
+	startDeath();
 }
 
 // Returns whether the player pressed the bomb key since the last call
 bool Player::takeBombRequest()
 {
-	bool requested = bBombRequested;
+	bool requested = bBombRequested && isAlive();
 	bBombRequested = false;
 
 	return requested;
@@ -333,6 +388,7 @@ void Player::setSpawnPoint(const glm::vec2 &pos)
 void Player::updateSpritePosition()
 {
 	sprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 0)));
+	deathSprite->setPosition(glm::vec2(tileMapDispl + posPlayer - glm::ivec2(HITBOX_INSET_X, 1)));
 }
 
 

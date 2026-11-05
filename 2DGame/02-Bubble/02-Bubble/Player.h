@@ -46,8 +46,10 @@ public:
 	int getFirePower() const { return firePower; }
 	// Own bombs do not hurt him (other bombs still do)
 	bool isBombProof() const { return bombProof; }
-	bool isAlive() const { return lives > 0; }
-	bool isInvulnerable() const { return invulnTime > 0 || invensible; }
+	bool isAlive() const { return lives > 0 && !isDying(); }
+	bool isDying() const { return deathTime > 0; }
+	bool isGameOver() const { return lives <= 0 && !isDying(); }
+	bool isInvulnerable() const { return isDying() || invulnTime > 0 || invensible; }
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
 	PowerUps getPowerUps() const;
@@ -55,6 +57,7 @@ public:
 
 private:
 	void updateSpritePosition();
+	void startDeath();
 
 private:
 	bool facingRight;
@@ -69,12 +72,13 @@ private:
 	bool shortJumpActive;
 	int lives, maxLives;
 	int invulnTime;
+	int deathTime, blinkTime;
 	int nBombs;
 	int firePower; // flame length in tiles
 	float moveSpeed; // pixels per frame
 	bool bombProof;
 	Texture spritesheet;
-	Sprite *sprite;
+	Sprite *sprite, *deathSprite;
 	TileMap *map;
 	bool invensible;
 
