@@ -47,6 +47,7 @@ private:
 	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity);
 	void updateProjectiles(int deltaTime);
 	void updateCamera();
+	void renderBackground();
 	void updateDoor(int deltaTime);
 	void renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint);
 	void tryPlayerBomb();
@@ -72,6 +73,8 @@ private:
 	bool hasKey;
 	std::vector<Projectile *> projectiles;
 	Texture bombTexture, explosionTexture, itemTexture, personalizedTexture;
+	Sprite *skySprite, *cloudSprite;
+	std::vector<glm::ivec2> cloudTiles;
 	HUD *hud;
 	Text endTitleText, endHintText; // Death and win screens
 	int score;

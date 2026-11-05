@@ -34,10 +34,14 @@ Scene::Scene()
 	door = NULL;
 	hasKey = false;
 	hud = NULL;
+	skySprite = NULL;
+	cloudSprite = NULL;
 }
 
 Scene::~Scene()
 {
+	delete skySprite;
+	delete cloudSprite;
 	texProgram.free();
 	if(map != NULL)
 		delete map;
@@ -84,6 +88,21 @@ void Scene::init(const string &levelFile)
 	personalizedTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	personalizedTexture.setMinFilter(GL_NEAREST);
 	personalizedTexture.setMagFilter(GL_NEAREST);
+	// The last row holds sky, then the two adjacent halves of a cloud.
+	glm::vec2 atlasSize(float(personalizedTexture.width()), float(personalizedTexture.height()));
+	float tileSize = float(map->getTileSize());
+	skySprite = Sprite::createSprite(glm::vec2(tileSize), glm::vec2(16.f) / atlasSize,
+	                                 &personalizedTexture, &texProgram);
+	skySprite->setNumberAnimations(1);
+	skySprite->setAnimationSpeed(0, 1);
+	skySprite->addKeyframe(0, glm::vec2(16.f, 64.f) / atlasSize);
+	skySprite->changeAnimation(0);
+	cloudSprite = Sprite::createSprite(glm::vec2(2.f * tileSize, tileSize), glm::vec2(32.f, 16.f) / atlasSize,
+	                                   &personalizedTexture, &texProgram);
+	cloudSprite->setNumberAnimations(1);
+	cloudSprite->setAnimationSpeed(0, 1);
+	cloudSprite->addKeyframe(0, glm::vec2(32.f, 64.f) / atlasSize);
+	cloudSprite->changeAnimation(0);
 
 	spawnFromLevel();
 
@@ -106,12 +125,19 @@ void Scene::init(const string &levelFile)
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
+	cloudTiles.clear();
 	const vector<TileMap::Spawn> &spawns = map->getSpawns();
 	for(unsigned int i = 0; i < spawns.size(); i++)
 	{
 		if(spawns[i].type == '@')
 		{
 			player->setSpawnPoint(glm::vec2(spawns[i].tile * map->getTileSize()));
+			continue;
+		}
+
+		if(spawns[i].type == 'C')
+		{
+			cloudTiles.push_back(spawns[i].tile);
 			continue;
 		}
 
@@ -522,6 +548,29 @@ void Scene::updateCamera()
 	}
 }
 
+void Scene::renderBackground()
+{
+	const int tileSize = map->getTileSize();
+	const int firstX = int(floor(cameraPos.x / tileSize));
+	const int firstY = int(floor(cameraPos.y / tileSize));
+	const int lastX = int(ceil((cameraPos.x + cameraSize.x) / tileSize));
+	const int lastY = int(ceil((cameraPos.y + cameraSize.y) / tileSize));
+	for(int y = firstY; y < lastY; y++)
+	{
+		for(int x = firstX; x < lastX; x++)
+		{
+			skySprite->setPosition(glm::vec2(x * tileSize, y * tileSize));
+			skySprite->render();
+		}
+	}
+	// C marks the left half; both halves are drawn as one decorative sprite.
+	for(unsigned int i = 0; i < cloudTiles.size(); i++)
+	{
+		cloudSprite->setPosition(glm::vec2(map->getPosition() + cloudTiles[i] * tileSize));
+		cloudSprite->render();
+	}
+}
+
 void Scene::render()
 {
 	glm::mat4 modelview;
@@ -530,6 +579,7 @@ void Scene::render()
 	projection = glm::ortho(cameraPos.x, cameraPos.x + cameraSize.x, cameraPos.y + cameraSize.y, cameraPos.y);
 	texProgram.setUniformMatrix4f("projection", projection);
 	texProgram.setUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
+	renderBackground();
 	modelview = glm::mat4(1.0f);
 	texProgram.setUniformMatrix4f("modelview", modelview);
 	texProgram.setUniform2f("texCoordDispl", 0.f, 0.f);

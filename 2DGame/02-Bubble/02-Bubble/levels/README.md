@@ -6,9 +6,18 @@ La capçalera ha d'indicar `4 5`. La peça clara abans codificada amb `b`
 ara és la peça 13 (`d`); els nivells s'han adaptat per conservar-ne l'aspecte.
 Els retalls especials segueixen les coordenades de [../blocs.md](../blocs.md).
 
+El cel (peça 18) cobreix automàticament tot el fons. Els núvols es posen
+manualment amb `C` a la graella: cada `C` dibuixa les peces 19–20 juntes,
+ocupant visualment la seva casella i la de la dreta. Deixa un espai a la dreta
+del marcador per mostrar el núvol complet (`C `); no cal un segon marcador.
+Cap de les dues meitats té col·lisió. Sense `C`, només es veu el cel.
+El núvol queda darrere dels blocs i les entitats. Substitueix espais per `C`
+sense afegir columnes a la fila. L'atles continua sent de 64×80 píxels: `4 5`.
+
 | Símbol | Significat |
 | --- | --- |
 | espai | Buit |
+| `C` | Núvol decoratiu de 2×1 tiles; marca la meitat esquerra, sense col·lisió |
 | `1`, `2` | Terra amb herba |
 | `3` | Terra / tronc |
 | `5` | Pedra indestructible |

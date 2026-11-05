@@ -16,6 +16,7 @@
 // Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
 // * marks a solid bush that explosions can destroy.
 // a marks a platform that crumbles when the player steps on it.
+// C marks a decorative two-tile cloud with no collision.
 // B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
 // W/R/Z/X mark enemies (X is the 2x2-tile boss), D the exit and @ the player start. All are spawn points.
 

@@ -25,7 +25,14 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 13 | (0, 48) | Terra / pedra clara | `d`: bloc sòlid |
 | 14 | (16, 48) | Bloc gris amb marca vermella | Sense ús actual |
 | 15–17 | (32, 48), (48, 48), (0, 64) | Fotogrames d'explosió antics | Sense ús actual |
-| 18–20 | (16, 64), (32, 64), (48, 64) | Caselles buides | No utilitzar com a blocs |
+| 18 | (16, 64) | Cel | Fons decoratiu de `Scene`, sense col·lisió |
+| 19–20 | (32, 64), (48, 64) | Meitats esquerra i dreta del núvol | `C`: peça de 32×16 al fons, sense col·lisió |
+
+El cel es repeteix per cobrir tota la vista dels nivells. Col·loca els núvols
+manualment amb `C` a la graella, deixant un espai a la dreta (`C `).
+El marcador indica la meitat esquerra; les dues textures es dibuixen juntes
+abans del mapa i les entitats, sense col·lisió. No hi ha núvols automàtics.
+Utilitza `C`, no els índexs de textura, que crearien blocs sòlids.
 
 Els codis de tile positius creen blocs sòlids indestructibles, excepte `a`.
 En trepitjar un `a` per sobre, el jugador activa una animació de desaparició
@@ -48,6 +55,7 @@ però no s'utilitzen als nivells ni tenen cap mecànica especial.
 | Codi | Significat |
 | --- | --- |
 | espai | Casella buida |
+| `C` | Núvol decoratiu de 2×1 tiles, sense col·lisió; marca la meitat esquerra |
 | `@` | Posició inicial del jugador |
 | `W` | Walker |
 | `R` | Runner |
