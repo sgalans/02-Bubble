@@ -11,7 +11,7 @@ static const glm::vec2 ICON_PIXELS[Item::N_TYPES] =
 	glm::vec2(39.f, 117.f),  // FIRE_UP: flame
 	glm::vec2(57.f, 117.f),  // SPEED_UP: roller skates
 	glm::vec2(75.f, 117.f),  // BOMB_PROOF: vest
-	glm::vec2(16.f, 16.f)    // KEY: personalized.png, column 1, row 1
+	glm::vec2(0.f, 16.f)     // KEY: personalized.png, column 0, row 1
 };
 
 

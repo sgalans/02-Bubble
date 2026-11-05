@@ -31,6 +31,8 @@ public:
 	void enterExit(const glm::vec2 &doorPosition);
 	bool isExiting() const { return exiting; }
 	bool hasEnteredExit() const;
+	bool isStandingOnSurface(int top) const { return isAlive() && verticalVelocity >= 0.f && posPlayer.y + sizePlayer.y == top; }
+	void liftByTrampoline(int top, bool launch);
 	
 	void setTileMap(TileMap *tileMap);
 	// Position uses the sprite's top-left; getPosition returns the hitbox's top-left.

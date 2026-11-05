@@ -13,6 +13,9 @@ using namespace std;
 #define PLATFORM_REFORM_TIME 1000 // ms
 #define PLATFORM_FRAMES 3
 #define PLATFORM_SOLID -3
+#define TRAMPOLINE_SOLID -4
+#define TRAMPOLINE_HOLD_TIME 1000 // ms at full extension
+#define TRAMPOLINE_TIME (400 + TRAMPOLINE_HOLD_TIME) // ms, including retraction
 
 
 TileMap *TileMap::createTileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program)
@@ -29,6 +32,7 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 	bombMap = NULL;
 	bushSprite = NULL;
 	platformSprite = NULL;
+	trampolineSprite = NULL;
 	position = glm::ivec2(minCoords);
 	loadLevel(levelFile);
 	prepareArrays(minCoords, program);
@@ -40,7 +44,19 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 		for(int frame = 0; frame < PLATFORM_FRAMES; frame++)
 		{
 			platformSprite->setAnimationSpeed(frame, 1);
-			platformSprite->addKeyframe(frame, glm::vec2(float(frame + 1), 2.f) * frameSize);
+			int index = 9 + frame;
+			platformSprite->addKeyframe(frame, glm::vec2(float(index % tilesheetSize.x), float(index / tilesheetSize.x)) * frameSize);
+		}
+	}
+	if(!trampolines.empty())
+	{
+		glm::vec2 frameSize(16.f / tilesheet.width(), 16.f / tilesheet.height());
+		trampolineSprite = Sprite::createSprite(glm::vec2(float(blockSize)), frameSize, &tilesheet, &program);
+		trampolineSprite->setNumberAnimations(3);
+		for(int frame = 0; frame < 3; frame++)
+		{
+			trampolineSprite->setAnimationSpeed(frame, 1);
+			trampolineSprite->addKeyframe(frame, glm::vec2(float(frame), 4.f) * frameSize);
 		}
 	}
 	for(int i = 0; i < mapSize.x * mapSize.y; i++)
@@ -50,7 +66,7 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 		bushTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		// Tile 4 is at column 3, row 0 in the 4x5 tilesheet.
+		// Tile 4 is at column 3, row 0 in the 5x5 tilesheet.
 		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
 		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
@@ -65,6 +81,7 @@ TileMap::~TileMap()
 {
 	delete bushSprite;
 	delete platformSprite;
+	delete trampolineSprite;
 	if(map != NULL)
 		delete [] map;
 	if(bombMap != NULL)
@@ -82,6 +99,12 @@ void TileMap::render() const
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nTiles);
 	glDisable(GL_TEXTURE_2D);
+	for(unsigned int i = 0; i < trampolines.size(); i++)
+	{
+		trampolineSprite->changeAnimation(trampolines[i].frame);
+		trampolineSprite->setPosition(glm::vec2(position + trampolines[i].tile * tileSize));
+		trampolineSprite->render();
+	}
 	for(unsigned int i = 0; i < platforms.size(); i++)
 	{
 		const CrumblingPlatform &platform = platforms[i];
@@ -116,6 +139,54 @@ void TileMap::render() const
 
 void TileMap::update(int deltaTime, const std::vector<glm::ivec4> &occupiedBoxes)
 {
+	for(unsigned int i = 0; i < trampolines.size(); i++)
+	{
+		Trampoline &spring = trampolines[i];
+		spring.launched = false;
+		if(spring.elapsed < 0)
+			continue;
+		int previous = spring.elapsed;
+		int previousFrame = spring.frame;
+		int previousTop = getTrampolineTop(spring);
+		spring.elapsed += glm::clamp(deltaTime, 0, TRAMPOLINE_TIME - spring.elapsed);
+		spring.launched = previous < 200 && spring.elapsed >= 200;
+		// Show full extension for at least one frame, even after a long frame.
+		if(spring.launched)
+			spring.elapsed = 200;
+		if(spring.elapsed < 100 || spring.elapsed >= 300 + TRAMPOLINE_HOLD_TIME)
+			spring.frame = 0;
+		else if(spring.elapsed < 200 || spring.elapsed >= 200 + TRAMPOLINE_HOLD_TIME)
+			spring.frame = 1;
+		else
+			spring.frame = 2;
+		int top = getTrampolineTop(spring);
+		// Wait rather than squeeze a rider into a ceiling while extending.
+		bool blocked = false;
+		for(unsigned int j = 0; top < previousTop && j < occupiedBoxes.size(); j++)
+		{
+			const glm::ivec4 &box = occupiedBoxes[j];
+			int left = spring.tile.x * tileSize;
+			if(box.y + box.w != previousTop || box.x >= left + tileSize || box.x + box.z <= left)
+				continue;
+			for(int y = box.y - 1; y >= top - box.w; y--)
+			{
+				int correctedY = y;
+				if(collisionMoveUp(glm::ivec2(box.x, y), glm::ivec2(box.z, box.w), &correctedY))
+				{
+					blocked = true;
+					break;
+				}
+			}
+		}
+		if(blocked)
+		{
+			spring.elapsed = previous;
+			spring.frame = previousFrame;
+			spring.launched = false;
+		}
+		if(spring.elapsed == TRAMPOLINE_TIME)
+			spring.elapsed = -1;
+	}
 	const int cycleTime = PLATFORM_CRUMBLE_TIME + PLATFORM_ABSENT_TIME + PLATFORM_REFORM_TIME;
 	for(unsigned int i = 0; i < platforms.size(); i++)
 	{
@@ -199,6 +270,7 @@ bool TileMap::loadLevel(const string &levelFile)
 	map = new int[mapSize.x * mapSize.y];
 	spawns.clear();
 	platforms.clear();
+	trampolines.clear();
 	for(int j=0; j<mapSize.y; j++)
 	{
 		for(int i=0; i<mapSize.x; i++)
@@ -216,6 +288,12 @@ bool TileMap::loadLevel(const string &levelFile)
 			}
 			else if(tile >= '!' && tile <= '%')
 				map[j*mapSize.x+i] = 36 + (tile - '!');
+			else if(tile == 'T')
+			{
+				map[j*mapSize.x+i] = TRAMPOLINE_SOLID;
+				Trampoline spring = { glm::ivec2(i, j), -1, 0, false };
+				trampolines.push_back(spring);
+			}
 			else if(isupper(tile) || tile == '@')
 			{
 				// Items hide in bushes; key gates block movement and flames.
@@ -312,7 +390,7 @@ bool TileMap::collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size) c
 	y1 = (pos.y + size.y - 1) / tileSize;
 	for(int y=y0; y<=y1; y++)
 	{
-		if(isSolid(x, y))
+		if(overlapsSolid(x, y, pos, size))
 			return true;
 	}
 	
@@ -328,7 +406,7 @@ bool TileMap::collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) 
 	y1 = (pos.y + size.y - 1) / tileSize;
 	for(int y=y0; y<=y1; y++)
 	{
-		if(isSolid(x, y))
+		if(overlapsSolid(x, y, pos, size))
 			return true;
 	}
 	
@@ -344,11 +422,12 @@ bool TileMap::collisionMoveDown(const glm::ivec2 &pos, const glm::ivec2 &size, i
 	y = (pos.y + size.y - 1) / tileSize;
 	for(int x=x0; x<=x1; x++)
 	{
-		if(isSolid(x, y))
+		if(overlapsSolid(x, y, pos, size))
 		{
-			if(*posY - tileSize * y + size.y <= 4)
+			int top = solidTop(x, y);
+			if(*posY - top + size.y <= 4)
 			{
-				*posY = tileSize * y - size.y;
+				*posY = top - size.y;
 				return true;
 			}
 		}
@@ -366,7 +445,7 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int
 	y = pos.y / tileSize;
 	for(int x=x0; x<=x1; x++)
 	{
-		if(isSolid(x, y))
+		if(overlapsSolid(x, y, pos, size))
 		{
 			*posY = tileSize * (y + 1);
 			return true;
@@ -379,6 +458,44 @@ bool TileMap::collisionMoveUp(const glm::ivec2 &pos, const glm::ivec2 &size, int
 bool TileMap::isWall(int x, int y) const
 {
 	return !insideMap(x, y) || map[y*mapSize.x+x] != 0;
+}
+
+int TileMap::getTrampolineTop(const Trampoline &spring) const
+{
+	static const int heights[] = { 9, 12, 16 };
+	return (spring.tile.y + 1) * tileSize - heights[spring.frame] * tileSize / 16;
+}
+
+bool TileMap::activateTrampoline(int x, int y)
+{
+	for(unsigned int i = 0; i < trampolines.size(); i++)
+	{
+		Trampoline &spring = trampolines[i];
+		if(spring.tile != glm::ivec2(x, y))
+			continue;
+		if(spring.elapsed < 0)
+			spring.elapsed = 0;
+		return true;
+	}
+	return false;
+}
+
+int TileMap::solidTop(int x, int y) const
+{
+	if(insideMap(x, y) && map[y * mapSize.x + x] == TRAMPOLINE_SOLID)
+	{
+		for(unsigned int i = 0; i < trampolines.size(); i++)
+		{
+			if(trampolines[i].tile == glm::ivec2(x, y))
+				return getTrampolineTop(trampolines[i]);
+		}
+	}
+	return y * tileSize;
+}
+
+bool TileMap::overlapsSolid(int x, int y, const glm::ivec2 &pos, const glm::ivec2 &size) const
+{
+	return isSolid(x, y) && pos.y + size.y > solidTop(x, y) && pos.y < (y + 1) * tileSize;
 }
 
 bool TileMap::destroyDestructible(int x, int y)

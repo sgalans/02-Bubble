@@ -184,6 +184,8 @@ void Bomb::spreadFlames()
 		for(int i = 1; i <= range; i++)
 		{
 			glm::ivec2 cell = tile + dirs[d] * i;
+			if(dirs[d].x != 0)
+				map->activateTrampoline(cell.x, cell.y);
 			bool destroyedBlock = map->destroyDestructible(cell.x, cell.y);
 			if(!destroyedBlock && map->isWall(cell.x, cell.y))
 				break;

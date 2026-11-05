@@ -97,20 +97,20 @@ void Scene::init(const string &levelFile)
 	personalizedTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	personalizedTexture.setMinFilter(GL_NEAREST);
 	personalizedTexture.setMagFilter(GL_NEAREST);
-	// The last row holds sky, then the two adjacent halves of a cloud.
+	// Row 3 holds sky, then the two adjacent halves of a cloud.
 	glm::vec2 atlasSize(float(personalizedTexture.width()), float(personalizedTexture.height()));
 	float tileSize = float(map->getTileSize());
 	skySprite = Sprite::createSprite(glm::vec2(tileSize), glm::vec2(16.f) / atlasSize,
 	                                 &personalizedTexture, &texProgram);
 	skySprite->setNumberAnimations(1);
 	skySprite->setAnimationSpeed(0, 1);
-	skySprite->addKeyframe(0, glm::vec2(16.f, 64.f) / atlasSize);
+	skySprite->addKeyframe(0, glm::vec2(32.f, 48.f) / atlasSize);
 	skySprite->changeAnimation(0);
 	cloudSprite = Sprite::createSprite(glm::vec2(2.f * tileSize, tileSize), glm::vec2(32.f, 16.f) / atlasSize,
 	                                   &personalizedTexture, &texProgram);
 	cloudSprite->setNumberAnimations(1);
 	cloudSprite->setAnimationSpeed(0, 1);
-	cloudSprite->addKeyframe(0, glm::vec2(32.f, 64.f) / atlasSize);
+	cloudSprite->addKeyframe(0, glm::vec2(48.f, 48.f) / atlasSize);
 	cloudSprite->changeAnimation(0);
 
 	spawnFromLevel();
@@ -322,7 +322,44 @@ void Scene::update(int deltaTime)
 		if(!enemies[i]->isDead())
 			occupiedBoxes.push_back(glm::ivec4(glm::ivec2(enemies[i]->getPosition()) - map->getPosition(), enemies[i]->getSize()));
 	}
+	int ridingTrampoline = -1;
+	vector<int> enemyTrampolines(enemies.size(), -1);
+	vector<int> previousSpringTops;
+	const vector<TileMap::Trampoline> &springs = map->getTrampolines();
+	glm::ivec2 playerPos = glm::ivec2(player->getPosition()) - map->getPosition();
+	for(unsigned int i = 0; i < springs.size(); i++)
+	{
+		int left = springs[i].tile.x * map->getTileSize();
+		int top = map->getTrampolineTop(springs[i]);
+		previousSpringTops.push_back(top);
+		for(unsigned int j = 0; j < enemies.size(); j++)
+		{
+			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
+			glm::ivec2 size = enemies[j]->getSize();
+			if(pos.y + size.y == top && pos.x < left + map->getTileSize() && left < pos.x + size.x)
+				enemyTrampolines[j] = int(i);
+		}
+		if(player->isStandingOnSurface(map->getTrampolineTop(springs[i])) &&
+		   playerPos.x < left + map->getTileSize() && left < playerPos.x + player->getSize().x)
+		{
+			ridingTrampoline = int(i);
+		}
+	}
 	map->update(deltaTime, occupiedBoxes);
+	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
+		int spring = enemyTrampolines[i];
+		if(spring >= 0)
+		{
+			int shift = map->getTrampolineTop(springs[spring]) - previousSpringTops[spring];
+			enemies[i]->setPosition(enemies[i]->getPosition() - glm::vec2(map->getPosition()) + glm::vec2(0, shift));
+		}
+	}
+	if(ridingTrampoline >= 0)
+	{
+		const TileMap::Trampoline &spring = springs[ridingTrampoline];
+		player->liftByTrampoline(map->getTrampolineTop(spring), spring.launched);
+	}
 	player->update(deltaTime);
 	if(player->takeBombRequest())
 		tryPlayerBomb();

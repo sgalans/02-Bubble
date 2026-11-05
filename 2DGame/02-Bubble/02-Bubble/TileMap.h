@@ -36,6 +36,12 @@ public:
 		char type;
 		glm::ivec2 tile;
 	};
+	struct Trampoline
+	{
+		glm::ivec2 tile;
+		int elapsed, frame;
+		bool launched;
+	};
 
 private:
 	TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program);
@@ -56,6 +62,9 @@ public:
 	glm::ivec2 getPosition() const { return position; }
 	glm::ivec2 getMapSize() const { return mapSize; }
 	const std::vector<Spawn> &getSpawns() const { return spawns; }
+	const std::vector<Trampoline> &getTrampolines() const { return trampolines; }
+	int getTrampolineTop(const Trampoline &trampoline) const;
+	bool activateTrampoline(int x, int y);
 
 	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size) const;
 	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) const;
@@ -86,6 +95,8 @@ private:
 	void updateTileVertices();
 	bool insideMap(int x, int y) const;
 	bool isSolid(int x, int y) const;
+	int solidTop(int x, int y) const;
+	bool overlapsSolid(int x, int y, const glm::ivec2 &pos, const glm::ivec2 &size) const;
 
 private:
 	GLuint vao;
@@ -98,11 +109,13 @@ private:
 	Texture bushTexture;
 	Sprite *bushSprite;
 	Sprite *platformSprite;
+	Sprite *trampolineSprite;
 	glm::vec2 tileTexSize;
 	int *map;
 	int *bombMap;
 	std::vector<Spawn> spawns;
 	std::vector<CrumblingPlatform> platforms;
+	std::vector<Trampoline> trampolines;
 
 };
 

@@ -7,6 +7,7 @@
 
 
 #define HIGH_JUMP_HEIGHT_TILES 3
+#define TRAMPOLINE_JUMP_HEIGHT_TILES 10
 #define SHORT_JUMP_HEIGHT_TILES 2
 #define HIGH_JUMP_DURATION 0.8f // seconds, returning to the launch height
 #define SHORT_JUMP_DURATION 0.5f
@@ -319,6 +320,31 @@ void Player::render()
 	if(isInvulnerable() && blinkTime >= BLINK_VISIBLE_TIME)
 		return;
 	sprite->render();
+}
+
+void Player::liftByTrampoline(int top, bool launch)
+{
+	if(!isAlive())
+		return;
+	int targetY = top - sizePlayer.y;
+	int direction = targetY < posPlayer.y ? -1 : 1;
+	while(posPlayer.y != targetY)
+	{
+		posPlayer.y += direction;
+		bool collided = direction < 0
+			? map->collisionMoveUp(posPlayer, sizePlayer, &posPlayer.y)
+			: map->collisionMoveDown(posPlayer, sizePlayer, &posPlayer.y);
+		if(collided)
+			break;
+	}
+	verticalPosition = float(posPlayer.y);
+	if(launch)
+	{
+		shortJumpActive = false;
+		const float gravity = 8.f * HIGH_JUMP_HEIGHT_TILES * map->getTileSize() / (HIGH_JUMP_DURATION * HIGH_JUMP_DURATION);
+		verticalVelocity = -sqrt(2.f * gravity * TRAMPOLINE_JUMP_HEIGHT_TILES * map->getTileSize());
+	}
+	updateSpritePosition();
 }
 
 void Player::enterExit(const glm::vec2 &doorPosition)
