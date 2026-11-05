@@ -20,15 +20,28 @@
 #define BLINK_PERIOD 500
 #define MAIN_FIRST_ENTRY_Y 200
 #define MAIN_ENTRY_SPACING 50
-#define TEXT_FIRST_LINE_Y 140
+#define TEXT_FIRST_LINE_Y 120
 #define TEXT_LINE_SPACING 24
 
 // Entries of the main screen, in order
 enum MainEntry { MAIN_PLAY, MAIN_INSTRUCTIONS, MAIN_CREDITS, MAIN_NUM_ENTRIES };
 static const char *MAIN_LABELS[MAIN_NUM_ENTRIES] = { "PLAY", "INSTRUCTIONS", "CREDITS" };
 
-// Text of the info screens, one line per "\n". Left blank for now.
-static const char *INSTRUCTIONS_TEXT = "USE ARROW KEYS TO MOVE\nSPACE FOR THE BOMB\nCOLLECT POWER-UPS TO HELP YOU\nKILL ALL ENEMIES TO OPEN THE DOOR";
+// Text of the info screens, one line per "\n".
+// The body uses the 16 px font, so keep each line within 40 characters.
+static const char *INSTRUCTIONS_TEXT =
+	"ARROWS/WASD: MOVE   UP/W: HIGH JUMP\n"
+	"S: SHORT JUMP   SPACE: DROP A BOMB\n"
+	"\n"
+	"BLOW UP BUSHES TO FIND HIDDEN ITEMS:\n"
+	"BOMB UP: CARRY ONE MORE BOMB\n"
+	"FIRE UP: BIGGER EXPLOSIONS\n"
+	"SPEED UP: MOVE FASTER\n"
+	"VEST: YOUR OWN BLASTS CAN'T HURT YOU\n"
+	"KEY: OPENS A LOCKED GATE\n"
+	"\n"
+	"KILL ALL ENEMIES TO OPEN THE DOOR\n"
+	"AND REACH IT BEFORE TIME RUNS OUT!";
 static const char *CREDITS_TEXT = "MADE BY:\nSergi Galans and Oriol Valencia";
 
 
