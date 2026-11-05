@@ -8,6 +8,12 @@
 
 using namespace std;
 
+#define PLATFORM_CRUMBLE_TIME 1000 // ms
+#define PLATFORM_ABSENT_TIME 2000 // ms
+#define PLATFORM_REFORM_TIME 1000 // ms
+#define PLATFORM_FRAMES 3
+#define PLATFORM_SOLID -3
+
 
 TileMap *TileMap::createTileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program)
 {
@@ -22,9 +28,21 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 	map = NULL;
 	bombMap = NULL;
 	bushSprite = NULL;
+	platformSprite = NULL;
 	position = glm::ivec2(minCoords);
 	loadLevel(levelFile);
 	prepareArrays(minCoords, program);
+	if(!platforms.empty())
+	{
+		glm::vec2 frameSize(16.f / tilesheet.width(), 16.f / tilesheet.height());
+		platformSprite = Sprite::createSprite(glm::vec2(float(blockSize)), frameSize, &tilesheet, &program);
+		platformSprite->setNumberAnimations(PLATFORM_FRAMES);
+		for(int frame = 0; frame < PLATFORM_FRAMES; frame++)
+		{
+			platformSprite->setAnimationSpeed(frame, 1);
+			platformSprite->addKeyframe(frame, glm::vec2(float(frame + 1), 2.f) * frameSize);
+		}
+	}
 	for(int i = 0; i < mapSize.x * mapSize.y; i++)
 	{
 		if(map[i] != -1)
@@ -32,12 +50,12 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 		bushTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 		bushTexture.setMinFilter(GL_NEAREST);
 		bushTexture.setMagFilter(GL_NEAREST);
-		// Tile 4 starts at column 0, row 1 in the 3x3 tilesheet.
+		// Tile 4 is at column 3, row 0 in the 4x5 tilesheet.
 		const glm::vec2 bushTexSize(16.f / bushTexture.width(), 16.f / bushTexture.height());
 		bushSprite = Sprite::createSprite(glm::vec2(float(blockSize)), bushTexSize, &bushTexture, &program);
 		bushSprite->setNumberAnimations(1);
 		bushSprite->setAnimationSpeed(0, 1);
-		bushSprite->addKeyframe(0, glm::vec2(0.f, bushTexSize.y));
+		bushSprite->addKeyframe(0, glm::vec2(3.f * bushTexSize.x, 0.f));
 		bushSprite->changeAnimation(0);
 		break;
 	}
@@ -46,6 +64,7 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 TileMap::~TileMap()
 {
 	delete bushSprite;
+	delete platformSprite;
 	if(map != NULL)
 		delete [] map;
 	if(bombMap != NULL)
@@ -63,6 +82,23 @@ void TileMap::render() const
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nTiles);
 	glDisable(GL_TEXTURE_2D);
+	for(unsigned int i = 0; i < platforms.size(); i++)
+	{
+		const CrumblingPlatform &platform = platforms[i];
+		int frame = 0;
+		if(platform.elapsed >= PLATFORM_CRUMBLE_TIME + PLATFORM_ABSENT_TIME)
+		{
+			int time = platform.elapsed - PLATFORM_CRUMBLE_TIME - PLATFORM_ABSENT_TIME;
+			frame = PLATFORM_FRAMES - 1 - glm::min(time * PLATFORM_FRAMES / PLATFORM_REFORM_TIME, PLATFORM_FRAMES - 1);
+		}
+		else if(platform.elapsed >= PLATFORM_CRUMBLE_TIME)
+			continue;
+		else if(platform.elapsed >= 0)
+			frame = platform.elapsed * PLATFORM_FRAMES / PLATFORM_CRUMBLE_TIME;
+		platformSprite->changeAnimation(frame);
+		platformSprite->setPosition(glm::vec2(position + platform.tile * tileSize));
+		platformSprite->render();
+	}
 	if(bushSprite != NULL)
 	{
 		for(int y = 0; y < mapSize.y; y++)
@@ -75,6 +111,50 @@ void TileMap::render() const
 				bushSprite->render();
 			}
 		}
+	}
+}
+
+void TileMap::update(int deltaTime, const std::vector<glm::ivec4> &occupiedBoxes)
+{
+	const int cycleTime = PLATFORM_CRUMBLE_TIME + PLATFORM_ABSENT_TIME + PLATFORM_REFORM_TIME;
+	for(unsigned int i = 0; i < platforms.size(); i++)
+	{
+		CrumblingPlatform &platform = platforms[i];
+		if(platform.elapsed < 0)
+			continue;
+		platform.elapsed += glm::clamp(deltaTime, 0, cycleTime - platform.elapsed);
+		int &cell = map[platform.tile.y * mapSize.x + platform.tile.x];
+		if(platform.elapsed >= PLATFORM_CRUMBLE_TIME)
+			cell = 0;
+		if(platform.elapsed < cycleTime)
+			continue;
+		// Never restore collision inside a player, enemy or bomb.
+		bool occupied = hasBomb(platform.tile.x, platform.tile.y);
+		glm::ivec2 pos = platform.tile * tileSize;
+		for(unsigned int j = 0; j < occupiedBoxes.size(); j++)
+		{
+			const glm::ivec4 &box = occupiedBoxes[j];
+			if(pos.x < box.x + box.z && box.x < pos.x + blockSize &&
+			   pos.y < box.y + box.w && box.y < pos.y + blockSize)
+				occupied = true;
+		}
+		if(!occupied)
+		{
+			cell = PLATFORM_SOLID;
+			platform.elapsed = -1;
+		}
+	}
+}
+
+void TileMap::stepOnPlatforms(const glm::ivec2 &pos, const glm::ivec2 &size)
+{
+	for(unsigned int i = 0; i < platforms.size(); i++)
+	{
+		CrumblingPlatform &platform = platforms[i];
+		glm::ivec2 top = platform.tile * tileSize;
+		if(platform.elapsed == -1 && pos.y + size.y == top.y &&
+		   pos.x < top.x + tileSize && top.x < pos.x + size.x)
+			platform.elapsed = 0;
 	}
 }
 
@@ -118,6 +198,7 @@ bool TileMap::loadLevel(const string &levelFile)
 	
 	map = new int[mapSize.x * mapSize.y];
 	spawns.clear();
+	platforms.clear();
 	for(int j=0; j<mapSize.y; j++)
 	{
 		for(int i=0; i<mapSize.x; i++)
@@ -127,6 +208,12 @@ bool TileMap::loadLevel(const string &levelFile)
 				map[j*mapSize.x+i] = 0;
 			else if(tile == '*')
 				map[j*mapSize.x+i] = -1;
+			else if(tile == 'a')
+			{
+				map[j*mapSize.x+i] = PLATFORM_SOLID;
+				CrumblingPlatform platform = { glm::ivec2(i, j), -1 };
+				platforms.push_back(platform);
+			}
 			else if(tile >= '!' && tile <= '%')
 				map[j*mapSize.x+i] = 36 + (tile - '!');
 			else if(isupper(tile) || tile == '@')
@@ -159,6 +246,17 @@ bool TileMap::loadLevel(const string &levelFile)
 
 void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 {
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	updateTileVertices();
+	posLocation = program.bindVertexAttribute("position", 2, 4*sizeof(float), 0);
+	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+}
+
+void TileMap::updateTileVertices()
+{
 	int tile;
 	glm::vec2 posTile, texCoordTile[2], halfTexel;
 	vector<float> vertices;
@@ -174,7 +272,7 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 			{
 				// Non-empty tile
 				nTiles++;
-				posTile = glm::vec2(minCoords.x + i * tileSize, minCoords.y + j * tileSize);
+				posTile = glm::vec2(position.x + i * tileSize, position.y + j * tileSize);
 				texCoordTile[0] = glm::vec2(float((tile-1)%tilesheetSize.x) / tilesheetSize.x, float((tile-1)/tilesheetSize.x) / tilesheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + tileTexSize;
 				//texCoordTile[0] += halfTexel;
@@ -197,13 +295,8 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 		}
 	}
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-	posLocation = program.bindVertexAttribute("position", 2, 4*sizeof(float), 0);
-	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), vertices.empty() ? NULL : &vertices[0], GL_STATIC_DRAW);
 }
 
 // Collision tests for axis aligned bounding boxes.

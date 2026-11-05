@@ -69,7 +69,7 @@ void HUD::init(ShaderProgram &shaderProgram)
 	keySprite = Sprite::createSprite(glm::vec2(HEART_SIZE), keyFrame, &keyTexture, program);
 	keySprite->setNumberAnimations(1);
 	keySprite->setAnimationSpeed(0, 1);
-	keySprite->addKeyframe(0, glm::vec2(2.f, 1.f) * keyFrame);
+	keySprite->addKeyframe(0, glm::vec2(1.f, 1.f) * keyFrame);
 	keySprite->changeAnimation(0);
 	keySprite->setPosition(glm::vec2(SCREEN_WIDTH - HUD_MARGIN - HEART_SIZE, HUD_MARGIN));
 

@@ -17,8 +17,8 @@
 #define MAX_BOMBS 5
 #define MAX_FIRE_POWER 5 // tiles
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
-#define SPEED_UP_INCREMENT 0.5f
-#define MAX_MOVE_SPEED 3.f
+#define SPEED_UP_INCREMENT 0.25f
+#define MAX_MOVE_SPEED 2.25f
 #define PLAYER_SPRITE_WIDTH 16
 #define PLAYER_HEIGHT 16
 #define HITBOX_INSET_X 2
@@ -160,6 +160,8 @@ void Player::update(int deltaTime)
 		}
 	}
 	bool startJump = grounded && jumpKeyPressed && !bJumpKeyPressed;
+	if(grounded)
+		map->stepOnPlatforms(posPlayer, sizePlayer);
 	if(supportedBeforeMove && !grounded)
 	{
 		// Skip the slow start from rest when stepping off a platform or bomb.
@@ -208,6 +210,8 @@ void Player::update(int deltaTime)
 			}
 		}
 	}
+	if(grounded)
+		map->stepOnPlatforms(posPlayer, sizePlayer);
 	if(Game::instance().getKey(GLFW_KEY_G) && !bGodKeyPressed)
 		invensible = !invensible;
 	bGodKeyPressed = Game::instance().getKey(GLFW_KEY_G);
