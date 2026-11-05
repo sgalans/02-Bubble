@@ -3,6 +3,8 @@
 El tileset actual és [images/personalized.png](images/personalized.png):
 **80×80 píxels**, amb **5 columnes × 5 files** de tiles de **16×16**.
 La numeració comença a 1, d'esquerra a dreta i de dalt a baix.
+Aquest fitxer és el catàleg actual de textures i marcadors; el format i les
+regles d'edició dels mapes són a [levels/README.md](levels/README.md).
 
 ## Peces del tileset
 
@@ -44,8 +46,8 @@ continuen sent blocs estàtics, encara que es facin servir com a fotogrames.
 Per posar un **arbust destructible**, utilitza `*`, no `4`.
 La clau i les portes funcionals es creen amb `K`, `L` i `D`;
 els codis `6`, `7`, `8` i `9` només creen blocs estàtics.
-Els quatre `a` del pont del nivell 2 ja són als seus destins en començar
-i desapareixen temporalment quan el jugador els trepitja.
+Els `a` ja són a les posicions indicades a cada mapa en començar el nivell;
+desapareixen temporalment quan el jugador els trepitja. No es mouen de casella.
 El bloc gris i els seus fotogrames d'explosió es conserven a la imatge,
 però no s'utilitzen als nivells ni tenen cap mecànica especial.
 
@@ -80,6 +82,7 @@ la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.
 | `W` | Walker |
 | `R` | Runner |
 | `Z` | Shooter |
+| `X` | Boss de 2×2 tiles; marca la cantonada superior esquerra |
 | `D` | Sortida del nivell: s'obre quan no queden enemics |
 | `L` | Porta amb pany: bloqueja el moviment i les explosions |
 | `*` | Arbust sense objecte |
@@ -94,9 +97,11 @@ i s'atura en aquella casella. L'objecte amagat apareix quan desapareix
 l'arbust i es recull en tocar-lo.
 
 La clau es mostra al HUD mentre el jugador la porta. Tocar una porta `L`
-amb la clau obre el pas permanentment i consumeix la clau. Les explosions
-no poden obrir aquesta porta. `D` és la sortida del nivell i funciona
-independentment del pany.
+amb la clau obre el pas permanentment i consumeix la clau. La porta conserva
+la textura oberta (peça 9) i deixa de tenir col·lisió. Les explosions no poden
+obrir-la. `D` és la sortida del nivell i funciona independentment del pany:
+s'obre quan no queden enemics. Entrar-hi inicia una animació d'1 segon;
+en acabar es mostra la victòria del nivell o la pantalla final del joc.
 
 ## Capçalera dels nivells
 
@@ -110,4 +115,4 @@ images/personalized.png -- Tilesheet
 
 Cada fila de la graella ha de tenir exactament l'amplada declarada del mapa,
 inclosos els espais finals. Vegeu [levels/README.md](levels/README.md)
-per al format dels nivells i la distribució de la cambra del nivell 3.
+per al format dels nivells. La distribució concreta és a cada `levelXX.txt`.

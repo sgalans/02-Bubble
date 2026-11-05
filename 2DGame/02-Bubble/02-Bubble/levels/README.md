@@ -2,7 +2,8 @@
 
 Cada fila ha de tenir exactament l'amplada indicada a la capçalera, inclosos
 els espais finals. `personalized.png` té una graella de **5×5** tiles de 16×16.
-La capçalera ha d'indicar `5 5`. Els índexs 1–20 es conserven; els retalls s'han adaptat a les 5 columnes.
+La capçalera ha d'indicar `5 5`. El catàleg actual de peces i marcadors és
+[../blocs.md](../blocs.md).
 Els retalls especials segueixen les coordenades de [../blocs.md](../blocs.md).
 
 El cel (peça 18) cobreix automàticament tot el fons. Els núvols es posen
@@ -35,6 +36,7 @@ sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 
 La clau apareix en destruir l'arbust `K`. Cal recollir-la i tocar la porta `L`
 per obrir el pas permanentment. Obrir una porta consumeix la clau.
+La porta `L` continua visible amb la textura oberta i deixa de tenir col·lisió.
 La icona de la clau al HUD indica que el jugador la porta.
 `K` al mapa és independent de la tecla de depuració `K`.
 
@@ -45,16 +47,20 @@ Recuperen la col·lisió al final; si la casella està ocupada pel jugador,
 un enemic o una bomba, esperen que quedi lliure. Cada bloc té el seu compte
 independent i no es reinicia en trepitjar-lo de nou mentre està actiu.
 
-Al nivell 2, el pont està disponible des del començament: quatre blocs `a`
-a (14, 4), (17, 4), (20, 4) i (23, 4), amb coordenades començant per zero.
-Hi ha dos tiles buits entre blocs i són un tile per sota de la plataforma de
-sortida, per deixar espai per saltar sota el sostre. No hi ha activadors ni
-blocs que es moguin; el nivell només conté la graella, sense enllaços addicionals.
+## Sortida i distribució dels nivells
 
-Al nivell 3, la cambra ocupa les columnes 9–22 i files 1–14 (coordenades
-començant per zero): **14×14 tiles interiors**, amb marc de pedra a les
-columnes 8 i 23 i files 0 i 15. L'únic accés és `L` a (23, 12).
-La clau és al braç esquerre de la U i la sortida és dins de la cambra.
+La sortida `D` s'obre quan s'han eliminat tots els enemics, també el boss.
+En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. En entrar a la
+sortida oberta, el jugador s'alinea amb la porta, es gira d'esquena i
+s'encongeix fins a desaparèixer durant 1 segon. El temps i la resta del joc
+queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5
+es mostra la imatge final `images/EndScreen.png`.
+`Enter` continua al nivell següent o torna al menú després de l'últim nivell.
+
+Les posicions de plataformes, claus, portes, núvols i altres elements són
+les de les graelles `level01.txt`–`level05.txt`. Consulta el fitxer concret
+per veure'n la distribució actual. Cada nivell conté la capçalera i la
+graella; no utilitza enllaços de moviment addicionals després de les files.
 
 ## Trampolí (`T`)
 

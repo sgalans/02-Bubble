@@ -8,7 +8,7 @@ Interface:
  - HUD bombes simultanies [x]
  - HUD mida explosio (fire) [x]
  - pantalla game over [x] //"YOU ARE DEAD" + ESC torna al menu
- - pantalla nivell superat [x] //"YOU WIN" + ENTER passa al seguent
+ - pantalla nivell superat [x] //animació d'entrada a la sortida d'1 s, després "YOU WIN" + ENTER passa al seguent
  - pantalla victoria final (despres del boss) [x] //images/EndScreen.png amb "YOU WIN" a sobre; ENTER/ESC torna al menu
 
 Enemy:
@@ -22,7 +22,7 @@ Nivells:
  - millorar nivell 1 [x]
  - nivell2 [x]
  - millorar nivell 2 [x]
- - nivell3 [x] // U de 32x32, cambra interior 14x14, clau K i porta L
+ - nivell3 [x]
  - millorar nivell 3 [x]
  - nivell4 [x]
  - nivell5 [] //level05.txt es un placeholder: nomes boss + 2 plataformes, sense arbustos ni objectes
@@ -43,7 +43,7 @@ Moviment:
 Vides:
  - 3 vides [x] 
  - perdre vida en tocar enemic / projectil / explosio [x]
- - respawn / reiniciar nivell en perdre una vida [x] //torna al punt d'inici
+ - respawn en perdre una vida [x] //animació de mort d'1,5 s; torna al punt d'inici amb 3 s d'invulnerabilitat; el nivell no es reinicia
  - decidir si les vides es mantenen entre nivells [] //ara cada Scene crea un Player nou amb 3 vides
  - temps esgotat [x] //ara mata del tot (game over); valorar si nomes ha de treure una vida
 
@@ -75,7 +75,7 @@ Tecles debug:
 
 General (polish):
  - So efectes [x] //menu, bomba, explosio, item, mal
- - So: falten efectes [] //mort enemic, salt, porta, game over, victoria, boss
+ - So: falten efectes [] //mort enemic, salt, porta, perdre vida, game over, victoria, boss
  - Musica de fons [] //Audio::playMusic existeix pero no es crida enlloc i no hi ha cap fitxer de musica a sounds/
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]

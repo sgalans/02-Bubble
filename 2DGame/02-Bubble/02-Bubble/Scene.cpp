@@ -128,9 +128,10 @@ void Scene::init(const string &levelFile)
 	cleared = false;
 }
 
-// Creates one enemy or item per letter found in the level file:
+// Creates entities and decorations from the level's spawn markers:
 // W = Walker, R = Runner, Z = Shooter, X = Boss, D = exit, L = key gate, @ = player
-// and the item letters listed in Item::typeFromLetter mark bushes hiding power-ups.
+// C marks clouds; Item::typeFromLetter identifies bushes hiding items.
+// TileMap handles a platforms, T trampolines and U buttons separately.
 // The letter marks the entity's top-left tile.
 void Scene::spawnFromLevel()
 {
@@ -305,8 +306,8 @@ void Scene::update(int deltaTime)
 	}
 	currentTime += deltaTime;
 	exitNoticeTime = glm::max(0, exitNoticeTime - deltaTime);
-	// The clock stops once the player is out of lives. Running out of time
-	// kills him outright, which brings up the death screen.
+	// The clock pauses while dying; exiting is handled above. Timeout removes
+	// all lives and plays the death animation before showing the defeat screen.
 	if(player->isAlive())
 	{
 		timeLeft = glm::max(0, timeLeft - deltaTime);
@@ -515,8 +516,8 @@ void Scene::removeDeadEnemies()
 		exitNoticeTime = EXIT_NOTICE_TIME;
 }
 
-// The door opens once no enemies are left. The player clears the level when
-// the centre of his body is inside the open door.
+// With no enemies left, the exit opens. Entering it starts the player's
+// exit animation; update() marks the level cleared once that finishes.
 void Scene::updateDoor(int deltaTime)
 {
 	showKeyHint = false;
