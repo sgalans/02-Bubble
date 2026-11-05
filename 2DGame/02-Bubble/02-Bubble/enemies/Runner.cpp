@@ -2,8 +2,8 @@
 #include "Runner.h"
 
 
-#define WALKING_SPEED 0.75f
-#define RUNNER_SPEED 1.5f
+#define WALKING_SPEED 0.45f
+#define RUNNER_SPEED 0.9f
 #define FALL_STEP 3
 
 // How far ahead the runner can spot the player, in tiles.
