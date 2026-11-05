@@ -25,7 +25,7 @@ Les coordenades de píxel indiquen la cantonada superior esquerra de cada peça.
 | 18 | — | (32, 48) | Cel decoratiu. |
 | 19–20 | `C` | (48, 48), (64, 48) | Núvol de 2×1 tiles, sense col·lisió. |
 | 21–23 | `T` | (0, 64), (16, 64), (32, 64) | Trampolí: 9, 12 i 16 píxels d'alçada. |
-| 24–25 | — | (48, 64), (64, 64) | Caselles buides; no utilitzar. |
+| 24–25 | `U` | (48, 64), (64, 64) | Botó preparat i comprimit; sense col·lisió. |
 
 El cel es repeteix per cobrir tota la vista dels nivells. Col·loca els núvols
 manualment amb `C` a la graella, deixant un espai a la dreta (`C `).
@@ -53,8 +53,14 @@ però no s'utilitzen als nivells ni tenen cap mecànica especial.
 
 El trampolí es posa amb `T` i ocupa una casella. En repòs fa 9 píxels
 d'alçada, alineat amb la base del tile; els 7 píxels superiors són buits.
-Només s'activa quan una explosió l'assoleix per l'esquerra o la dreta.
-Bloqueja les flames i no es destrueix. Una explosió vertical no l'activa.
+S'activa amb un botó `U` situat exactament 4 tiles a la dreta i a la mateixa fila.
+Una explosió que arriba al botó des de qualsevol direcció, inclòs el centre,
+el comprimeix durant 1 segon i activa el trampolí. El botó no té col·lisió,
+no atura el foc i no es destrueix. Els impactes durant la recàrrega s'ignoren.
+El vincle amb el trampolí funciona encara que hi hagi blocs entremig;
+l'explosió sí que necessita arribar fins al botó. Sense `T` al destí,
+només es comprimeix el botó. Un trampolí actiu no reinicia el seu cicle.
+El trampolí bloqueja les flames i no es destrueix; cap explosió directa l'activa.
 L'animació és 9→12→16→12→9 píxels. Es manté completament estès durant 1 segon abans de baixar; el cicle complet dura aproximadament 1,4 segons.
 El jugador es manté sobre la superfície i, en arribar als 16 píxels, rep
 un impuls de 10 tiles d'alçada des de la superfície elevada, sense prémer salt.
@@ -67,7 +73,8 @@ la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.
 | Codi | Significat |
 | --- | --- |
 | espai | Casella buida |
-| `T` | Trampolí activat per explosions laterals; impulsa 10 tiles |
+| `T` | Trampolí activat pel botó de 4 tiles a la dreta; impulsa 10 tiles |
+| `U` | Botó sense col·lisió: una explosió activa el `T` de 4 tiles a l'esquerra |
 | `C` | Núvol decoratiu de 2×1 tiles, sense col·lisió; marca la meitat esquerra |
 | `@` | Posició inicial del jugador |
 | `W` | Walker |

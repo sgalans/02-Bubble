@@ -16,6 +16,7 @@ using namespace std;
 #define TRAMPOLINE_SOLID -4
 #define TRAMPOLINE_HOLD_TIME 1000 // ms at full extension
 #define TRAMPOLINE_TIME (400 + TRAMPOLINE_HOLD_TIME) // ms, including retraction
+#define BUTTON_RECHARGE_TIME 1000 // ms
 
 
 TileMap *TileMap::createTileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProgram &program)
@@ -33,6 +34,7 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 	bushSprite = NULL;
 	platformSprite = NULL;
 	trampolineSprite = NULL;
+	buttonSprite = NULL;
 	position = glm::ivec2(minCoords);
 	loadLevel(levelFile);
 	prepareArrays(minCoords, program);
@@ -59,6 +61,17 @@ TileMap::TileMap(const string &levelFile, const glm::vec2 &minCoords, ShaderProg
 			trampolineSprite->addKeyframe(frame, glm::vec2(float(frame), 4.f) * frameSize);
 		}
 	}
+	if(!buttons.empty())
+	{
+		glm::vec2 frameSize(16.f / tilesheet.width(), 16.f / tilesheet.height());
+		buttonSprite = Sprite::createSprite(glm::vec2(float(blockSize)), frameSize, &tilesheet, &program);
+		buttonSprite->setNumberAnimations(2);
+		for(int frame = 0; frame < 2; frame++)
+		{
+			buttonSprite->setAnimationSpeed(frame, 1);
+			buttonSprite->addKeyframe(frame, glm::vec2(float(3 + frame), 4.f) * frameSize);
+		}
+	}
 	for(int i = 0; i < mapSize.x * mapSize.y; i++)
 	{
 		if(map[i] != -1)
@@ -82,6 +95,7 @@ TileMap::~TileMap()
 	delete bushSprite;
 	delete platformSprite;
 	delete trampolineSprite;
+	delete buttonSprite;
 	if(map != NULL)
 		delete [] map;
 	if(bombMap != NULL)
@@ -99,6 +113,12 @@ void TileMap::render() const
 	glEnableVertexAttribArray(texCoordLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nTiles);
 	glDisable(GL_TEXTURE_2D);
+	for(unsigned int i = 0; i < buttons.size(); i++)
+	{
+		buttonSprite->changeAnimation(buttons[i].rechargeTime > 0 ? 1 : 0);
+		buttonSprite->setPosition(glm::vec2(position + buttons[i].tile * tileSize));
+		buttonSprite->render();
+	}
 	for(unsigned int i = 0; i < trampolines.size(); i++)
 	{
 		trampolineSprite->changeAnimation(trampolines[i].frame);
@@ -139,6 +159,8 @@ void TileMap::render() const
 
 void TileMap::update(int deltaTime, const std::vector<glm::ivec4> &occupiedBoxes)
 {
+	for(unsigned int i = 0; i < buttons.size(); i++)
+		buttons[i].rechargeTime -= glm::clamp(deltaTime, 0, buttons[i].rechargeTime);
 	for(unsigned int i = 0; i < trampolines.size(); i++)
 	{
 		Trampoline &spring = trampolines[i];
@@ -271,6 +293,7 @@ bool TileMap::loadLevel(const string &levelFile)
 	spawns.clear();
 	platforms.clear();
 	trampolines.clear();
+	buttons.clear();
 	for(int j=0; j<mapSize.y; j++)
 	{
 		for(int i=0; i<mapSize.x; i++)
@@ -288,6 +311,12 @@ bool TileMap::loadLevel(const string &levelFile)
 			}
 			else if(tile >= '!' && tile <= '%')
 				map[j*mapSize.x+i] = 36 + (tile - '!');
+			else if(tile == 'U')
+			{
+				map[j*mapSize.x+i] = 0;
+				TrampolineButton button = { glm::ivec2(i, j), 0 };
+				buttons.push_back(button);
+			}
 			else if(tile == 'T')
 			{
 				map[j*mapSize.x+i] = TRAMPOLINE_SOLID;
@@ -464,6 +493,19 @@ int TileMap::getTrampolineTop(const Trampoline &spring) const
 {
 	static const int heights[] = { 9, 12, 16 };
 	return (spring.tile.y + 1) * tileSize - heights[spring.frame] * tileSize / 16;
+}
+
+void TileMap::activateButton(int x, int y)
+{
+	for(unsigned int i = 0; i < buttons.size(); i++)
+	{
+		TrampolineButton &button = buttons[i];
+		if(button.tile != glm::ivec2(x, y) || button.rechargeTime > 0)
+			continue;
+		button.rechargeTime = BUTTON_RECHARGE_TIME;
+		activateTrampoline(x - 4, y);
+		return;
+	}
 }
 
 bool TileMap::activateTrampoline(int x, int y)

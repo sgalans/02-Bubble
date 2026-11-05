@@ -64,7 +64,7 @@ public:
 	const std::vector<Spawn> &getSpawns() const { return spawns; }
 	const std::vector<Trampoline> &getTrampolines() const { return trampolines; }
 	int getTrampolineTop(const Trampoline &trampoline) const;
-	bool activateTrampoline(int x, int y);
+	void activateButton(int x, int y);
 
 	bool collisionMoveLeft(const glm::ivec2 &pos, const glm::ivec2 &size) const;
 	bool collisionMoveRight(const glm::ivec2 &pos, const glm::ivec2 &size) const;
@@ -84,6 +84,12 @@ public:
 	void solidifyBomb(int x, int y);
 
 private:
+	struct TrampolineButton
+	{
+		glm::ivec2 tile;
+		int rechargeTime;
+	};
+
 	struct CrumblingPlatform
 	{
 		glm::ivec2 tile;
@@ -91,6 +97,7 @@ private:
 	};
 
 	bool loadLevel(const string &levelFile);
+	bool activateTrampoline(int x, int y);
 	void prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program);
 	void updateTileVertices();
 	bool insideMap(int x, int y) const;
@@ -110,12 +117,14 @@ private:
 	Sprite *bushSprite;
 	Sprite *platformSprite;
 	Sprite *trampolineSprite;
+	Sprite *buttonSprite;
 	glm::vec2 tileTexSize;
 	int *map;
 	int *bombMap;
 	std::vector<Spawn> spawns;
 	std::vector<CrumblingPlatform> platforms;
 	std::vector<Trampoline> trampolines;
+	std::vector<TrampolineButton> buttons;
 
 };
 

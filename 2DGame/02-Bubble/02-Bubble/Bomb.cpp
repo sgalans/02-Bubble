@@ -178,17 +178,17 @@ void Bomb::spreadFlames()
 	Flame center = { tile, CENTER };
 	flames.clear();
 	flames.push_back(center);
+	map->activateButton(tile.x, tile.y);
 	for(int d = 0; d < 4; d++)
 	{
 		int armStart = int(flames.size());
 		for(int i = 1; i <= range; i++)
 		{
 			glm::ivec2 cell = tile + dirs[d] * i;
-			if(dirs[d].x != 0)
-				map->activateTrampoline(cell.x, cell.y);
 			bool destroyedBlock = map->destroyDestructible(cell.x, cell.y);
 			if(!destroyedBlock && map->isWall(cell.x, cell.y))
 				break;
+			map->activateButton(cell.x, cell.y);
 			Flame flame = { cell, arms[d] };
 			flames.push_back(flame);
 			if(destroyedBlock || map->hasBomb(cell.x, cell.y))
