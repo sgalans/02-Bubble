@@ -9,8 +9,7 @@
 #include "AnimKeyframes.h"
 
 
-// This class is derived from code seen earlier in TexturedQuad but it is also
-// able to manage animations stored as a spritesheet. 
+// Textured quad with spritesheet animation, horizontal flipping and scaling.
 
 
 class Sprite

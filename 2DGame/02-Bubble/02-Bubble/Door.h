@@ -7,8 +7,8 @@
 
 
 // The level exit. It occupies a single cell of the tile map and starts closed.
-// Scene opens it once every enemy is dead; touching it while open clears the level.
-// A key gate is a separate solid passage; opening it removes its map collision.
+// Scene opens it once every enemy is dead; entering it starts the exit animation.
+// A key gate is a separate passage: opening it removes collision and keeps the open sprite.
 
 class Door
 {

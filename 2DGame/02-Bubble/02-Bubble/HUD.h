@@ -8,7 +8,7 @@
 #include "Text.h"
 
 
-// HUD draws the in-game interface (lives, time, enemies, bombs, fire) on top of the scene.
+// HUD draws lives, time, enemies, BOMB/FIRE/SPEED levels, VEST and the held key.
 // It does not own any game state: Scene passes the current values every frame.
 // It is rendered in screen space, so it does not move with the camera.
 

@@ -11,12 +11,14 @@
 
 // Class Tilemap is capable of loading a tile map from a text file in a very
 // simple format (see level01.txt for an example). With this information
-// it builds a single VBO that contains all tiles. As a result the render
-// method draws the whole map independently of what is visible.
-// Tiles use 1-9, a-z for 10-35, and ! through % for 36-40.
+// it builds a VBO for static tiles and sprites for bushes, platforms and switches.
+// The map is drawn independently of what is visible.
+// The parser supports 1-9, a-z for 10-35, and ! through % for 36-40;
+// use only texture indices present in the current atlas (see blocs.md).
 // * marks a solid bush that explosions can destroy.
 // a marks a platform that crumbles when the player steps on it.
 // C marks a decorative two-tile cloud with no collision.
+// T marks a trampoline; U marks its explosion-activated button four tiles to the right.
 // B/F/S/P/K mark bushes hiding items. L marks a solid key gate.
 // W/R/Z/X mark enemies (X is the 2x2-tile boss), D the exit and @ the player start. All are spawn points.
 
@@ -29,8 +31,8 @@ public:
 	// so the player is not trapped inside it; it turns solid once he leaves it.
 	enum BombCell { NO_BOMB = 0, BOMB_SOLID = 1, BOMB_PASSABLE = 2 };
 
-	// Enemy or item start position read from the level file, in tile
-	// coordinates. Scene decides what each letter means.
+	// Entity/decorative spawn marker in tile coordinates. Scene handles these;
+	// TileMap stores bushes, platforms, trampolines and buttons separately.
 	struct Spawn
 	{
 		char type;

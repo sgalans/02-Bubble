@@ -52,6 +52,7 @@ public:
 	int getSpeedUpLevel() const;
 	// Own bombs do not hurt him (other bombs still do)
 	bool isBombProof() const { return bombProof; }
+	// Active gameplay excludes both death and exit animations.
 	bool isAlive() const { return lives > 0 && !isDying() && !exiting; }
 	bool isDying() const { return deathTime > 0; }
 	bool isGameOver() const { return lives <= 0 && !isDying(); }
