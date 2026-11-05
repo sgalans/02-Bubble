@@ -34,6 +34,8 @@ HUD::HUD()
 	program = NULL;
 	lifeSprite = NULL;
 	keySprite = NULL;
+	speedUpLevel = 0;
+	bombProof = false;
 	hasKey = false;
 	lives = maxLives = nBombs = firePower = enemiesLeft = timeLeft = 0;
 	currentTime = 0.0f;
@@ -76,7 +78,8 @@ void HUD::init(ShaderProgram &shaderProgram)
 	statText.init(FONT_FILE, STAT_SIZE, *program);
 }
 
-void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey)
+void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey,
+                 int speedUpLevel, bool bombProof)
 {
 	currentTime += deltaTime;
 	if(this->lives != lives){
@@ -92,6 +95,8 @@ void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePow
 	this->enemiesLeft = enemiesLeft;
 	this->timeLeft = timeLeft;
 	this->hasKey = hasKey;
+	this->speedUpLevel = speedUpLevel;
+	this->bombProof = bombProof;
 }
 
 void HUD::render()
@@ -129,16 +134,25 @@ void HUD::renderStats()
 	if(timeLeft <= TIME_WARNING)
 		timeColor = int(currentTime / BLINK_PERIOD) % 2 == 0 ? glm::vec4(1.f, 0.2f, 0.2f, 1.f) : white;
 
-	// Two columns of two rows next to the hearts: time / bombs, then enemies / fire
+	// Three columns: time/enemies, bombs/fire, speed/bomb proof.
 	glm::vec2 col1(HUD_MARGIN + maxLives * (HEART_SIZE + HEART_SPACING) - HEART_SPACING + STAT_SPACING, HUD_MARGIN);
 	glm::vec2 row2(0.f, STAT_ROW_SPACING);
 	renderText(time.str(), col1, timeColor);
-	renderText(bombs.str(), col1 + row2, white);
+	renderText(enemies.str(), col1 + row2, enemiesLeft == 0 ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
 
-	// The time label is the widest one in the first column ("TIME 0:00")
-	glm::vec2 col2 = col1 + glm::vec2(statText.width("TIME 0:00") + STAT_SPACING, 0.f);
-	renderText(enemies.str(), col2, enemiesLeft == 0 ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
+	int firstColumnWidth = glm::max(statText.width("TIME 0:00"), statText.width(enemies.str()));
+	glm::vec2 col2 = col1 + glm::vec2(firstColumnWidth + STAT_SPACING, 0.f);
+	renderText(bombs.str(), col2, white);
 	renderText(fire.str(), col2 + row2, white);
+
+	int secondColumnWidth = glm::max(statText.width(bombs.str()), statText.width(fire.str()));
+	glm::vec2 col3 = col2 + glm::vec2(secondColumnWidth + STAT_SPACING, 0.f);
+	stringstream speed;
+	speed << "SPEED " << speedUpLevel + 1;
+	renderText(speed.str(), col3, white);
+	renderText(bombProof ? "PROOF ON" : "PROOF OFF", col3 + row2,
+	           bombProof ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
+	program->setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
 }
 
 void HUD::renderText(const string &str, const glm::vec2 &pos, const glm::vec4 &color)

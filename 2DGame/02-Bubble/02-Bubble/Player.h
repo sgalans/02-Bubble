@@ -44,6 +44,7 @@ public:
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	int getFirePower() const { return firePower; }
+	int getSpeedUpLevel() const;
 	// Own bombs do not hurt him (other bombs still do)
 	bool isBombProof() const { return bombProof; }
 	bool isAlive() const { return lives > 0 && !isDying(); }

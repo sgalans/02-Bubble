@@ -341,7 +341,8 @@ void Scene::update(int deltaTime)
 	updateDoor(deltaTime);
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
-	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey);
+	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey,
+	            player->getSpeedUpLevel(), player->isBombProof());
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.

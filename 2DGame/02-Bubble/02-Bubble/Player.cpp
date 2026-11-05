@@ -355,6 +355,11 @@ Player::PowerUps Player::getPowerUps() const
 	return powerUps;
 }
 
+int Player::getSpeedUpLevel() const
+{
+	return int(round((moveSpeed - BASE_MOVE_SPEED) / SPEED_UP_INCREMENT));
+}
+
 void Player::setPowerUps(const PowerUps &powerUps)
 {
 	nBombs = powerUps.nBombs;
