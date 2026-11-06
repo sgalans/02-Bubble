@@ -126,6 +126,7 @@ void Scene::init(const string &levelFile, int timeLimit)
 	currentTime = 0.0f;
 	timeLeft = timeLimit;
 	cleared = false;
+	waitingForFinalScreen = false;
 }
 
 // Creates entities and decorations from the level's spawn markers:
@@ -301,7 +302,14 @@ void Scene::update(int deltaTime)
 	{
 		player->update(deltaTime);
 		updateCamera();
-		cleared = player->hasEnteredExit();
+		// The final level waits for Game's fade before showing the victory picture
+		if(player->hasEnteredExit())
+		{
+			if(endScreenSprite != NULL)
+				waitingForFinalScreen = true;
+			else
+				cleared = true;
+		}
 		return;
 	}
 	currentTime += deltaTime;

@@ -33,6 +33,10 @@ public:
 
 	// True after the player finishes entering the open door and the win screen appears.
 	bool isCleared() const { return cleared; }
+	// Final level only: the player is inside the exit and Game should fade to the
+	// victory picture. showFinalScreen() then marks the level cleared.
+	bool isWaitingForFinalScreen() const { return waitingForFinalScreen && !cleared; }
+	void showFinalScreen() { cleared = true; waitingForFinalScreen = false; }
 	Player::PowerUps getPowerUps() const { return player->getPowerUps(); }
 	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
 	Player::ItemCounts getCollectedItems() const { return player->getCollectedItems(); }
@@ -94,6 +98,7 @@ private:
 	float currentTime;
 	int timeLeft; // ms until the level time limit runs out
 	bool cleared;
+	bool waitingForFinalScreen;
 	glm::mat4 projection;
 	glm::vec2 cameraPos, cameraSize;
 
