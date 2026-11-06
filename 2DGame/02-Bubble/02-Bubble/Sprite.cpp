@@ -20,14 +20,24 @@ Sprite::Sprite(const glm::vec2 &quadSize, const glm::vec2 &sizeInSpritesheet, Te
 												0.f, 0.f, 0.f, 0.f, 
 												quadSize.x, quadSize.y, sizeInSpritesheet.x, sizeInSpritesheet.y, 
 												0.f, quadSize.y, 0.f, sizeInSpritesheet.y};
+	float boundedVertices[48];
+	for(int i = 0; i < 6; i++)
+	{
+		for(int j = 0; j < 4; j++)
+			boundedVertices[i * 8 + j] = vertices[i * 4 + j];
+		boundedVertices[i * 8 + 4] = boundedVertices[i * 8 + 5] = 0.f;
+		boundedVertices[i * 8 + 6] = sizeInSpritesheet.x;
+		boundedVertices[i * 8 + 7] = sizeInSpritesheet.y;
+	}
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), vertices, GL_STATIC_DRAW);
-	posLocation = program->bindVertexAttribute("position", 2, 4*sizeof(float), 0);
-	texCoordLocation = program->bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+	glBufferData(GL_ARRAY_BUFFER, sizeof(boundedVertices), boundedVertices, GL_STATIC_DRAW);
+	posLocation = program->bindVertexAttribute("position", 2, 8*sizeof(float), 0);
+	texCoordLocation = program->bindVertexAttribute("texCoord", 2, 8*sizeof(float), (void *)(2*sizeof(float)));
+	texBoundsLocation = program->bindVertexAttribute("texBounds", 4, 8*sizeof(float), (void *)(4*sizeof(float)));
 	texture = spritesheet;
 	shaderProgram = program;
 	currentAnimation = -1;
@@ -81,6 +91,7 @@ void Sprite::render() const
 	glBindVertexArray(vao);
 	glEnableVertexAttribArray(posLocation);
 	glEnableVertexAttribArray(texCoordLocation);
+	glEnableVertexAttribArray(texBoundsLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glDisable(GL_TEXTURE_2D);
 }

@@ -98,11 +98,13 @@ void Scene::init(const string &levelFile, int timeLimit)
 	// Row 3 holds sky, then the two adjacent halves of a cloud.
 	glm::vec2 atlasSize(float(personalizedTexture.width()), float(personalizedTexture.height()));
 	float tileSize = float(map->getTileSize());
-	skySprite = Sprite::createSprite(glm::vec2(tileSize), glm::vec2(16.f) / atlasSize,
+	// One screen-sized quad avoids tile seams at fractional display scales.
+	// Sample inside the sky tile so neighbouring atlas tiles cannot bleed in.
+	skySprite = Sprite::createSprite(glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT), glm::vec2(15.f) / atlasSize,
 	                                 &personalizedTexture, &texProgram);
 	skySprite->setNumberAnimations(1);
 	skySprite->setAnimationSpeed(0, 1);
-	skySprite->addKeyframe(0, glm::vec2(32.f, 48.f) / atlasSize);
+	skySprite->addKeyframe(0, glm::vec2(32.5f, 48.5f) / atlasSize);
 	skySprite->changeAnimation(0);
 	cloudSprite = Sprite::createSprite(glm::vec2(2.f * tileSize, tileSize), glm::vec2(32.f, 16.f) / atlasSize,
 	                                   &personalizedTexture, &texProgram);
@@ -627,18 +629,10 @@ void Scene::updateCamera()
 void Scene::renderBackground()
 {
 	const int tileSize = map->getTileSize();
-	const int firstX = int(floor(cameraPos.x / tileSize));
-	const int firstY = int(floor(cameraPos.y / tileSize));
-	const int lastX = int(ceil((cameraPos.x + cameraSize.x) / tileSize));
-	const int lastY = int(ceil((cameraPos.y + cameraSize.y) / tileSize));
-	for(int y = firstY; y < lastY; y++)
-	{
-		for(int x = firstX; x < lastX; x++)
-		{
-			skySprite->setPosition(glm::vec2(x * tileSize, y * tileSize));
-			skySprite->render();
-		}
-	}
+	glm::mat4 skyProjection = glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f);
+	texProgram.setUniformMatrix4f("projection", skyProjection);
+	skySprite->render();
+	texProgram.setUniformMatrix4f("projection", projection);
 	// C marks the left half; both halves are drawn as one decorative sprite.
 	for(unsigned int i = 0; i < cloudTiles.size(); i++)
 	{

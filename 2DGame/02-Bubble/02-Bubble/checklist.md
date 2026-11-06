@@ -1,4 +1,5 @@
 Interface:
+ - Escalat de finestra i pantalla completa [x] //proporció 4:3 centrada amb franges negres; F11 alterna i restaura la finestra anterior
  - Menu principal [x] //PLAY / INSTRUCTIONS / CREDITS + selector de nivells
  - Previsualització d'entrada al selector [x] //START WITH: icones i valors de vides, bombes, foc i velocitat del nivell seleccionat; mateix càlcul que en carregar-lo
  - Instruccions [x]

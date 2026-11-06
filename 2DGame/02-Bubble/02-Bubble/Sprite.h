@@ -44,7 +44,7 @@ private:
 	ShaderProgram *shaderProgram;
 	GLuint vao;
 	GLuint vbo;
-	GLint posLocation, texCoordLocation;
+	GLint posLocation, texCoordLocation, texBoundsLocation;
 	glm::vec2 position, size;
 	bool flipX;
 	float scale;
