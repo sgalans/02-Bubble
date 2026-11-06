@@ -54,7 +54,6 @@ Objectes:
  - Speed Up [x]
  - VEST [x] //invulnerabilitat completa 17 s amb parpelleig i compte enrere al HUD; un altre VEST reinicia a 17 s
  - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
- - Cor (protegeix d'un cop) [] opcional //l'enunciat el menciona, pero ja tenim 4 objectes
  - objectes surten en destruir tiles [x]
 
 Gameplay:
