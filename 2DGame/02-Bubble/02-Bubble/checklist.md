@@ -25,7 +25,7 @@ Nivells:
  - nivell3 [x]
  - millorar nivell 3 [x]
  - nivell4 [x]
- - nivell5 [] //level05.txt es un placeholder: nomes boss + 2 plataformes, sense arbustos ni objectes
+ - nivell5 [x]
  - memòria dels power-ups entre nivells consecutius [x]
  - ara mateix si tens items acumulats però surts al menú els items acumulats es perden -> mirar què fer []
  - porta de sortida [x] //textures de porta tancada/oberta i porta amb pany a personalized.png
