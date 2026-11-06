@@ -15,7 +15,7 @@
 #define SHOOTER_HEIGHT 16
 
 // Green blob row on bomberman.png, right below the runner's row. The first
-// two frames are its idle bob; the third is the open-eyed pose used to shoot.
+// two frames are its idle bob; the open-eyed pose also starts its death.
 #define SHEET_WIDTH 253.f
 #define SHEET_HEIGHT 632.f
 #define FRAME_WIDTH 16.f
@@ -24,11 +24,12 @@
 #define IDLE_A_X 2.f
 #define IDLE_B_X 20.f
 #define SHOOT_X 38.f
+#define DEATH_TIME 600
 
 
 enum ShooterAnims
 {
-	IDLE, SHOOT
+	IDLE, SHOOT, DIE
 };
 
 
@@ -38,6 +39,7 @@ Shooter::Shooter()
 	shotTimer = FIRST_SHOT_DELAY;
 	shootPoseTimer = 0;
 	shotRequested = false;
+	deathElapsed = 0;
 }
 
 void Shooter::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
@@ -50,7 +52,7 @@ void Shooter::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	sprite = Sprite::createSprite(glm::ivec2(SHOOTER_WIDTH, SHOOTER_HEIGHT),
 	                              glm::vec2(FRAME_WIDTH / SHEET_WIDTH, FRAME_HEIGHT / SHEET_HEIGHT),
 	                              &spritesheet, &shaderProgram);
-	sprite->setNumberAnimations(2);
+	sprite->setNumberAnimations(3);
 
 		sprite->setAnimationSpeed(IDLE, 4);
 		sprite->addKeyframe(IDLE, glm::vec2(IDLE_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
@@ -59,6 +61,11 @@ void Shooter::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		sprite->setAnimationSpeed(SHOOT, 1);
 		sprite->addKeyframe(SHOOT, glm::vec2(SHOOT_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 
+	sprite->setAnimationSpeed(DIE, 5);
+	sprite->addKeyframe(DIE, glm::vec2(SHOOT_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	sprite->addKeyframe(DIE, glm::vec2(56.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	sprite->addKeyframe(DIE, glm::vec2(74.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+
 	sprite->changeAnimation(IDLE);
 	tileMapDispl = tileMapPos;
 	sizeEnemy = glm::ivec2(SHOOTER_WIDTH, SHOOTER_HEIGHT);
@@ -66,6 +73,7 @@ void Shooter::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	shotTimer = FIRST_SHOT_DELAY;
 	shootPoseTimer = 0;
 	shotRequested = false;
+	deathElapsed = 0;
 	updateSpritePosition();
 }
 
@@ -76,6 +84,14 @@ void Shooter::setPlayer(const Player *target)
 
 void Shooter::update(int deltaTime)
 {
+	if(isDead())
+	{
+		int elapsed = glm::clamp(deltaTime, 0, DEATH_TIME - deathElapsed);
+		deathElapsed += elapsed;
+		sprite->update(elapsed);
+		return;
+	}
+
 	sprite->update(deltaTime);
 
 	if(shootPoseTimer > 0)
@@ -111,11 +127,41 @@ void Shooter::update(int deltaTime)
 	updateSpritePosition();
 }
 
+void Shooter::startDeath()
+{
+	shotRequested = false;
+	shootPoseTimer = 0;
+	deathElapsed = 0;
+	sprite->changeAnimation(DIE);
+}
+
+void Shooter::takeHit()
+{
+	if(isDead())
+		return;
+	Enemy::takeHit();
+	if(isDead())
+		startDeath();
+}
+
+void Shooter::kill()
+{
+	if(isDead())
+		return;
+	Enemy::kill();
+	startDeath();
+}
+
+bool Shooter::isReadyToRemove() const
+{
+	return isDead() && deathElapsed >= DEATH_TIME;
+}
+
 // Hands a pending shot to the scene: where the ball starts (centre, screen
 // coordinates) and its velocity in pixels per second.
 bool Shooter::takeShot(glm::vec2 &origin, glm::vec2 &velocity)
 {
-	if(!shotRequested)
+	if(isDead() || !shotRequested)
 		return false;
 	shotRequested = false;
 	origin = shotOrigin;

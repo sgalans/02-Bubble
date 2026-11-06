@@ -82,7 +82,8 @@ General (polish):
  - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
  - Mort del Walker [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense fer mal; la sortida espera que acabi
  - Mort del Runner [x] //4 fotogrames de bomberman.png durant 0,8 s, immòbil i sense fer mal; la sortida espera que acabi
- - Animacions [] //falten: mort del Shooter
+ - Mort del Shooter [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense disparar ni fer mal; la sortida espera que acabi
+ - Animacions dels enemics [x] //morts del Walker, Runner, Shooter i boss
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
