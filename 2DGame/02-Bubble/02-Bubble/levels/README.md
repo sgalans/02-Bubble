@@ -55,7 +55,12 @@ i **5 minuts als nivells 3 i 4**. `Game::startLevel` passa aquest límit a
 `Scene` en carregar el nivell, també amb les tecles de depuració `1`–`5`.
 
 La sortida `D` s'obre quan s'han eliminat tots els enemics, també el boss.
-En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. En entrar a la
+En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. També es recupera
+una vida, fins al màxim de 3, i apareix «1 UP» durant el mateix temps,
+també si ja es tenen 3 vides. El cor recuperat s'anima de buit a ple durant
+1,5 segons, invertint l'animació de pèrdua. No es concedeix la vida si el jugador ja no té vides.
+La recompensa només es dona una vegada; amb el boss, espera el final de
+la seva animació de mort. En entrar a la
 sortida oberta, el jugador s'alinea amb la porta, es gira d'esquena i
 s'encongeix fins a desaparèixer durant 1 segon. El temps i la resta del joc
 queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5

@@ -513,7 +513,11 @@ void Scene::removeDeadEnemies()
 			i++;
 	}
 	if(hadEnemies && enemies.empty())
+	{
 		exitNoticeTime = EXIT_NOTICE_TIME;
+		if(player->getLives() > 0)
+			player->setLives(player->getLives() + 1);
+	}
 }
 
 // With no enemies left, the exit opens. Entering it starts the player's
@@ -735,6 +739,9 @@ void Scene::render()
 		{
 			endTitleText.renderCentered("EXIT!", noticeY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
 			endTitleText.renderCentered("EXIT!", noticeY, SCREEN_WIDTH, glm::vec4(1.f, 0.85f, 0.2f, 1.f));
+			float lifeUpY = noticeY - END_TITLE_SIZE - END_LINE_SPACING;
+			endTitleText.renderCentered("1 UP", lifeUpY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endTitleText.renderCentered("1 UP", lifeUpY, SCREEN_WIDTH, glm::vec4(0.3f, 1.f, 0.3f, 1.f));
 		}
 		if(showKeyHint)
 		{

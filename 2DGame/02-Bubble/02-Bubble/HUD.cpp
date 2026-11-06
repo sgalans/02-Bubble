@@ -8,7 +8,7 @@
 #define HEART_SIZE 32
 #define HEART_FRAME_W 0.2f
 #define HEART_FRAME_H 0.5f
-#define HEART_LOSS_TIME 1500 // ms
+#define HEART_CHANGE_TIME 1500 // ms
 #define HEART_BLINK_INTERVAL 150 // ms per visible/empty phase
 
 #define HUD_MARGIN 8
@@ -41,8 +41,9 @@ HUD::HUD()
 	hasKey = false;
 	lives = maxLives = nBombs = firePower = enemiesLeft = timeLeft = 0;
 	currentTime = 0.0f;
-	firstLostHeart = lastLostHeart = -1;
-	heartLossTime = 0;
+	firstAnimatedHeart = lastAnimatedHeart = -1;
+	heartAnimationTime = 0;
+	gainingLife = false;
 }
 
 HUD::~HUD()
@@ -93,15 +94,16 @@ void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePow
                  int speedUpLevel, bool bombProof)
 {
 	currentTime += deltaTime;
-	heartLossTime = glm::max(0, heartLossTime - deltaTime);
-	if(lives < this->lives && this->maxLives == maxLives)
+	heartAnimationTime = glm::max(0, heartAnimationTime - deltaTime);
+	if(lives != this->lives && this->maxLives == maxLives)
 	{
-		firstLostHeart = lives;
-		lastLostHeart = this->lives - 1;
-		heartLossTime = HEART_LOSS_TIME;
+		gainingLife = lives > this->lives;
+		firstAnimatedHeart = glm::min(lives, this->lives);
+		lastAnimatedHeart = glm::max(lives, this->lives) - 1;
+		heartAnimationTime = HEART_CHANGE_TIME;
 	}
 	else if(lives != this->lives || maxLives != this->maxLives)
-		heartLossTime = 0;
+		heartAnimationTime = 0;
 	this->lives = lives;
 	if(this->maxLives != maxLives){
 		//TODO: animation when max lives changes
@@ -130,9 +132,12 @@ void HUD::renderLives()
 	for(int i = 0; i < maxLives; i++)
 	{
 		int frame = i < lives ? HEART_FULL : HEART_EMPTY;
-		if(i >= firstLostHeart && i <= lastLostHeart && heartLossTime > 0)
+		if(i >= firstAnimatedHeart && i <= lastAnimatedHeart && heartAnimationTime > 0)
 		{
-			int elapsed = HEART_LOSS_TIME - heartLossTime;
+			int elapsed = HEART_CHANGE_TIME - heartAnimationTime;
+			if(gainingLife)
+				elapsed = HEART_CHANGE_TIME - 1 - elapsed;
+			frame = HEART_EMPTY;
 			// Full, three quarters, half, quarter: the atlas is not in fill order.
 			static const int lossFrames[] = { HEART_FULL, 3, 1, 2 };
 			if(elapsed < 80)
@@ -140,7 +145,7 @@ void HUD::renderLives()
 			else if(elapsed < HEART_BLINK_INTERVAL)
 				frame = HEART_FLASH_RED;
 			else if((elapsed / HEART_BLINK_INTERVAL) % 2 == 0)
-				frame = lossFrames[glm::min(elapsed * 4 / HEART_LOSS_TIME, 3)];
+				frame = lossFrames[glm::min(elapsed * 4 / HEART_CHANGE_TIME, 3)];
 		}
 		lifeSprite->changeAnimation(frame);
 		lifeSprite->setPosition(glm::vec2(HUD_MARGIN + i * (HEART_SIZE + HEART_SPACING), HUD_MARGIN));

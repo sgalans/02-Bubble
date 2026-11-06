@@ -45,6 +45,7 @@ Vides:
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn en perdre una vida [x] //animació de mort d'1,5 s; torna al punt d'inici amb 3 s d'invulnerabilitat; el nivell no es reinicia
  - conservar les vides restants entre nivells [x] //continua amb les mateixes vides i power-ups; una partida nova comença amb 3 vides
+ - recuperar una vida en eliminar l'últim enemic [x] //màxim 3; "1 UP" durant 3 s també amb vides al màxim; animació inversa al cor recuperat; no reviu un game over
  - temps esgotat [x] //ara mata del tot (game over); valorar si nomes ha de treure una vida
 
 Objectes:

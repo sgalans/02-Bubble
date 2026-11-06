@@ -34,7 +34,8 @@ private:
 private:
 	ShaderProgram *program;
 	int lives, maxLives, nBombs, firePower, enemiesLeft, timeLeft;
-	int firstLostHeart, lastLostHeart, heartLossTime; // Lost slots share the same animation
+	int firstAnimatedHeart, lastAnimatedHeart, heartAnimationTime;
+	bool gainingLife;
 	float currentTime;
 	bool hasKey;
 	int speedUpLevel;
