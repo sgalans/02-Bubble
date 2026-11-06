@@ -36,11 +36,14 @@ abans del mapa i les entitats, sense col·lisió. No hi ha núvols automàtics.
 Utilitza `C`, no els índexs de textura, que crearien blocs sòlids.
 
 Els codis de tile positius creen blocs sòlids indestructibles, excepte `a`.
-En trepitjar un `a` per sobre, el jugador activa una animació de desaparició
-10→11→12 que dura 1 segon. El bloc continua sent sòlid fins que desapareix.
-Després de 2 segons absent, reapareix durant 1 segon amb 12→11→10.
-Recupera la col·lisió en acabar, esperant si hi ha el jugador, un enemic o
-una bomba dins de la casella. Tornar-lo a trepitjar no reinicia el compte.
+En trepitjar un `a` per sobre, el bloc espera 0,5 segons amb la textura completa
+i després anima 10→11→12 amb parpelleig durant 1 segon més. És sòlid durant
+aquests 1,5 segons. Després d'1,5 segons absent, reapareix durant 1 segon amb
+12→11→10 i parpelleig (cicle de 360 ms: 50% visible i 50% invisible).
+Recupera la col·lisió en començar la reaparició, esperant abans si hi ha el
+jugador, un enemic o una bomba dins de la casella. Trepitjar-lo mentre
+reapareix inicia el nou compte immediatament, sense interrompre la reaparició.
+Sense trepitjar-lo es manté sòlid; un compte actiu no es reinicia.
 Les explosions no l'activen ni el destrueixen. `b` i `c` escrits al mapa
 continuen sent blocs estàtics, encara que es facin servir com a fotogrames.
 Per posar un **arbust destructible**, utilitza `*`, no `4`.

@@ -97,6 +97,7 @@ private:
 	{
 		glm::ivec2 tile;
 		int elapsed; // -1 while idle, otherwise milliseconds since activation
+		int reformElapsed; // Independent so stepping on a reforming platform starts its countdown
 	};
 
 	bool loadLevel(const string &levelFile);
