@@ -85,8 +85,8 @@ General (polish):
  - Mort del Runner [x] //4 fotogrames de bomberman.png durant 0,8 s, immòbil i sense fer mal; la sortida espera que acabi
  - Mort del Shooter [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense disparar ni fer mal; la sortida espera que acabi
  - Animacions dels enemics [x] //morts del Walker, Runner, Shooter i boss
- - Transicions entre pantalles (fade) []
- - Revisar bugs abans del lliurament [] //cada bug resta punts
+ - Transicions entre pantalles (fade) [x]
+ - Revisar bugs abans del lliurament [x] //cada bug resta punts
 
 Lliurament:
  -  (noms, funcionalitats, instruccions) [x] //entrega/info.txt;

@@ -122,9 +122,11 @@ Enemics i boss
  - Shooter: dispara boles cap a la posició del jugador quan és a l'abast
    i hi ha línia de visió. Els projectils col·lideixen amb els blocs i les 
    bombes.
- - Boss volador al nivell 5: cos de 2x2 tiles i 5 vides. Recorregut creuat
-   simètric amb diagonals i ràfegues de tres projectils. Travessa el terreny,
-   però les bombes li bloquegen la ruta fins que desapareixen.
+ - Boss volador al nivell 5: cos de 2x2 tiles i 8 vides. Recorregut creuat
+   simètric amb diagonals. Travessa el terreny,
+   però les bombes li bloquegen la ruta fins que desapareixen. Consta de dues fases 
+   (que s'activa al treure 4 vides) on pasa de disparar 3 boles a 6 en les dues direccions,
+   a diferencia del shooter les boles reboten 4 cops a les parets.
  - Morts animades del Walker (0,6 s), Runner (0,8 s) i Shooter (0,6 s).
    Mentre moren no es mouen ni fan mal; el Shooter deixa de disparar.
  - Mort del boss de 4 segons amb postura de dany, partícules dins del cos
@@ -156,5 +158,6 @@ HUD i so
  - HUD fix en pantalla amb vides, temps restant, enemics, bombes simultànies,
    abast del foc, velocitat, segons de VEST i indicador de clau.
  - El temps es mostra en vermell i parpelleja durant els últims 30 segons.
+ - Musica de fons, i punts claus del joc.
  - Efectes de so de navegació dels menús, col·locació i explosió de bombes,
-   recollida d'objectes i dany al jugador.
+   recollida d'objectes, salt, mort de enemic i dany al jugador.
