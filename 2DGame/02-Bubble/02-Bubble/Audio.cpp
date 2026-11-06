@@ -15,7 +15,10 @@ static const char *soundFiles[Audio::SOUND_COUNT] =
 	"sounds/sound interactions/bomb_place.wav",
 	"sounds/sound interactions/explosion.wav",
 	"sounds/sound interactions/item_pickup.wav",
-	"sounds/sound interactions/player_hurt.wav"
+	"sounds/sound interactions/player_hurt.wav",
+	"sounds/sound interactions/door_open.wav",
+	"sounds/sound interactions/jump.wav",
+	"sounds/sound interactions/enemy_die.wav"
 };
 
 // Indexed by Audio::Music

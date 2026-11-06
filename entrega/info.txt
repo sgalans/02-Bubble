@@ -35,6 +35,7 @@ Tecles de depuració per facilitar la correcció:
    animacions de mort dels enemics).
  - 1, 2, 3, 4, 5: carregar directament el nivell corresponent, encara que
    estigui bloquejat al selector. Funcionen des del menú i durant el joc.
+ - P: aplica els maxims powerups per el player
 
 FUNCIONALITATS IMPLEMENTADES
 ===========================

@@ -485,6 +485,7 @@ void Scene::chainExplosions()
 // ignores hits while he is invulnerable or in god mode.
 void Scene::applyExplosionDamage()
 {
+	bool enemyDied = false;
 	for(unsigned int b = 0; b < bombs.size(); b++)
 	{
 		if(bombs[b]->getState() != Bomb::EXPLODING)
@@ -493,10 +494,17 @@ void Scene::applyExplosionDamage()
 			player->loseLife();
 		for(unsigned int i = 0; i < enemies.size(); i++)
 		{
-			if(bombs[b]->flameTouches(enemies[i]->getPosition(), enemies[i]->getSize()))
+			if(!enemies[i]->isDead() && bombs[b]->flameTouches(enemies[i]->getPosition(), enemies[i]->getSize()))
+			{
 				enemies[i]->takeHit();
+				if(enemies[i]->isDead())
+					enemyDied = true;
+			}
 		}
 	}
+	// Once per frame, so a bomb killing several enemies does not stack the sound
+	if(enemyDied)
+		Audio::instance().play(Audio::ENEMY_DIE);
 }
 
 void Scene::removeDeadEnemies()
@@ -541,7 +549,7 @@ void Scene::updateDoor(int deltaTime)
 			if(gate->isOpen())
 			{
 				hasKey = false;
-				Audio::instance().play(Audio::MENU_SELECT);
+				Audio::instance().play(Audio::DOOR_OPEN);
 			}
 		}
 		if(!gate->isOpen() && !hasKey && player->isAlive())
@@ -557,7 +565,10 @@ void Scene::updateDoor(int deltaTime)
 		return;
 	door->update(deltaTime);
 	if(!door->isOpen() && enemies.empty())
+	{
 		door->open();
+		Audio::instance().play(Audio::DOOR_OPEN);
+	}
 	if(door->isOpen() && player->isAlive())
 	{
 		glm::vec2 center = player->getPosition() + glm::vec2(player->getSize()) / 2.f;
@@ -577,8 +588,15 @@ void Scene::killAllEnemies()
 {
 	if(cleared)
 		return;
+	bool enemyDied = false;
 	for(unsigned int i = 0; i < enemies.size(); i++)
+	{
+		if(!enemies[i]->isDead())
+			enemyDied = true;
 		enemies[i]->kill();
+	}
+	if(enemyDied)
+		Audio::instance().play(Audio::ENEMY_DIE);
 	removeDeadEnemies();
 	for(unsigned int i = 0; i < projectiles.size(); i++)
 		projectiles[i]->destroy();

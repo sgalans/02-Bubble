@@ -253,6 +253,7 @@ void Player::update(int deltaTime)
 	{
 		verticalVelocity = -4.f * jumpHeight / jumpDuration;
 		grounded = false;
+		Audio::instance().play(Audio::JUMP);
 	}
 
 	// Keep fractional motion and split time to check collisions near the apex too.

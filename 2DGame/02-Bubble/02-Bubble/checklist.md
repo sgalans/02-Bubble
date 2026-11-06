@@ -77,8 +77,7 @@ Tecles debug:
 
 General (polish):
  - So efectes [x] //menu, bomba, explosio, item, mal
- - So: falten efectes [] //mort enemic, salt, porta, perdre vida, game over, victoria, boss
- - Musica de fons [] //Audio::playMusic existeix pero no es crida enlloc i no hi ha cap fitxer de musica a sounds/
+ - Musica de fons [x] //Audio::playMusic existeix pero no es crida enlloc i no hi ha cap fitxer de musica a sounds/
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
  - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
@@ -90,7 +89,7 @@ General (polish):
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
 Lliurament:
- - info.txt (noms, funcionalitats, instruccions) [x] //entrega/info.txt;
+ -  (noms, funcionalitats, instruccions) [x] //entrega/info.txt;
  - actualitzar info.txt quan s'implementin noves funcionalitast que cal afegir []
  - carpeta Binari (exe + dlls + images, levels, sounds, fonts, shaders) [] //compilar en Release
  - carpeta Projecte compilable []
