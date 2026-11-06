@@ -1,8 +1,9 @@
 Interface:
  - Menu principal [x] //PLAY / INSTRUCTIONS / CREDITS + selector de nivells
+ - Previsualització d'entrada al selector [x] //START WITH: icones i valors de vides, bombes, foc i velocitat del nivell seleccionat; mateix càlcul que en carregar-lo
  - Instruccions [x]
  - Crèdits [x] //noms dels dos integrants
- - HUD vides [x]
+ - HUD vides [x] //pèrdua animada durant 1,5 s: flaix blanc/vermell, parpelleig i fotogrames de buidatge fins al cor buit
  - HUD temps restant [x] //vermell i parpellejant els ultims 30s
  - HUD enemics restants [x]
  - HUD bombes simultanies [x]
@@ -26,12 +27,12 @@ Nivells:
  - millorar nivell 3 [x]
  - nivell4 [x]
  - nivell5 [x]
- - memòria dels power-ups entre nivells consecutius [x]
- - ara mateix si tens items acumulats però surts al menú els items acumulats es perden -> mirar què fer []
+ - memòria dels power-ups per nivell i al menú [x] //durant la sessió; entrada = suma dels ítems recollits als nivells anteriors, amb límits; VEST exclòs
+ - repetir nivells sense acumular ítems infinits [x] //completar substitueix l'aportació anterior; abandonar no la canvia; les variacions s'apliquen als nivells posteriors
  - porta de sortida [x] //textures de porta tancada/oberta i porta amb pany a personalized.png
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
- - compte enrere del nivell [x] //180 s per tots els nivells
+ - compte enrere del nivell [x] //nivells 1 i 5: 180 s; nivell 2: 240 s; nivells 3 i 4: 300 s
  - posicio inicial del player llegida del fitxer de nivell [x] // @
 
 Moviment:
@@ -41,19 +42,19 @@ Moviment:
  - reduir velocitat que dóna el power up speed [x]
 
 Vides:
- - 3 vides [x] 
+ - 3 vides inicials [x] //1 UP pot afegir una quarta vida blanca; només parpelleja en aparèixer/desaparèixer
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn en perdre una vida [x] //animació de mort d'1,5 s; torna al punt d'inici amb 3 s d'invulnerabilitat; el nivell no es reinicia
- - decidir si les vides es mantenen entre nivells [] //ara cada Scene crea un Player nou amb 3 vides
+ - conservar les vides restants entre nivells [x] //es guarda l'entrada de cada nivell, també al menú; completar actualitza les del següent; nivell 1 i nivells sense registre: 3 vides
+ - recuperar una vida en eliminar l'últim enemic [x] //màxim 4 (3 vermelles + 1 blanca); "1 UP" durant 3 s també al màxim; animació inversa als cors vermells, blinking al blanc; no reviu un game over
  - temps esgotat [x] //ara mata del tot (game over); valorar si nomes ha de treure una vida
 
 Objectes:
  - Bomb Up [x]
  - Fire Up [x]
  - Speed Up [x]
- - Bomb Proof [x]
+ - VEST [x] //invulnerabilitat completa 17 s amb parpelleig i compte enrere al HUD; un altre VEST reinicia a 17 s; no es traspassa ni es restaura en carregar un nivell
  - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
- - Cor (protegeix d'un cop) [] opcional //l'enunciat el menciona, pero ja tenim 4 objectes
  - objectes surten en destruir tiles [x]
 
 Gameplay:
@@ -80,7 +81,10 @@ General (polish):
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
  - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
- - Animacions [] //falten: mort dels enemics normals, tile destruint-se, HUD
+ - Mort del Walker [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense fer mal; la sortida espera que acabi
+ - Mort del Runner [x] //4 fotogrames de bomberman.png durant 0,8 s, immòbil i sense fer mal; la sortida espera que acabi
+ - Mort del Shooter [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense disparar ni fer mal; la sortida espera que acabi
+ - Animacions dels enemics [x] //morts del Walker, Runner, Shooter i boss
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 

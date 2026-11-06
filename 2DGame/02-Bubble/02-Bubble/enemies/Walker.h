@@ -11,11 +11,22 @@
 class Walker : public Enemy
 {
 public:
+	Walker();
+	~Walker();
+
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
+	void render();
+	void takeHit();
+	void kill();
+	bool isReadyToRemove() const;
 
 private:
 	bool hasFloorBelow(int x, int width) const;
+	void startDeath();
+
+	Sprite *deathSprite;
+	int deathElapsed;
 
 };
 

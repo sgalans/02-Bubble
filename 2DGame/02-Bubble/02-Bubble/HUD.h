@@ -22,7 +22,7 @@ public:
 public:
 	void init(ShaderProgram &shaderProgram);
 	void update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey,
-	            int speedUpLevel, bool bombProof);
+	            int speedUpLevel, int vestTime);
 	void render();
 
 private:
@@ -34,10 +34,12 @@ private:
 private:
 	ShaderProgram *program;
 	int lives, maxLives, nBombs, firePower, enemiesLeft, timeLeft;
+	int firstAnimatedHeart, lastAnimatedHeart, heartAnimationTime;
+	bool gainingLife;
 	float currentTime;
 	bool hasKey;
 	int speedUpLevel;
-	bool bombProof;
+	int vestTime;
 	Texture lifeTexture;
 	Texture keyTexture;
 	Sprite *lifeSprite;

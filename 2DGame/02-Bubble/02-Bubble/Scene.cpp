@@ -18,8 +18,6 @@
 
 #define CAMERA_HEIGHT_TILES 10
 
-#define LEVEL_TIME 180000 // ms to clear a level
-
 #define FONT_FILE "fonts/PressStart2P-Regular.ttf"
 // The font is drawn on an 8 pixel grid, so multiples of 8 keep it crisp
 #define END_TITLE_SIZE 32
@@ -73,7 +71,7 @@ Scene::~Scene()
 }
 
 
-void Scene::init(const string &levelFile)
+void Scene::init(const string &levelFile, int timeLimit)
 {
 	initShaders();
 	map = TileMap::createTileMap(levelFile, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
@@ -124,7 +122,7 @@ void Scene::init(const string &levelFile)
 	                        CAMERA_HEIGHT_TILES * map->getTileSize());
 	updateCamera();
 	currentTime = 0.0f;
-	timeLeft = LEVEL_TIME;
+	timeLeft = timeLimit;
 	cleared = false;
 }
 
@@ -335,7 +333,7 @@ void Scene::update(int deltaTime)
 		previousSpringTops.push_back(top);
 		for(unsigned int j = 0; j < enemies.size(); j++)
 		{
-			if(enemies[j]->isFlying())
+			if(enemies[j]->isDead() || enemies[j]->isFlying())
 				continue;
 			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
 			glm::ivec2 size = enemies[j]->getSize();
@@ -389,7 +387,7 @@ void Scene::update(int deltaTime)
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
 	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey,
-	            player->getSpeedUpLevel(), player->isBombProof());
+	            player->getSpeedUpLevel(), player->getVestTime());
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -402,7 +400,7 @@ void Scene::tryPlayerBomb()
 	glm::ivec2 pos = glm::ivec2(player->getPosition()) - map->getPosition();
 	glm::ivec2 size = player->getSize();
 	glm::ivec2 tile((pos.x + size.x / 2) / map->getTileSize(), (pos.y + size.y - 1) / map->getTileSize());
-	placeBomb(tile, player->getFirePower(), true);
+	placeBomb(tile, player->getFirePower());
 }
 
 // Only bombs still burning their fuse count against the player's limit
@@ -419,13 +417,12 @@ int Scene::activeBombs() const
 }
 
 // Puts a bomb on the given cell if it is free. Returns false otherwise.
-bool Scene::placeBomb(const glm::ivec2 &tile, int range, bool playerOwned)
+bool Scene::placeBomb(const glm::ivec2 &tile, int range)
 {
 	if(!map->setBomb(tile.x, tile.y))
 		return false;
 	Bomb *bomb = new Bomb();
 	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
-	bomb->setPlayerOwned(playerOwned);
 	bombs.push_back(bomb);
 	Audio::instance().play(Audio::BOMB_PLACE);
 
@@ -490,8 +487,7 @@ void Scene::applyExplosionDamage()
 	{
 		if(bombs[b]->getState() != Bomb::EXPLODING)
 			continue;
-		bool harmless = bombs[b]->isPlayerOwned() && player->isBombProof();
-		if(player->isAlive() && !harmless && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
+		if(player->isAlive() && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
 			player->loseLife();
 		for(unsigned int i = 0; i < enemies.size(); i++)
 		{
@@ -515,7 +511,11 @@ void Scene::removeDeadEnemies()
 			i++;
 	}
 	if(hadEnemies && enemies.empty())
+	{
 		exitNoticeTime = EXIT_NOTICE_TIME;
+		if(player->getLives() > 0)
+			player->setLives(player->getLives() + 1);
+	}
 }
 
 // With no enemies left, the exit opens. Entering it starts the player's
@@ -737,6 +737,9 @@ void Scene::render()
 		{
 			endTitleText.renderCentered("EXIT!", noticeY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
 			endTitleText.renderCentered("EXIT!", noticeY, SCREEN_WIDTH, glm::vec4(1.f, 0.85f, 0.2f, 1.f));
+			float lifeUpY = noticeY - END_TITLE_SIZE - END_LINE_SPACING;
+			endTitleText.renderCentered("1 UP", lifeUpY + 2.f, SCREEN_WIDTH, glm::vec4(0.f, 0.f, 0.f, 1.f));
+			endTitleText.renderCentered("1 UP", lifeUpY, SCREEN_WIDTH, glm::vec4(0.3f, 1.f, 0.3f, 1.f));
 		}
 		if(showKeyHint)
 		{

@@ -15,7 +15,7 @@ images/personalized.png -- Tilesheet
 5            12121             5
 5  W          333  a      C    5
 51212     a    3               5
-533                   *        5
+533                   P        5
 5     a     C      212121      5
 5                 23333  R  *W 5
 5   *       12121233333212121215

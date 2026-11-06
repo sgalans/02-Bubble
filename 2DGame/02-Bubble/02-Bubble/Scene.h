@@ -27,7 +27,7 @@ public:
 	Scene();
 	~Scene();
 
-	void init(const string &levelFile);
+	void init(const string &levelFile, int timeLimit);
 	void update(int deltaTime);
 	void render();
 
@@ -35,6 +35,9 @@ public:
 	bool isCleared() const { return cleared; }
 	Player::PowerUps getPowerUps() const { return player->getPowerUps(); }
 	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
+	Player::ItemCounts getCollectedItems() const { return player->getCollectedItems(); }
+	int getLives() const { return player->getLives(); }
+	void setLives(int lives) { player->setLives(lives); }
 	// Debug cheat: every enemy dies and the exit door opens
 	void killAllEnemies();
 	// The last level shows the end-of-game picture instead of the normal win screen
@@ -54,7 +57,7 @@ private:
 	void renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint);
 	void renderFinalScreen();
 	void tryPlayerBomb();
-	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
+	bool placeBomb(const glm::ivec2 &tile, int range);
 	void chainExplosions();
 	void applyExplosionDamage();
 	void removeDeadEnemies();

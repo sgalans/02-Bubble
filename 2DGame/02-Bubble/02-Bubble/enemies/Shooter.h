@@ -18,6 +18,9 @@ public:
 
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
+	void takeHit();
+	void kill();
+	bool isReadyToRemove() const;
 
 	void setPlayer(const Player *target);
 	bool takeShot(glm::vec2 &origin, glm::vec2 &velocity);
@@ -25,12 +28,14 @@ public:
 private:
 	bool playerInRange() const;
 	bool clearLineTo(const glm::vec2 &target) const;
+	void startDeath();
 
 private:
 	const Player *player;
 	int shotTimer;      // ms until the next shot is allowed
 	int shootPoseTimer; // ms left showing the shooting frame
 	bool shotRequested;
+	int deathElapsed;
 	glm::vec2 shotOrigin, shotVelocity;
 };
 

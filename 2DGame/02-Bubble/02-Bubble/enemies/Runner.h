@@ -11,9 +11,14 @@ class Runner : public Enemy
 {
 public:
 	Runner();
+	~Runner();
 
 	void init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
+	void render();
+	void takeHit();
+	void kill();
+	bool isReadyToRemove() const;
 
 	void setPlayer(const Player *target);
 
@@ -21,11 +26,14 @@ private:
 	bool hasFloorBelow(int x, int width) const;
 	bool seesPlayer() const;
 	void setDirection(int newDirection);
+	void startDeath();
 
 private:
     int direction; // 0 = left, 1 = right
 	bool chasing;
 	const Player *player;
+	Sprite *deathSprite;
+	int deathElapsed;
 };
 
 #endif 

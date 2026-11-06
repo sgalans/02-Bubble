@@ -14,11 +14,17 @@
 class Player
 {
 public:
+	struct ItemCounts
+	{
+		int bombs, fire, speed;
+	};
+
 	struct PowerUps
 	{
 		int nBombs, firePower;
 		float moveSpeed;
-		bool bombProof;
+		int vestTime; // Remaining milliseconds, not a permanent upgrade
+		int getSpeedUpLevel() const;
 	};
 
 	Player();
@@ -46,20 +52,22 @@ public:
 	// Takes every life at once, ignoring invulnerability and god mode (used when time runs out)
 	void loseAllLives();
 	int getLives() const { return lives; }
+	void setLives(int remaining) { lives = glm::clamp(remaining, 0, maxLives); }
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	int getFirePower() const { return firePower; }
 	int getSpeedUpLevel() const;
-	// Own bombs do not hurt him (other bombs still do)
-	bool isBombProof() const { return bombProof; }
+	int getVestTime() const { return vestTime; }
 	// Active gameplay excludes both death and exit animations.
 	bool isAlive() const { return lives > 0 && !isDying() && !exiting; }
 	bool isDying() const { return deathTime > 0; }
 	bool isGameOver() const { return lives <= 0 && !isDying(); }
-	bool isInvulnerable() const { return exiting || isDying() || invulnTime > 0 || invensible; }
+	bool isInvulnerable() const { return exiting || isDying() || invulnTime > 0 || vestTime > 0 || invensible; }
 	static bool isBlinkVisible(int elapsedTime);
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+	ItemCounts getCollectedItems() const { return collectedItems; }
+	static PowerUps powerUpsFromItems(const ItemCounts &items);
 	PowerUps getPowerUps() const;
 	void setPowerUps(const PowerUps &powerUps);
 
@@ -87,7 +95,8 @@ private:
 	int nBombs;
 	int firePower; // flame length in tiles
 	float moveSpeed; // pixels per frame
-	bool bombProof;
+	int vestTime;
+	ItemCounts collectedItems; // Pickups in this attempt, including those above the stat caps
 	Texture spritesheet;
 	Sprite *sprite, *deathSprite;
 	TileMap *map;

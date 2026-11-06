@@ -22,6 +22,8 @@
 #define WALK_A_X 2.f
 #define WALK_B_X 19.f
 #define WALK_C_X 36.f
+#define DEATH_WIDTH 16.f
+#define DEATH_TIME 800
 
 
 enum RunnerAnims
@@ -35,6 +37,13 @@ Runner::Runner()
 	direction = 0;
 	chasing = false;
 	player = NULL;
+	deathSprite = NULL;
+	deathElapsed = 0;
+}
+
+Runner::~Runner()
+{
+	delete deathSprite;
 }
 
 void Runner::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
@@ -60,6 +69,19 @@ void Runner::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(WALK_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(WALK_C_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 
+	// The breakup frames span 16 pixels; keep the walking collision size.
+	deathSprite = Sprite::createSprite(glm::vec2(DEATH_WIDTH, FRAME_HEIGHT),
+	                                  glm::vec2(DEATH_WIDTH / SHEET_WIDTH, FRAME_HEIGHT / SHEET_HEIGHT),
+	                                  &spritesheet, &shaderProgram);
+	deathSprite->setNumberAnimations(1);
+	deathSprite->setAnimationSpeed(0, 5);
+	deathSprite->addKeyframe(0, glm::vec2(53.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->addKeyframe(0, glm::vec2(69.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->addKeyframe(0, glm::vec2(86.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->addKeyframe(0, glm::vec2(104.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->changeAnimation(0);
+	deathElapsed = 0;
+
 	sprite->changeAnimation(MOVE_LEFT);
 	sprite->setFlipX(false);
 	tileMapDispl = tileMapPos;
@@ -84,6 +106,14 @@ bool Runner::hasFloorBelow(int x, int width) const
 
 void Runner::update(int deltaTime)
 {
+	if(isDead())
+	{
+		int elapsed = glm::clamp(deltaTime, 0, DEATH_TIME - deathElapsed);
+		deathElapsed += elapsed;
+		deathSprite->update(elapsed);
+		return;
+	}
+
 	sprite->update(deltaTime);
 	// Only guard edges while standing, so airborne runners can still land.
 	bool onGround = hasFloorBelow(posEnemy.x, sizeEnemy.x);
@@ -126,6 +156,47 @@ void Runner::update(int deltaTime)
 	map->collisionMoveDown(posEnemy, sizeEnemy, &posEnemy.y);
 
 	updateSpritePosition();
+}
+
+void Runner::startDeath()
+{
+	chasing = false;
+	deathElapsed = 0;
+	deathSprite->setFlipX(direction == 1);
+	deathSprite->changeAnimation(0);
+}
+
+void Runner::takeHit()
+{
+	if(isDead())
+		return;
+	Enemy::takeHit();
+	if(isDead())
+		startDeath();
+}
+
+void Runner::kill()
+{
+	if(isDead())
+		return;
+	Enemy::kill();
+	startDeath();
+}
+
+bool Runner::isReadyToRemove() const
+{
+	return isDead() && deathElapsed >= DEATH_TIME;
+}
+
+void Runner::render()
+{
+	if(!isDead())
+		Enemy::render();
+	else if(!isReadyToRemove())
+	{
+		deathSprite->setPosition(getPosition() + glm::vec2((RUNNER_WIDTH - DEATH_WIDTH) / 2.f, 0.f));
+		deathSprite->render();
+	}
 }
 
 // The runner only looks ahead: the player has to be in front of it, at about

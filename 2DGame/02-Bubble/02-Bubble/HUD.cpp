@@ -8,6 +8,8 @@
 #define HEART_SIZE 32
 #define HEART_FRAME_W 0.2f
 #define HEART_FRAME_H 0.5f
+#define HEART_CHANGE_TIME 1500 // ms
+#define HEART_BLINK_INTERVAL 150 // ms per visible/empty phase
 
 #define HUD_MARGIN 8
 #define HEART_SPACING 4
@@ -26,7 +28,7 @@
 
 enum HeartAnims
 {
-	HEART_FULL, HEART_EMPTY
+	HEART_FULL = 0, HEART_EMPTY = 4, HEART_FLASH_RED, HEART_FLASH_WHITE, N_HEART_ANIMS
 };
 
 HUD::HUD()
@@ -35,10 +37,13 @@ HUD::HUD()
 	lifeSprite = NULL;
 	keySprite = NULL;
 	speedUpLevel = 0;
-	bombProof = false;
+	vestTime = 0;
 	hasKey = false;
 	lives = maxLives = nBombs = firePower = enemiesLeft = timeLeft = 0;
 	currentTime = 0.0f;
+	firstAnimatedHeart = lastAnimatedHeart = -1;
+	heartAnimationTime = 0;
+	gainingLife = false;
 }
 
 HUD::~HUD()
@@ -60,9 +65,16 @@ void HUD::init(ShaderProgram &shaderProgram)
 	lifeSprite = Sprite::createSprite(glm::ivec2(HEART_SIZE, HEART_SIZE),
 	                                  glm::vec2(HEART_FRAME_W, HEART_FRAME_H),
 	                                  &lifeTexture, program);
-	lifeSprite->setNumberAnimations(2);
-	lifeSprite->addKeyframe(HEART_FULL, glm::vec2(0.f, 0.f));                 // top row, first
-	lifeSprite->addKeyframe(HEART_EMPTY, glm::vec2(4 * HEART_FRAME_W, 0.f));  // top row, last
+	lifeSprite->setNumberAnimations(N_HEART_ANIMS);
+	for(int frame = 0; frame < 5; frame++)
+	{
+		lifeSprite->setAnimationSpeed(frame, 1);
+		lifeSprite->addKeyframe(frame, glm::vec2(frame * HEART_FRAME_W, 0.f));
+	}
+	lifeSprite->setAnimationSpeed(HEART_FLASH_RED, 1);
+	lifeSprite->addKeyframe(HEART_FLASH_RED, glm::vec2(3 * HEART_FRAME_W, HEART_FRAME_H));
+	lifeSprite->setAnimationSpeed(HEART_FLASH_WHITE, 1);
+	lifeSprite->addKeyframe(HEART_FLASH_WHITE, glm::vec2(4 * HEART_FRAME_W, HEART_FRAME_H));
 
 	keyTexture.loadFromFile("images/personalized.png", TEXTURE_PIXEL_FORMAT_RGBA);
 	keyTexture.setMinFilter(GL_NEAREST);
@@ -79,12 +91,19 @@ void HUD::init(ShaderProgram &shaderProgram)
 }
 
 void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey,
-                 int speedUpLevel, bool bombProof)
+                 int speedUpLevel, int vestTime)
 {
 	currentTime += deltaTime;
-	if(this->lives != lives){
-		//TODO: animation when a life is lost
+	heartAnimationTime = glm::max(0, heartAnimationTime - deltaTime);
+	if(lives != this->lives && this->maxLives == maxLives)
+	{
+		gainingLife = lives > this->lives;
+		firstAnimatedHeart = glm::min(lives, this->lives);
+		lastAnimatedHeart = glm::max(lives, this->lives) - 1;
+		heartAnimationTime = HEART_CHANGE_TIME;
 	}
+	else if(lives != this->lives || maxLives != this->maxLives)
+		heartAnimationTime = 0;
 	this->lives = lives;
 	if(this->maxLives != maxLives){
 		//TODO: animation when max lives changes
@@ -96,7 +115,7 @@ void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePow
 	this->timeLeft = timeLeft;
 	this->hasKey = hasKey;
 	this->speedUpLevel = speedUpLevel;
-	this->bombProof = bombProof;
+	this->vestTime = vestTime;
 }
 
 void HUD::render()
@@ -109,10 +128,36 @@ void HUD::render()
 
 void HUD::renderLives()
 {
-	// One heart slot per possible life: full for lives left, empty for the rest
+	// The last slot is an optional white bonus heart, not an empty red slot.
 	for(int i = 0; i < maxLives; i++)
 	{
-		lifeSprite->changeAnimation(i < lives ? HEART_FULL : HEART_EMPTY);
+		bool bonusHeart = i == maxLives - 1;
+		bool animating = i >= firstAnimatedHeart && i <= lastAnimatedHeart && heartAnimationTime > 0;
+		if(bonusHeart && i >= lives && !animating)
+			continue;
+		int frame = i < lives ? HEART_FULL : HEART_EMPTY;
+		if(bonusHeart)
+		{
+			if(animating && ((HEART_CHANGE_TIME - heartAnimationTime) / HEART_BLINK_INTERVAL) % 2 != 0)
+				continue;
+			frame = HEART_FLASH_WHITE;
+		}
+		else if(animating)
+		{
+			int elapsed = HEART_CHANGE_TIME - heartAnimationTime;
+			if(gainingLife)
+				elapsed = HEART_CHANGE_TIME - 1 - elapsed;
+			frame = HEART_EMPTY;
+			// Full, three quarters, half, quarter: the atlas is not in fill order.
+			static const int lossFrames[] = { HEART_FULL, 3, 1, 2 };
+			if(elapsed < 80)
+				frame = HEART_FLASH_WHITE;
+			else if(elapsed < HEART_BLINK_INTERVAL)
+				frame = HEART_FLASH_RED;
+			else if((elapsed / HEART_BLINK_INTERVAL) % 2 == 0)
+				frame = lossFrames[glm::min(elapsed * 4 / HEART_CHANGE_TIME, 3)];
+		}
+		lifeSprite->changeAnimation(frame);
 		lifeSprite->setPosition(glm::vec2(HUD_MARGIN + i * (HEART_SIZE + HEART_SPACING), HUD_MARGIN));
 		lifeSprite->render();
 	}
@@ -150,8 +195,9 @@ void HUD::renderStats()
 	stringstream speed;
 	speed << "SPEED " << speedUpLevel + 1;
 	renderText(speed.str(), col3, white);
-	renderText(bombProof ? "VEST ON" : "VEST OFF", col3 + row2,
-	           bombProof ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
+	stringstream vest;
+	vest << "VEST " << (vestTime + 999) / 1000;
+	renderText(vest.str(), col3 + row2, vestTime > 0 ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
 	program->setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
 }
 

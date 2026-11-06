@@ -27,13 +27,19 @@ sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 | `T` | Trampolí: alçades 9/12/16 píxels, impuls de 10 tiles; activat pel botó |
 | `U` | Botó sense col·lisió: activa el `T` exactament 4 tiles a l'esquerra |
 | `V` | El mateix botó, girat 90° per situar-lo al terra; mateixa activació i recàrrega |
-| `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o Bomb Proof |
+| `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o VEST (invulnerabilitat completa durant 17 s) |
 | `K` | Arbust amb una clau |
 | `L` | Porta amb pany; sòlida i immune a explosions |
 | `D` | Sortida; s'obre quan no queden enemics |
 | `@` | Inici del jugador |
 | `W`, `R`, `Z` | Walker, Runner, Shooter |
 | `X` | Boss (arbre de 2×2 tiles; la lletra marca el tile superior esquerre) |
+
+VEST (`P`) protegeix de totes les explosions, enemics i projectils durant
+17 segons. El jugador parpelleja i el HUD mostra els segons restants,
+arrodonits cap amunt (`VEST 17` fins a `VEST 0`). Recollir-ne un altre
+reinicia els 17 segons. No es traspassa entre nivells ni es restaura en
+tornar a carregar un nivell. No evita la derrota per temps esgotat.
 
 La clau apareix en destruir l'arbust `K`. Cal recollir-la i tocar la porta `L`
 per obrir el pas permanentment. Obrir una porta consumeix la clau.
@@ -50,13 +56,43 @@ independent i no es reinicia en trepitjar-lo de nou mentre està actiu.
 
 ## Sortida i distribució dels nivells
 
+El temps límit és de **3 minuts als nivells 1 i 5**, **4 minuts al nivell 2**
+i **5 minuts als nivells 3 i 4**. `Game::startLevel` passa aquest límit a
+`Scene` en carregar el nivell, també amb les tecles de depuració `1`–`5`.
+
 La sortida `D` s'obre quan s'han eliminat tots els enemics, també el boss.
-En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. En entrar a la
+En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. També es recupera
+una vida, fins al màxim de 4 (3 vermelles i una extra blanca), i apareix
+«1 UP» durant el mateix temps, també si ja es tenen 4 vides. Els cors
+vermells recuperats s'animen de buit a ple durant 1,5 segons, invertint
+l'animació de pèrdua. La quarta vida, blanca, només parpelleja durant
+1,5 segons en aparèixer o desaparèixer; es perd abans de les vermelles i
+es conserva en passar de nivell. No es concedeix la vida si el jugador ja no té vides.
+La recompensa només es dona una vegada; amb el boss, espera el final de
+la seva animació de mort. En entrar a la
 sortida oberta, el jugador s'alinea amb la porta, es gira d'esquena i
 s'encongeix fins a desaparèixer durant 1 segon. El temps i la resta del joc
 queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5
 es mostra la imatge final `images/EndScreen.png`.
 `Enter` continua al nivell següent o torna al menú després de l'últim nivell.
+El progrés es conserva mentre el joc està obert, també en tornar al menú.
+El selector mostra «START WITH» amb les vides, bombes simultànies, abast del
+foc i nivell de velocitat d'entrada del nivell seleccionat. La velocitat base
+es mostra com a 1, igual que al HUD. Els valors ja inclouen els límits.
+Cada nivell guarda els Bomb Up, Fire Up i Speed Up recollits en l'última
+partida completada, inclosos els recollits amb les millores al màxim.
+En començar un nivell se sumen les aportacions dels nivells anteriors i
+s'apliquen els límits del jugador; la seva pròpia aportació queda exclosa.
+Repetir i completar un nivell substitueix el resultat anterior, sense sumar-hi
+el nou. Abandonar-lo o perdre no modifica el resultat guardat. Si canvia el
+resultat d'un nivell anterior, els següents recalculen els ítems en carregar-se.
+
+Les vides d'entrada es guarden per separat: completar un nivell actualitza
+les del següent, sense recalcular les dels altres nivells. El nivell 1 i els
+nivells sense registre comencen amb 3 vides. Reintentar restaura les vides
+d'entrada. Aquestes regles també s'apliquen a les tecles `1`–`5`. Les claus,
+el VEST i la invulnerabilitat de reaparició no es guarden. Tancar el joc
+esborra aquest progrés.
 
 Les posicions de plataformes, claus, portes, núvols i altres elements són
 les de les graelles `level01.txt`–`level05.txt`. Consulta el fitxer concret

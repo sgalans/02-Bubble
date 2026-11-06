@@ -12,7 +12,11 @@ void Game::init()
 	Audio::instance().init();
 	menu.init();
 	state = MENU;
-	nextLevelWithPowerUps = 0;
+	for(int i = 0; i < MENU_NUM_LEVELS; i++)
+	{
+		levelItems[i] = Player::ItemCounts();
+		entryLives[i] = 3;
+	}
 }
 
 bool Game::update(int deltaTime)
@@ -51,9 +55,13 @@ void Game::keyPressed(int key)
 		std::ifstream levelFile(Menu::levelFile(level));
 		if(!levelFile.is_open())
 			return;
+		if(scene != NULL && scene->isCleared())
+		{
+			menu.unlockLevel(currentLevel + 1);
+			saveLevelProgress();
+		}
 		delete scene;
 		scene = NULL;
-		nextLevelWithPowerUps = 0;
 		startLevel(level);
 		return;
 	}
@@ -108,15 +116,28 @@ bool Game::getKey(int key) const
 
 void Game::startLevel(int level)
 {
+	const int levelMinutes[MENU_NUM_LEVELS] = { 3, 4, 5, 5, 3 };
 	Audio::instance().play(Audio::MENU_SELECT);
 	scene = new Scene();
-	scene->init(Menu::levelFile(level));
+	scene->init(Menu::levelFile(level), levelMinutes[level - 1] * 60 * 1000);
 	scene->setFinalLevel(level == MENU_NUM_LEVELS);
-	if(level == nextLevelWithPowerUps)
-		scene->setPowerUps(nextPowerUps);
-	nextLevelWithPowerUps = 0;
+	scene->setPowerUps(getStartingPowerUps(level));
+	scene->setLives(getStartingLives(level));
 	currentLevel = level;
 	state = PLAYING;
+}
+
+Player::PowerUps Game::getStartingPowerUps(int level) const
+{
+	// Shared by level loading and the menu preview, with the same stat caps.
+	Player::ItemCounts startingItems = {};
+	for(int i = 0; i < level - 1; i++)
+	{
+		startingItems.bombs += levelItems[i].bombs;
+		startingItems.fire += levelItems[i].fire;
+		startingItems.speed += levelItems[i].speed;
+	}
+	return Player::powerUpsFromItems(startingItems);
 }
 
 void Game::backToMenu()
@@ -124,10 +145,8 @@ void Game::backToMenu()
 	if(scene->isCleared())
 	{
 		menu.unlockLevel(currentLevel + 1);
-		preservePowerUpsForNextLevel();
+		saveLevelProgress();
 	}
-	else
-		nextLevelWithPowerUps = 0;
 	delete scene;
 	scene = NULL;
 	state = MENU;
@@ -139,7 +158,7 @@ void Game::levelCleared()
 {
 	int next = currentLevel + 1;
 	menu.unlockLevel(next);
-	preservePowerUpsForNextLevel();
+	saveLevelProgress();
 	delete scene;
 	scene = NULL;
 	if(next <= MENU_NUM_LEVELS && menu.isPlayable(next))
@@ -148,10 +167,12 @@ void Game::levelCleared()
 		state = MENU;
 }
 
-void Game::preservePowerUpsForNextLevel()
+void Game::saveLevelProgress()
 {
-	nextPowerUps = scene->getPowerUps();
-	nextLevelWithPowerUps = currentLevel + 1;
+	// Replace this level's contribution; replays never add to an old result.
+	levelItems[currentLevel - 1] = scene->getCollectedItems();
+	if(currentLevel < MENU_NUM_LEVELS)
+		entryLives[currentLevel] = scene->getLives();
 }
 
 

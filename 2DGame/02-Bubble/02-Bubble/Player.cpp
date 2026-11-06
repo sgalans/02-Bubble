@@ -15,6 +15,7 @@
 #define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define MAX_FALL_SPEED_TILES 15.f // tiles per second
 #define INVULNERABILITY_TIME 3000 // ms after respawning
+#define VEST_TIME 17000 // ms of protection from enemies, projectiles and explosions
 #define DEATH_TIME 1500 // ms
 #define DEATH_FRAMES 4
 #define EXIT_TIME 1000 // ms
@@ -25,7 +26,7 @@
 #define MAX_FIRE_POWER 5 // tiles
 #define BASE_MOVE_SPEED 1.5f // pixels per frame
 #define SPEED_UP_INCREMENT 0.25f
-#define MAX_MOVE_SPEED 2.25f
+#define MAX_MOVE_SPEED 2.5f // Four Speed Ups above base speed (HUD level 5)
 #define PLAYER_SPRITE_WIDTH 16
 #define PLAYER_HEIGHT 16
 #define HITBOX_INSET_X 2
@@ -65,11 +66,12 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	bBombKeyPressed = false;
 	bBombRequested = false;
 	lives = 3;
-	maxLives = 3;
+	maxLives = 4; // Three normal hearts and one optional white bonus heart
 	nBombs = 1;
 	firePower = 1; // Fire Up items extend it
 	moveSpeed = BASE_MOVE_SPEED;
-	bombProof = false;
+	vestTime = 0;
+	collectedItems = ItemCounts();
 	invulnTime = 0;
 	deathTime = blinkTime = 0;
 	exiting = false;
@@ -175,6 +177,7 @@ void Player::update(int deltaTime)
 		return;
 	if(invulnTime > 0)
 		invulnTime = max(0, invulnTime - deltaTime);
+	vestTime -= glm::clamp(deltaTime, 0, vestTime);
 	blinkTime = (blinkTime + max(0, deltaTime) % BLINK_CYCLE) % BLINK_CYCLE;
 
 	glm::ivec2 previousPos = posPlayer;
@@ -385,6 +388,7 @@ void Player::startDeath()
 {
 	deathTime = DEATH_TIME;
 	invulnTime = 0;
+	vestTime = 0;
 	verticalVelocity = 0.f;
 	horizontalRemainder = 0.f;
 	bBombRequested = false;
@@ -415,29 +419,49 @@ void Player::applyItem(Item::ItemType type)
 	switch(type)
 	{
 	case Item::BOMB_UP:
+		collectedItems.bombs++;
 		nBombs = min(nBombs + 1, MAX_BOMBS);
 		break;
 	case Item::FIRE_UP:
+		collectedItems.fire++;
 		firePower = min(firePower + 1, MAX_FIRE_POWER);
 		break;
 	case Item::SPEED_UP:
+		collectedItems.speed++;
 		moveSpeed = min(moveSpeed + SPEED_UP_INCREMENT, MAX_MOVE_SPEED);
 		break;
 	case Item::BOMB_PROOF:
-		bombProof = true;
+		vestTime = VEST_TIME;
+		blinkTime = 0;
 		break;
 	default:
 		break;
 	}
 }
 
+Player::PowerUps Player::powerUpsFromItems(const ItemCounts &items)
+{
+	PowerUps powerUps = {
+		glm::clamp(1 + items.bombs, 1, MAX_BOMBS),
+		glm::clamp(1 + items.fire, 1, MAX_FIRE_POWER),
+		glm::clamp(BASE_MOVE_SPEED + items.speed * SPEED_UP_INCREMENT, BASE_MOVE_SPEED, MAX_MOVE_SPEED),
+		0
+	};
+	return powerUps;
+}
+
 Player::PowerUps Player::getPowerUps() const
 {
-	PowerUps powerUps = { nBombs, firePower, moveSpeed, bombProof };
+	PowerUps powerUps = { nBombs, firePower, moveSpeed, vestTime };
 	return powerUps;
 }
 
 int Player::getSpeedUpLevel() const
+{
+	return getPowerUps().getSpeedUpLevel();
+}
+
+int Player::PowerUps::getSpeedUpLevel() const
 {
 	return int(round((moveSpeed - BASE_MOVE_SPEED) / SPEED_UP_INCREMENT));
 }
@@ -447,7 +471,7 @@ void Player::setPowerUps(const PowerUps &powerUps)
 	nBombs = powerUps.nBombs;
 	firePower = powerUps.firePower;
 	moveSpeed = powerUps.moveSpeed;
-	bombProof = powerUps.bombProof;
+	vestTime = glm::clamp(powerUps.vestTime, 0, VEST_TIME);
 }
 
 void Player::setTileMap(TileMap *tileMap)

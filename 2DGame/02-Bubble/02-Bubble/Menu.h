@@ -5,6 +5,7 @@
 #include <string>
 #include "ShaderProgram.h"
 #include "Text.h"
+#include "Sprite.h"
 
 
 #define MENU_NUM_LEVELS 5
@@ -46,12 +47,15 @@ private:
 	void levelsKeyPressed(int key);
 	void renderMain();
 	void renderLevels();
+	void renderStartingStats();
 	void renderTextScreen(const std::string &title, const std::string &body);
 	void renderArrow(const std::string &label, float y, const glm::vec4 &color);
 
 private:
 	ShaderProgram program;
 	Text titleText, entryText, footerText;
+	Texture itemTexture, heartTexture;
+	Sprite *itemIcon, *heartIcon;
 	bool available[MENU_NUM_LEVELS]; // The level file exists
 	bool unlocked[MENU_NUM_LEVELS]; // Level 1 always, the rest once the previous one is beaten
 	Screen screen;
