@@ -56,9 +56,12 @@ i **5 minuts als nivells 3 i 4**. `Game::startLevel` passa aquest límit a
 
 La sortida `D` s'obre quan s'han eliminat tots els enemics, també el boss.
 En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. També es recupera
-una vida, fins al màxim de 3, i apareix «1 UP» durant el mateix temps,
-també si ja es tenen 3 vides. El cor recuperat s'anima de buit a ple durant
-1,5 segons, invertint l'animació de pèrdua. No es concedeix la vida si el jugador ja no té vides.
+una vida, fins al màxim de 4 (3 vermelles i una extra blanca), i apareix
+«1 UP» durant el mateix temps, també si ja es tenen 4 vides. Els cors
+vermells recuperats s'animen de buit a ple durant 1,5 segons, invertint
+l'animació de pèrdua. La quarta vida, blanca, només parpelleja durant
+1,5 segons en aparèixer o desaparèixer; es perd abans de les vermelles i
+es conserva en passar de nivell. No es concedeix la vida si el jugador ja no té vides.
 La recompensa només es dona una vegada; amb el boss, espera el final de
 la seva animació de mort. En entrar a la
 sortida oberta, el jugador s'alinea amb la porta, es gira d'esquena i

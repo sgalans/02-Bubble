@@ -65,7 +65,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	bBombKeyPressed = false;
 	bBombRequested = false;
 	lives = 3;
-	maxLives = 3;
+	maxLives = 4; // Three normal hearts and one optional white bonus heart
 	nBombs = 1;
 	firePower = 1; // Fire Up items extend it
 	moveSpeed = BASE_MOVE_SPEED;

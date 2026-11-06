@@ -128,11 +128,21 @@ void HUD::render()
 
 void HUD::renderLives()
 {
-	// One heart slot per possible life: full for lives left, empty for the rest
+	// The last slot is an optional white bonus heart, not an empty red slot.
 	for(int i = 0; i < maxLives; i++)
 	{
+		bool bonusHeart = i == maxLives - 1;
+		bool animating = i >= firstAnimatedHeart && i <= lastAnimatedHeart && heartAnimationTime > 0;
+		if(bonusHeart && i >= lives && !animating)
+			continue;
 		int frame = i < lives ? HEART_FULL : HEART_EMPTY;
-		if(i >= firstAnimatedHeart && i <= lastAnimatedHeart && heartAnimationTime > 0)
+		if(bonusHeart)
+		{
+			if(animating && ((HEART_CHANGE_TIME - heartAnimationTime) / HEART_BLINK_INTERVAL) % 2 != 0)
+				continue;
+			frame = HEART_FLASH_WHITE;
+		}
+		else if(animating)
 		{
 			int elapsed = HEART_CHANGE_TIME - heartAnimationTime;
 			if(gainingLife)
