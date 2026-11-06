@@ -10,8 +10,7 @@
 #define WALKER_HEIGHT 16
 
 // bomberman.png is a ragged rip, so frames are addressed by pixel offset
-// instead of a uniform grid. Row 10 spans y = 153..168 and holds, left to
-// right: two front frames, two right-facing side frames, one back frame.
+// instead of a uniform grid. The walker's row spans y = 153..168.
 #define SHEET_WIDTH 253.f
 #define SHEET_HEIGHT 632.f
 #define FRAME_WIDTH 13.f
@@ -19,6 +18,8 @@
 #define ROW_Y 153.f
 #define FRONT_A_X 2.f
 #define FRONT_B_X 17.f
+#define DEATH_WIDTH 15.f
+#define DEATH_TIME 600
 
 
 enum WalkerAnims
@@ -26,6 +27,15 @@ enum WalkerAnims
 	MOVE_LEFT, MOVE_RIGHT
 };
 
+
+Walker::Walker() : deathSprite(NULL), deathElapsed(0)
+{
+}
+
+Walker::~Walker()
+{
+	delete deathSprite;
+}
 
 void Walker::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 {
@@ -39,8 +49,7 @@ void Walker::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	                              &spritesheet, &shaderProgram);
 	sprite->setNumberAnimations(2);
 
-		// The side frames only exist facing right and Sprite cannot mirror a
-		// quad, so both directions use the front view, which reads either way.
+		// Both directions use the front view, which reads either way.
 		sprite->setAnimationSpeed(MOVE_LEFT, 8);
 		sprite->addKeyframe(MOVE_LEFT, glm::vec2(FRONT_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 		sprite->addKeyframe(MOVE_LEFT, glm::vec2(FRONT_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
@@ -48,6 +57,18 @@ void Walker::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 		sprite->setAnimationSpeed(MOVE_RIGHT, 8);
 		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(FRONT_A_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
 		sprite->addKeyframe(MOVE_RIGHT, glm::vec2(FRONT_B_X / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+
+	// Death frames are wider than the walking frames; keep the collision size.
+	deathSprite = Sprite::createSprite(glm::vec2(DEATH_WIDTH, FRAME_HEIGHT),
+	                                  glm::vec2(DEATH_WIDTH / SHEET_WIDTH, FRAME_HEIGHT / SHEET_HEIGHT),
+	                                  &spritesheet, &shaderProgram);
+	deathSprite->setNumberAnimations(1);
+	deathSprite->setAnimationSpeed(0, 5);
+	deathSprite->addKeyframe(0, glm::vec2(75.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->addKeyframe(0, glm::vec2(92.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->addKeyframe(0, glm::vec2(109.f / SHEET_WIDTH, ROW_Y / SHEET_HEIGHT));
+	deathSprite->changeAnimation(0);
+	deathElapsed = 0;
 
 	sprite->changeAnimation(MOVE_LEFT);
 	tileMapDispl = tileMapPos;
@@ -67,6 +88,14 @@ bool Walker::hasFloorBelow(int x, int width) const
 
 void Walker::update(int deltaTime)
 {
+	if(isDead())
+	{
+		int elapsed = glm::clamp(deltaTime, 0, DEATH_TIME - deathElapsed);
+		deathElapsed += elapsed;
+		deathSprite->update(elapsed);
+		return;
+	}
+
 	sprite->update(deltaTime);
 
 	// Only guard edges while standing, so a walker spawned mid-air still drops.
@@ -98,4 +127,43 @@ void Walker::update(int deltaTime)
 	map->collisionMoveDown(posEnemy, sizeEnemy, &posEnemy.y);
 
 	updateSpritePosition();
+}
+
+void Walker::startDeath()
+{
+	deathElapsed = 0;
+	deathSprite->changeAnimation(0);
+}
+
+void Walker::takeHit()
+{
+	if(isDead())
+		return;
+	Enemy::takeHit();
+	if(isDead())
+		startDeath();
+}
+
+void Walker::kill()
+{
+	if(isDead())
+		return;
+	Enemy::kill();
+	startDeath();
+}
+
+bool Walker::isReadyToRemove() const
+{
+	return isDead() && deathElapsed >= DEATH_TIME;
+}
+
+void Walker::render()
+{
+	if(!isDead())
+		Enemy::render();
+	else if(!isReadyToRemove())
+	{
+		deathSprite->setPosition(getPosition() + glm::vec2((WALKER_WIDTH - DEATH_WIDTH) / 2.f, 0.f));
+		deathSprite->render();
+	}
 }

@@ -80,7 +80,8 @@ General (polish):
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
  - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
- - Animacions [] //falten: mort dels enemics normals, tile destruint-se, canvis del màxim de vides al HUD
+ - Mort del Walker [x] //3 fotogrames de bomberman.png durant 0,6 s, immòbil i sense fer mal; la sortida espera que acabi
+ - Animacions [] //falten: mort del Runner i del Shooter
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 

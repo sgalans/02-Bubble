@@ -333,7 +333,7 @@ void Scene::update(int deltaTime)
 		previousSpringTops.push_back(top);
 		for(unsigned int j = 0; j < enemies.size(); j++)
 		{
-			if(enemies[j]->isFlying())
+			if(enemies[j]->isDead() || enemies[j]->isFlying())
 				continue;
 			glm::ivec2 pos = glm::ivec2(enemies[j]->getPosition()) - map->getPosition();
 			glm::ivec2 size = enemies[j]->getSize();
