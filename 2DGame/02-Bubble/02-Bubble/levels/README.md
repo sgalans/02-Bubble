@@ -76,6 +76,9 @@ queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5
 es mostra la imatge final `images/EndScreen.png`.
 `Enter` continua al nivell següent o torna al menú després de l'últim nivell.
 El progrés es conserva mentre el joc està obert, també en tornar al menú.
+El selector mostra «START WITH» amb les vides, bombes simultànies, abast del
+foc i nivell de velocitat d'entrada del nivell seleccionat. La velocitat base
+es mostra com a 1, igual que al HUD. Els valors ja inclouen els límits.
 Cada nivell guarda els Bomb Up, Fire Up i Speed Up recollits en l'última
 partida completada, inclosos els recollits amb les millores al màxim.
 En començar un nivell se sumen les aportacions dels nivells anteriors i

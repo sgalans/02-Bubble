@@ -14,8 +14,8 @@
 #define ENTRY_SIZE 24
 #define FOOTER_SIZE 16
 #define TITLE_Y 60
-#define FIRST_ENTRY_Y 170
-#define ENTRY_SPACING 45
+#define FIRST_ENTRY_Y 140
+#define ENTRY_SPACING 40
 #define FOOTER_Y 430
 #define BLINK_PERIOD 500
 #define MAIN_FIRST_ENTRY_Y 200
@@ -52,10 +52,13 @@ Menu::Menu()
 	selected = 0;
 	chosen = 0;
 	currentTime = 0.0f;
+	itemIcon = heartIcon = NULL;
 }
 
 Menu::~Menu()
 {
+	delete itemIcon;
+	delete heartIcon;
 	program.free();
 }
 
@@ -66,6 +69,27 @@ void Menu::init()
 	titleText.init(FONT_FILE, TITLE_SIZE, program);
 	entryText.init(FONT_FILE, ENTRY_SIZE, program);
 	footerText.init(FONT_FILE, FOOTER_SIZE, program);
+
+	itemTexture.loadFromFile("images/bomberman.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	itemTexture.setMinFilter(GL_NEAREST);
+	itemTexture.setMagFilter(GL_NEAREST);
+	glm::vec2 itemFrame(16.f / itemTexture.width(), 16.f / itemTexture.height());
+	itemIcon = Sprite::createSprite(glm::vec2(32.f), itemFrame, &itemTexture, &program);
+	itemIcon->setNumberAnimations(3);
+	for(int i = 0; i < 3; i++)
+	{
+		itemIcon->setAnimationSpeed(i, 1);
+		itemIcon->addKeyframe(i, glm::vec2(21.f + i * 18.f, 117.f) / glm::vec2(itemTexture.width(), itemTexture.height()));
+	}
+	itemIcon->changeAnimation(0);
+	heartTexture.loadFromFile("images/hearts.png", TEXTURE_PIXEL_FORMAT_RGBA);
+	heartTexture.setMinFilter(GL_NEAREST);
+	heartTexture.setMagFilter(GL_NEAREST);
+	heartIcon = Sprite::createSprite(glm::vec2(32.f), glm::vec2(0.2f, 0.5f), &heartTexture, &program);
+	heartIcon->setNumberAnimations(1);
+	heartIcon->setAnimationSpeed(0, 1);
+	heartIcon->addKeyframe(0, glm::vec2(0.f));
+	heartIcon->changeAnimation(0);
 
 	for(int i = 0; i < MENU_NUM_LEVELS; i++)
 	{
@@ -174,8 +198,30 @@ void Menu::renderLevels()
 			renderArrow(label.str(), y, color);
 	}
 
+	renderStartingStats();
 	footerText.renderCentered("ARROWS: MOVE  ENTER: PLAY  ESC: BACK", FOOTER_Y, SCREEN_WIDTH,
 	                          glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+}
+
+void Menu::renderStartingStats()
+{
+	const Game &game = Game::instance();
+	Player::PowerUps powerUps = game.getStartingPowerUps(selected + 1);
+	const int values[] = { game.getStartingLives(selected + 1), powerUps.nBombs,
+	                       powerUps.firePower, powerUps.getSpeedUpLevel() + 1 };
+	glm::vec4 white(1.f);
+	footerText.renderCentered("START WITH", 350.f, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+	for(int i = 0; i < 4; i++)
+	{
+		glm::vec2 pos(136.f + i * 100.f, 378.f);
+		Sprite *icon = i == 0 ? heartIcon : itemIcon;
+		if(i > 0)
+			itemIcon->changeAnimation(i - 1);
+		program.setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
+		icon->setPosition(pos);
+		icon->render();
+		footerText.render(std::to_string(values[i]), pos + glm::vec2(44.f, 8.f), white);
+	}
 }
 
 void Menu::keyPressed(int key)

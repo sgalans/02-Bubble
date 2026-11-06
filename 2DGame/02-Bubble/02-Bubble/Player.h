@@ -24,6 +24,7 @@ public:
 		int nBombs, firePower;
 		float moveSpeed;
 		int vestTime; // Remaining milliseconds, not a permanent upgrade
+		int getSpeedUpLevel() const;
 	};
 
 	Player();
@@ -66,7 +67,7 @@ public:
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
 	ItemCounts getCollectedItems() const { return collectedItems; }
-	void setStartingItems(const ItemCounts &items);
+	static PowerUps powerUpsFromItems(const ItemCounts &items);
 	PowerUps getPowerUps() const;
 	void setPowerUps(const PowerUps &powerUps);
 

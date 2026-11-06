@@ -439,12 +439,15 @@ void Player::applyItem(Item::ItemType type)
 	}
 }
 
-void Player::setStartingItems(const ItemCounts &items)
+Player::PowerUps Player::powerUpsFromItems(const ItemCounts &items)
 {
-	nBombs = glm::clamp(1 + items.bombs, 1, MAX_BOMBS);
-	firePower = glm::clamp(1 + items.fire, 1, MAX_FIRE_POWER);
-	moveSpeed = glm::clamp(BASE_MOVE_SPEED + items.speed * SPEED_UP_INCREMENT, BASE_MOVE_SPEED, MAX_MOVE_SPEED);
-	vestTime = 0;
+	PowerUps powerUps = {
+		glm::clamp(1 + items.bombs, 1, MAX_BOMBS),
+		glm::clamp(1 + items.fire, 1, MAX_FIRE_POWER),
+		glm::clamp(BASE_MOVE_SPEED + items.speed * SPEED_UP_INCREMENT, BASE_MOVE_SPEED, MAX_MOVE_SPEED),
+		0
+	};
+	return powerUps;
 }
 
 Player::PowerUps Player::getPowerUps() const
@@ -454,6 +457,11 @@ Player::PowerUps Player::getPowerUps() const
 }
 
 int Player::getSpeedUpLevel() const
+{
+	return getPowerUps().getSpeedUpLevel();
+}
+
+int Player::PowerUps::getSpeedUpLevel() const
 {
 	return int(round((moveSpeed - BASE_MOVE_SPEED) / SPEED_UP_INCREMENT));
 }

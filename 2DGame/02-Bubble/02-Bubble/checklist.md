@@ -1,5 +1,6 @@
 Interface:
  - Menu principal [x] //PLAY / INSTRUCTIONS / CREDITS + selector de nivells
+ - Previsualització d'entrada al selector [x] //START WITH: icones i valors de vides, bombes, foc i velocitat del nivell seleccionat; mateix càlcul que en carregar-lo
  - Instruccions [x]
  - Crèdits [x] //noms dels dos integrants
  - HUD vides [x] //pèrdua animada durant 1,5 s: flaix blanc/vermell, parpelleig i fotogrames de buidatge fins al cor buit

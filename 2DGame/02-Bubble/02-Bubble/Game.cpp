@@ -121,7 +121,15 @@ void Game::startLevel(int level)
 	scene = new Scene();
 	scene->init(Menu::levelFile(level), levelMinutes[level - 1] * 60 * 1000);
 	scene->setFinalLevel(level == MENU_NUM_LEVELS);
-	// Rebuild permanent upgrades from earlier levels, never from this level's replay.
+	scene->setPowerUps(getStartingPowerUps(level));
+	scene->setLives(getStartingLives(level));
+	currentLevel = level;
+	state = PLAYING;
+}
+
+Player::PowerUps Game::getStartingPowerUps(int level) const
+{
+	// Shared by level loading and the menu preview, with the same stat caps.
 	Player::ItemCounts startingItems = {};
 	for(int i = 0; i < level - 1; i++)
 	{
@@ -129,10 +137,7 @@ void Game::startLevel(int level)
 		startingItems.fire += levelItems[i].fire;
 		startingItems.speed += levelItems[i].speed;
 	}
-	scene->setStartingItems(startingItems);
-	scene->setLives(entryLives[level - 1]);
-	currentLevel = level;
-	state = PLAYING;
+	return Player::powerUpsFromItems(startingItems);
 }
 
 void Game::backToMenu()

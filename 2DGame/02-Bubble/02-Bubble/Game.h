@@ -40,6 +40,8 @@ public:
 	void mouseRelease(int button);
 
 	bool getKey(int key) const;
+	Player::PowerUps getStartingPowerUps(int level) const;
+	int getStartingLives(int level) const { return entryLives[level - 1]; }
 
 private:
 	void startLevel(int level);
