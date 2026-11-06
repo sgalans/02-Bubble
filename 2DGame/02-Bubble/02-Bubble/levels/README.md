@@ -47,12 +47,16 @@ La porta `L` continua visible amb la textura oberta i deixa de tenir col·lisió
 La icona de la clau al HUD indica que el jugador la porta.
 `K` al mapa és independent de la tecla de depuració `K`.
 
-Els `a` desapareixen 1 segon després de trepitjar-los per sobre, amb els
-fotogrames 10→11→12. Continuen sòlids durant aquest segon. Després de 2 segons
-absents, reapareixen amb els mateixos fotogrames al revés durant 1 segon.
-Recuperen la col·lisió al final; si la casella està ocupada pel jugador,
-un enemic o una bomba, esperen que quedi lliure. Cada bloc té el seu compte
-independent i no es reinicia en trepitjar-lo de nou mentre està actiu.
+Els `a` continuen sòlids 1,5 segons després de trepitjar-los per sobre:
+0,5 segons sense animació i 1 segon amb els fotogrames 10→11→12 i parpelleig.
+Després d'1,5 segons absents, reapareixen amb 12→11→10 i parpelleig durant
+1 segon. Són sòlids des de l'inici de la reaparició; si la casella conté el
+jugador, un enemic o una bomba, esperen que quedi lliure abans de començar.
+El parpelleig té un cicle de 360 ms (50% visible, 50% invisible).
+Trepitjar-los durant la reaparició inicia el compte d'1,5 segons immediatament,
+sense interrompre l'animació inversa. Sense jugador a sobre, es mantenen
+sòlids. Cada bloc té el seu compte independent; tornar-lo a trepitjar mentre
+el compte està actiu no el reinicia.
 
 ## Sortida i distribució dels nivells
 

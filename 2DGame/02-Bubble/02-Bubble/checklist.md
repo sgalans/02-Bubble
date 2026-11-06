@@ -66,7 +66,7 @@ Gameplay:
  - reaccio en cadena [x]
  - tiles destructibles [x]
  - portes amb pany [x] // bloquegen moviment i explosions fins a fer servir la clau
- - plataformes temporals 'a' [x]
+ - plataformes temporals 'a' [x] //1,5 s sòlides des de trepitjar-les (0,5 s espera + 1 s animació); 1,5 s absents; reaparició sòlida d'1 s; parpelleig 50/50; espera si la casella està ocupada
  - millora de càmera [x]
 
 Tecles debug:

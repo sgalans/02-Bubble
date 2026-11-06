@@ -8,8 +8,10 @@
 
 using namespace std;
 
+#define PLATFORM_WAIT_TIME 500 // ms before the crumble animation
 #define PLATFORM_CRUMBLE_TIME 1000 // ms
-#define PLATFORM_ABSENT_TIME 2000 // ms
+#define PLATFORM_ABSENT_TIME 1500 // ms
+#define PLATFORM_BLINK_CYCLE 360 // ms, equal visible and hidden phases
 #define PLATFORM_REFORM_TIME 1000 // ms
 #define PLATFORM_FRAMES 3
 #define PLATFORM_SOLID -3
@@ -131,15 +133,21 @@ void TileMap::render() const
 	{
 		const CrumblingPlatform &platform = platforms[i];
 		int frame = 0;
-		if(platform.elapsed >= PLATFORM_CRUMBLE_TIME + PLATFORM_ABSENT_TIME)
+		int blinkElapsed = -1;
+		if(platform.reformElapsed >= 0)
 		{
-			int time = platform.elapsed - PLATFORM_CRUMBLE_TIME - PLATFORM_ABSENT_TIME;
-			frame = PLATFORM_FRAMES - 1 - glm::min(time * PLATFORM_FRAMES / PLATFORM_REFORM_TIME, PLATFORM_FRAMES - 1);
+			blinkElapsed = platform.reformElapsed;
+			frame = PLATFORM_FRAMES - 1 - glm::min(blinkElapsed * PLATFORM_FRAMES / PLATFORM_REFORM_TIME, PLATFORM_FRAMES - 1);
 		}
-		else if(platform.elapsed >= PLATFORM_CRUMBLE_TIME)
+		else if(platform.elapsed >= PLATFORM_WAIT_TIME + PLATFORM_CRUMBLE_TIME)
 			continue;
-		else if(platform.elapsed >= 0)
-			frame = platform.elapsed * PLATFORM_FRAMES / PLATFORM_CRUMBLE_TIME;
+		else if(platform.elapsed >= PLATFORM_WAIT_TIME)
+		{
+			blinkElapsed = platform.elapsed - PLATFORM_WAIT_TIME;
+			frame = glm::min(blinkElapsed * PLATFORM_FRAMES / PLATFORM_CRUMBLE_TIME, PLATFORM_FRAMES - 1);
+		}
+		if(blinkElapsed >= 0 && blinkElapsed % PLATFORM_BLINK_CYCLE >= PLATFORM_BLINK_CYCLE / 2)
+			continue;
 		platformSprite->changeAnimation(frame);
 		platformSprite->setPosition(glm::vec2(position + platform.tile * tileSize));
 		platformSprite->render();
@@ -211,17 +219,24 @@ void TileMap::update(int deltaTime, const std::vector<glm::ivec4> &occupiedBoxes
 		if(spring.elapsed == TRAMPOLINE_TIME)
 			spring.elapsed = -1;
 	}
-	const int cycleTime = PLATFORM_CRUMBLE_TIME + PLATFORM_ABSENT_TIME + PLATFORM_REFORM_TIME;
+	const int solidTime = PLATFORM_WAIT_TIME + PLATFORM_CRUMBLE_TIME;
+	const int reformStart = solidTime + PLATFORM_ABSENT_TIME;
 	for(unsigned int i = 0; i < platforms.size(); i++)
 	{
 		CrumblingPlatform &platform = platforms[i];
+		if(platform.reformElapsed >= 0)
+		{
+			platform.reformElapsed += glm::clamp(deltaTime, 0, PLATFORM_REFORM_TIME - platform.reformElapsed);
+			if(platform.reformElapsed == PLATFORM_REFORM_TIME)
+				platform.reformElapsed = -1;
+		}
 		if(platform.elapsed < 0)
 			continue;
-		platform.elapsed += glm::clamp(deltaTime, 0, cycleTime - platform.elapsed);
+		platform.elapsed += glm::clamp(deltaTime, 0, reformStart - platform.elapsed);
 		int &cell = map[platform.tile.y * mapSize.x + platform.tile.x];
-		if(platform.elapsed >= PLATFORM_CRUMBLE_TIME)
+		if(platform.elapsed >= solidTime)
 			cell = 0;
-		if(platform.elapsed < cycleTime)
+		if(platform.elapsed < reformStart)
 			continue;
 		// Never restore collision inside a player, enemy or bomb.
 		bool occupied = hasBomb(platform.tile.x, platform.tile.y);
@@ -237,6 +252,7 @@ void TileMap::update(int deltaTime, const std::vector<glm::ivec4> &occupiedBoxes
 		{
 			cell = PLATFORM_SOLID;
 			platform.elapsed = -1;
+			platform.reformElapsed = 0;
 		}
 	}
 }
@@ -308,7 +324,7 @@ bool TileMap::loadLevel(const string &levelFile)
 			else if(tile == 'a')
 			{
 				map[j*mapSize.x+i] = PLATFORM_SOLID;
-				CrumblingPlatform platform = { glm::ivec2(i, j), -1 };
+				CrumblingPlatform platform = { glm::ivec2(i, j), -1, -1 };
 				platforms.push_back(platform);
 			}
 			else if(tile >= '!' && tile <= '%')
