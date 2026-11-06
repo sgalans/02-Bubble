@@ -90,7 +90,8 @@ General (polish):
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
 Lliurament:
- - info.txt (noms, funcionalitats, instruccions) []
+ - info.txt (noms, funcionalitats, instruccions) [x] //entrega/info.txt;
+ - actualitzar info.txt quan s'implementin noves funcionalitast que cal afegir []
  - carpeta Binari (exe + dlls + images, levels, sounds, fonts, shaders) [] //compilar en Release
  - carpeta Projecte compilable []
  - demo.avi d'1 minut (< 100 MB) []

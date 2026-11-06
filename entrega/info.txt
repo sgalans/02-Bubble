@@ -1,0 +1,159 @@
+
+Sergi Galán Soler
+Oriol València Comellas
+
+
+EXECUCIÓ (WINDOWS)
+=================
+Executar 02-Bubble.exe des de la carpeta Binari, mantenint al seu costat
+les DLLs i les carpetes de recursos: images, levels, sounds, fonts i shaders.
+El directori de treball ha de ser aquesta mateixa carpeta, perquè els
+recursos es carreguen amb rutes relatives.
+
+CONTROLS
+========
+Durant el joc:
+ - Fletxa esquerra / A: moure's a l'esquerra.
+ - Fletxa dreta / D: moure's a la dreta.
+ - Fletxa amunt / W: salt alt.
+ - S: salt curt.
+ - Espai: posar una bomba alineada amb la graella del nivell.
+ - Esc: abandonar el nivell i tornar al menú.
+ - Enter: continuar al següent nivell des de la pantalla de victòria.
+ - Enter o Esc: tornar al menú des de la victòria final.
+ - Esc: tornar al menú des de la pantalla de derrota.
+ - F11: alternar entre finestra i pantalla completa.
+
+Menús:
+ - Fletxes amunt/avall o W/S: moure la selecció.
+ - Enter o Espai: seleccionar una opció o començar el nivell seleccionat.
+ - Esc: tornar al menú principal; des del menú principal, sortir del joc.
+
+Tecles de depuració per facilitar la correcció:
+ - G: activar/desactivar god mode. El jugador és invulnerable i parpelleja.
+ - K: matar els enemics restants i habilitar la sortida (quan acabin les
+   animacions de mort dels enemics).
+ - 1, 2, 3, 4, 5: carregar directament el nivell corresponent, encara que
+   estigui bloquejat al selector. Funcionen des del menú i durant el joc.
+
+FUNCIONALITATS IMPLEMENTADES
+===========================
+
+Pantalles i presentació
+----------------------
+ - Menú principal amb PLAY, INSTRUCTIONS i CREDITS.
+ - Selector de cinc nivells amb desbloqueig progressiu durant la sessió.
+ - El selector mostra START WITH amb les vides, el nombre de bombes
+   simultànies, l'abast de les explosions i la velocitat amb què el jugador
+   començarà el nivell seleccionat.
+ - Pantalles de nivell superat, derrota i victòria final després del boss.
+ - Càmera que segueix el jugador i respecta els límits del mapa.
+ - Fons de cel amb núvols decoratius col·locats als mapes, sense col·lisió.
+ - Escalat centrat en proporció 4:3 amb franges negres, també en maximitzar.
+   F11 restaura la posició, mida i estat maximitzat de la finestra anterior.
+
+Nivells, bombes i exploració
+--------------------------
+ - Cinc nivells amb enemics, obstacles, objectes i porta de sortida.
+ - Temps límit: nivells 1 i 5, 3 minuts; nivell 2, 4 minuts; nivells 3 i 4,
+   5 minuts. Esgotar el temps provoca game over encara que quedin vides, 
+   estigui activa alguna invulnerabilitat o la porta final del nivell 
+   estigui oberta.
+ - Bombes suspeses a l'aire, alineades als tiles, amb explosió animada.
+ - Es pot saltar i recolzar-se sobre les bombes per utilitzar-les d'escala.
+ - Les explosions fan mal al jugador i als enemics i provoquen reaccions
+   en cadena amb altres bombes.
+ - Blocs indestructibles i arbustos destructibles. Els arbustos poden
+   amagar objectes o una clau; en destruir-los, l'explosió s'atura allí, 
+   d'aquesta manera poden actuar com a escut davant d'una bomba.
+ - Portes amb pany, diferents de la sortida: bloquegen el moviment i les
+   explosions. Tocar-les amb una clau consumeix la clau, obre el pas i
+   manté la textura de porta oberta. Si falta la clau, es mostra un avís
+   quan el jugador és al costat.
+ - La sortida s'obre després d'eliminar tots els enemics. Apareix EXIT!
+   durant 3 segons. Entrar-hi inicia una animació d'1 segon amb el joc
+   aturat, i després es mostra la pantalla de victòria.
+
+Objectes
+--------
+ - Bomb Up: augmenta les bombes simultànies, d'1 fins a un màxim de 5.
+ - Fire Up: augmenta l'abast de les explosions, d'1 fins a un màxim de 5.
+ - Speed Up: augmenta la velocitat; nivell base 1 i màxim 5, amb quatre
+   millores acumulables.
+ - VEST: invulnerabilitat completa davant d'enemics, projectils i
+   explosions durant 17 segons, amb parpelleig i compte enrere al HUD.
+   Recollir-ne un altre reinicia els 17 segons, sense sumar-los.
+ - Clau: obre una porta amb pany i disposa d'indicador al HUD.
+
+Vides i progrés
+---------------
+ - Tres vides inicials. En perdre'n una, animació de mort d'1,5 segons i,
+   si en queden, reaparició al punt inicial del nivell sense reiniciar-lo.
+ - Tres segons d'invulnerabilitat després de reaparèixer, amb parpelleig.
+ - Animacions de pèrdua i recuperació dels cors al HUD. Si s'esgota el
+   temps, s'anima la pèrdua de totes les vides restants.
+ - Eliminar l'últim enemic recupera una vida i mostra 1 UP durant 3 segons.
+   Pot concedir una quarta vida blanca, que es perd abans de les vermelles
+   i s'anima amb parpelleig. El missatge també apareix al màxim de vides.
+ - El progrés es manté en tornar al menú mentre el joc continua obert.
+ - Cada nivell guarda els Bomb Up, Fire Up i Speed Up recollits en l'última
+   partida completada, inclosos els recollits quan la millora ja és al màxim.
+ - L'entrada a un nivell es calcula sumant les aportacions dels nivells
+   anteriors, sense incloure la seva pròpia aportació, i aplicant els màxims
+   de les millores.
+ - Repetir i completar un nivell substitueix el seu resultat anterior:
+   no permet acumular objectes infinitament. Si s'hi recullen més o menys
+   ítems, els nivells posteriors ho reflecteixen quan es tornen a carregar.
+ - Abandonar un nivell o perdre no substitueix el seu resultat guardat.
+ - Les vides d'entrada es guarden per separat. Completar un nivell
+   actualitza les del següent; reintentar restaura les vides d'entrada.
+   El nivell 1 i els nivells sense registre comencen amb 3 vides.
+ - Les mateixes regles de progrés s'apliquen a les càrregues amb 1-5.
+ - El VEST, les claus i la invulnerabilitat de reaparició no es traspassen
+   ni es restauren en carregar un nivell. Tancar el joc esborra el progrés;
+   no hi ha desament en disc.
+
+Enemics i boss
+--------------
+ - Walker: patrulla i canvia de sentit davant de parets o vores.
+ - Runner: patrulla i accelera quan veu el jugador davant seu, a una
+   alçada semblant i sense blocs entre tots dos. Ignora el jugador invulnerable.
+ - Shooter: dispara boles cap a la posició del jugador quan és a l'abast
+   i hi ha línia de visió. Els projectils col·lideixen amb els blocs i les 
+   bombes.
+ - Boss volador al nivell 5: cos de 2x2 tiles i 5 vides. Recorregut creuat
+   simètric amb diagonals i ràfegues de tres projectils. Travessa el terreny,
+   però les bombes li bloquegen la ruta fins que desapareixen.
+ - Morts animades del Walker (0,6 s), Runner (0,8 s) i Shooter (0,6 s).
+   Mentre moren no es mouen ni fan mal; el Shooter deixa de disparar.
+ - Mort del boss de 4 segons amb postura de dany, partícules dins del cos
+   i parpelleig a partir del segon 2. La sortida espera el final de les
+   animacions de mort, també quan s'utilitza K.
+
+Mecàniques addicionals
+---------------------
+ - Plataformes de maons temporals: en trepitjar-les, esperen 0,5 segons
+   i s'animen durant 1 segon abans de desaparèixer. Són sòlides durant
+   aquests 1,5 segons, romanen absents 1,5 segons i reapareixen amb
+   l'animació inversa durant 1 segon. Parpelleig 50/50 a les dues animacions.
+ - Les plataformes recuperen la col·lisió en començar a reaparèixer,
+   esperant si la casella conté el jugador, un enemic o una bomba.
+   Trepitjar-les durant la reaparició inicia el nou compte immediatament
+   sense interrompre l'animació inversa. Les explosions no les destrueixen.
+ - Trampolins amb superfície de col·lisió ajustada a l'alçada de la textura
+   durant l'animació. S'activen amb l'explosió d'una bomba sobre un botó
+   situat quatre tiles a la dreta, a la mateixa fila.
+ - Botons de paret i de terra, sense col·lisió, que es comprimeixen en
+   rebre l'explosió i es recarreguen al cap d'1 segon.
+ - En estendre's, el trampolí impulsa el jugador situat a sobre fins a
+   10 tiles d'alçada; els sostres aturen l'ascens. Es manté estès 1 segon
+   abans de tornar al repòs amb l'animació inversa. Trepitjar-lo o fer-li
+   arribar directament una explosió no l'activa.
+
+HUD i so
+--------
+ - HUD fix en pantalla amb vides, temps restant, enemics, bombes simultànies,
+   abast del foc, velocitat, segons de VEST i indicador de clau.
+ - El temps es mostra en vermell i parpelleja durant els últims 30 segons.
+ - Efectes de so de navegació dels menús, col·locació i explosió de bombes,
+   recollida d'objectes i dany al jugador.
