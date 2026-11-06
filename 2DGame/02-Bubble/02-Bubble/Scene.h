@@ -27,7 +27,7 @@ public:
 	Scene();
 	~Scene();
 
-	void init(const string &levelFile);
+	void init(const string &levelFile, int timeLimit);
 	void update(int deltaTime);
 	void render();
 

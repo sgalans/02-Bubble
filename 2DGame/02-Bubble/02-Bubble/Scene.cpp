@@ -18,8 +18,6 @@
 
 #define CAMERA_HEIGHT_TILES 10
 
-#define LEVEL_TIME 180000 // ms to clear a level
-
 #define FONT_FILE "fonts/PressStart2P-Regular.ttf"
 // The font is drawn on an 8 pixel grid, so multiples of 8 keep it crisp
 #define END_TITLE_SIZE 32
@@ -73,7 +71,7 @@ Scene::~Scene()
 }
 
 
-void Scene::init(const string &levelFile)
+void Scene::init(const string &levelFile, int timeLimit)
 {
 	initShaders();
 	map = TileMap::createTileMap(levelFile, glm::vec2(SCREEN_X, SCREEN_Y), texProgram);
@@ -124,7 +122,7 @@ void Scene::init(const string &levelFile)
 	                        CAMERA_HEIGHT_TILES * map->getTileSize());
 	updateCamera();
 	currentTime = 0.0f;
-	timeLeft = LEVEL_TIME;
+	timeLeft = timeLimit;
 	cleared = false;
 }
 

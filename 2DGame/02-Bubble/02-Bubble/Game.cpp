@@ -108,9 +108,10 @@ bool Game::getKey(int key) const
 
 void Game::startLevel(int level)
 {
+	const int levelMinutes[MENU_NUM_LEVELS] = { 3, 4, 5, 5, 3 };
 	Audio::instance().play(Audio::MENU_SELECT);
 	scene = new Scene();
-	scene->init(Menu::levelFile(level));
+	scene->init(Menu::levelFile(level), levelMinutes[level - 1] * 60 * 1000);
 	scene->setFinalLevel(level == MENU_NUM_LEVELS);
 	if(level == nextLevelWithPowerUps)
 		scene->setPowerUps(nextPowerUps);

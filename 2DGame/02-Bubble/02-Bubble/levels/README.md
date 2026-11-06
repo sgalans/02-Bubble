@@ -50,6 +50,10 @@ independent i no es reinicia en trepitjar-lo de nou mentre està actiu.
 
 ## Sortida i distribució dels nivells
 
+El temps límit és de **3 minuts als nivells 1 i 5**, **4 minuts al nivell 2**
+i **5 minuts als nivells 3 i 4**. `Game::startLevel` passa aquest límit a
+`Scene` en carregar el nivell, també amb les tecles de depuració `1`–`5`.
+
 La sortida `D` s'obre quan s'han eliminat tots els enemics, també el boss.
 En eliminar l'últim enemic apareix «EXIT!» durant 3 segons. En entrar a la
 sortida oberta, el jugador s'alinea amb la porta, es gira d'esquena i

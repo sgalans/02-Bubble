@@ -31,7 +31,7 @@ Nivells:
  - porta de sortida [x] //textures de porta tancada/oberta i porta amb pany a personalized.png
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
- - compte enrere del nivell [x] //180 s per tots els nivells
+ - compte enrere del nivell [x] //nivells 1 i 5: 180 s; nivell 2: 240 s; nivells 3 i 4: 300 s
  - posicio inicial del player llegida del fitxer de nivell [x] // @
 
 Moviment:
