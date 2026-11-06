@@ -38,8 +38,8 @@ sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 VEST (`P`) protegeix de totes les explosions, enemics i projectils durant
 17 segons. El jugador parpelleja i el HUD mostra els segons restants,
 arrodonits cap amunt (`VEST 17` fins a `VEST 0`). Recollir-ne un altre
-reinicia els 17 segons. En passar de nivell es conserva el temps restant,
-sense consumir-lo al menú ni durant l'entrada a la porta. No evita la derrota per temps esgotat.
+reinicia els 17 segons. No es traspassa entre nivells ni es restaura en
+tornar a carregar un nivell. No evita la derrota per temps esgotat.
 
 La clau apareix en destruir l'arbust `K`. Cal recollir-la i tocar la porta `L`
 per obrir el pas permanentment. Obrir una porta consumeix la clau.
@@ -75,8 +75,21 @@ s'encongeix fins a desaparèixer durant 1 segon. El temps i la resta del joc
 queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5
 es mostra la imatge final `images/EndScreen.png`.
 `Enter` continua al nivell següent o torna al menú després de l'últim nivell.
-En continuar, es conserven les vides restants i els power-ups; només una
-partida nova o una càrrega directa amb `1`–`5` restaura les 3 vides inicials.
+El progrés es conserva mentre el joc està obert, també en tornar al menú.
+Cada nivell guarda els Bomb Up, Fire Up i Speed Up recollits en l'última
+partida completada, inclosos els recollits amb les millores al màxim.
+En començar un nivell se sumen les aportacions dels nivells anteriors i
+s'apliquen els límits del jugador; la seva pròpia aportació queda exclosa.
+Repetir i completar un nivell substitueix el resultat anterior, sense sumar-hi
+el nou. Abandonar-lo o perdre no modifica el resultat guardat. Si canvia el
+resultat d'un nivell anterior, els següents recalculen els ítems en carregar-se.
+
+Les vides d'entrada es guarden per separat: completar un nivell actualitza
+les del següent, sense recalcular les dels altres nivells. El nivell 1 i els
+nivells sense registre comencen amb 3 vides. Reintentar restaura les vides
+d'entrada. Aquestes regles també s'apliquen a les tecles `1`–`5`. Les claus,
+el VEST i la invulnerabilitat de reaparició no es guarden. Tancar el joc
+esborra aquest progrés.
 
 Les posicions de plataformes, claus, portes, núvols i altres elements són
 les de les graelles `level01.txt`–`level05.txt`. Consulta el fitxer concret

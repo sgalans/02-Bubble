@@ -35,6 +35,8 @@ public:
 	bool isCleared() const { return cleared; }
 	Player::PowerUps getPowerUps() const { return player->getPowerUps(); }
 	void setPowerUps(const Player::PowerUps &powerUps) { player->setPowerUps(powerUps); }
+	Player::ItemCounts getCollectedItems() const { return player->getCollectedItems(); }
+	void setStartingItems(const Player::ItemCounts &items) { player->setStartingItems(items); }
 	int getLives() const { return player->getLives(); }
 	void setLives(int lives) { player->setLives(lives); }
 	// Debug cheat: every enemy dies and the exit door opens

@@ -12,7 +12,11 @@ void Game::init()
 	Audio::instance().init();
 	menu.init();
 	state = MENU;
-	nextLevelWithProgress = 0;
+	for(int i = 0; i < MENU_NUM_LEVELS; i++)
+	{
+		levelItems[i] = Player::ItemCounts();
+		entryLives[i] = 3;
+	}
 }
 
 bool Game::update(int deltaTime)
@@ -51,9 +55,13 @@ void Game::keyPressed(int key)
 		std::ifstream levelFile(Menu::levelFile(level));
 		if(!levelFile.is_open())
 			return;
+		if(scene != NULL && scene->isCleared())
+		{
+			menu.unlockLevel(currentLevel + 1);
+			saveLevelProgress();
+		}
 		delete scene;
 		scene = NULL;
-		nextLevelWithProgress = 0;
 		startLevel(level);
 		return;
 	}
@@ -113,12 +121,16 @@ void Game::startLevel(int level)
 	scene = new Scene();
 	scene->init(Menu::levelFile(level), levelMinutes[level - 1] * 60 * 1000);
 	scene->setFinalLevel(level == MENU_NUM_LEVELS);
-	if(level == nextLevelWithProgress)
+	// Rebuild permanent upgrades from earlier levels, never from this level's replay.
+	Player::ItemCounts startingItems = {};
+	for(int i = 0; i < level - 1; i++)
 	{
-		scene->setPowerUps(nextPowerUps);
-		scene->setLives(nextLives);
+		startingItems.bombs += levelItems[i].bombs;
+		startingItems.fire += levelItems[i].fire;
+		startingItems.speed += levelItems[i].speed;
 	}
-	nextLevelWithProgress = 0;
+	scene->setStartingItems(startingItems);
+	scene->setLives(entryLives[level - 1]);
 	currentLevel = level;
 	state = PLAYING;
 }
@@ -128,10 +140,8 @@ void Game::backToMenu()
 	if(scene->isCleared())
 	{
 		menu.unlockLevel(currentLevel + 1);
-		preserveProgressForNextLevel();
+		saveLevelProgress();
 	}
-	else
-		nextLevelWithProgress = 0;
 	delete scene;
 	scene = NULL;
 	state = MENU;
@@ -143,7 +153,7 @@ void Game::levelCleared()
 {
 	int next = currentLevel + 1;
 	menu.unlockLevel(next);
-	preserveProgressForNextLevel();
+	saveLevelProgress();
 	delete scene;
 	scene = NULL;
 	if(next <= MENU_NUM_LEVELS && menu.isPlayable(next))
@@ -152,11 +162,12 @@ void Game::levelCleared()
 		state = MENU;
 }
 
-void Game::preserveProgressForNextLevel()
+void Game::saveLevelProgress()
 {
-	nextPowerUps = scene->getPowerUps();
-	nextLives = scene->getLives();
-	nextLevelWithProgress = currentLevel + 1;
+	// Replace this level's contribution; replays never add to an old result.
+	levelItems[currentLevel - 1] = scene->getCollectedItems();
+	if(currentLevel < MENU_NUM_LEVELS)
+		entryLives[currentLevel] = scene->getLives();
 }
 
 

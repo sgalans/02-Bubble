@@ -18,7 +18,7 @@ class Game
 {
 
 private:
-	Game() { scene = NULL; currentLevel = 0; nextLevelWithProgress = 0; nextLives = 0; }
+	Game() { scene = NULL; currentLevel = 0; }
 	
 public:
 	static Game &instance()
@@ -45,7 +45,7 @@ private:
 	void startLevel(int level);
 	void backToMenu();
 	void levelCleared();
-	void preserveProgressForNextLevel();
+	void saveLevelProgress();
 
 private:
 	enum GameState { MENU, PLAYING };
@@ -57,9 +57,8 @@ private:
 	Menu menu;
 	Scene *scene; // Only exists while a level is being played
 	int currentLevel; // Level being played, 1..MENU_NUM_LEVELS
-	Player::PowerUps nextPowerUps;
-	int nextLives;
-	int nextLevelWithProgress; // Lives and power-ups; 0 if no level can be continued
+	Player::ItemCounts levelItems[MENU_NUM_LEVELS]; // Latest completed attempt of each level
+	int entryLives[MENU_NUM_LEVELS]; // Lives at entry, independent of item recalculation
 
 };
 

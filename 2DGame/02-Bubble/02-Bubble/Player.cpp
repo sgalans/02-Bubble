@@ -71,6 +71,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	firePower = 1; // Fire Up items extend it
 	moveSpeed = BASE_MOVE_SPEED;
 	vestTime = 0;
+	collectedItems = ItemCounts();
 	invulnTime = 0;
 	deathTime = blinkTime = 0;
 	exiting = false;
@@ -418,12 +419,15 @@ void Player::applyItem(Item::ItemType type)
 	switch(type)
 	{
 	case Item::BOMB_UP:
+		collectedItems.bombs++;
 		nBombs = min(nBombs + 1, MAX_BOMBS);
 		break;
 	case Item::FIRE_UP:
+		collectedItems.fire++;
 		firePower = min(firePower + 1, MAX_FIRE_POWER);
 		break;
 	case Item::SPEED_UP:
+		collectedItems.speed++;
 		moveSpeed = min(moveSpeed + SPEED_UP_INCREMENT, MAX_MOVE_SPEED);
 		break;
 	case Item::BOMB_PROOF:
@@ -433,6 +437,14 @@ void Player::applyItem(Item::ItemType type)
 	default:
 		break;
 	}
+}
+
+void Player::setStartingItems(const ItemCounts &items)
+{
+	nBombs = glm::clamp(1 + items.bombs, 1, MAX_BOMBS);
+	firePower = glm::clamp(1 + items.fire, 1, MAX_FIRE_POWER);
+	moveSpeed = glm::clamp(BASE_MOVE_SPEED + items.speed * SPEED_UP_INCREMENT, BASE_MOVE_SPEED, MAX_MOVE_SPEED);
+	vestTime = 0;
 }
 
 Player::PowerUps Player::getPowerUps() const

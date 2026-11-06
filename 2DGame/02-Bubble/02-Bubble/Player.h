@@ -14,6 +14,11 @@
 class Player
 {
 public:
+	struct ItemCounts
+	{
+		int bombs, fire, speed;
+	};
+
 	struct PowerUps
 	{
 		int nBombs, firePower;
@@ -60,6 +65,8 @@ public:
 	static bool isBlinkVisible(int elapsedTime);
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+	ItemCounts getCollectedItems() const { return collectedItems; }
+	void setStartingItems(const ItemCounts &items);
 	PowerUps getPowerUps() const;
 	void setPowerUps(const PowerUps &powerUps);
 
@@ -88,6 +95,7 @@ private:
 	int firePower; // flame length in tiles
 	float moveSpeed; // pixels per frame
 	int vestTime;
+	ItemCounts collectedItems; // Pickups in this attempt, including those above the stat caps
 	Texture spritesheet;
 	Sprite *sprite, *deathSprite;
 	TileMap *map;

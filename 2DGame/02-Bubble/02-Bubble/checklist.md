@@ -26,8 +26,8 @@ Nivells:
  - millorar nivell 3 [x]
  - nivell4 [x]
  - nivell5 [x]
- - memòria dels power-ups entre nivells consecutius [x]
- - ara mateix si tens items acumulats però surts al menú els items acumulats es perden -> mirar què fer []
+ - memòria dels power-ups per nivell i al menú [x] //durant la sessió; entrada = suma dels ítems recollits als nivells anteriors, amb límits; VEST exclòs
+ - repetir nivells sense acumular ítems infinits [x] //completar substitueix l'aportació anterior; abandonar no la canvia; les variacions s'apliquen als nivells posteriors
  - porta de sortida [x] //textures de porta tancada/oberta i porta amb pany a personalized.png
  - superar nivell -> passar al seguent [x] 
  - recordar nivells superats al menu [x] 
@@ -44,7 +44,7 @@ Vides:
  - 3 vides inicials [x] //1 UP pot afegir una quarta vida blanca; només parpelleja en aparèixer/desaparèixer
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn en perdre una vida [x] //animació de mort d'1,5 s; torna al punt d'inici amb 3 s d'invulnerabilitat; el nivell no es reinicia
- - conservar les vides restants entre nivells [x] //continua amb les mateixes vides i power-ups; una partida nova comença amb 3 vides
+ - conservar les vides restants entre nivells [x] //es guarda l'entrada de cada nivell, també al menú; completar actualitza les del següent; nivell 1 i nivells sense registre: 3 vides
  - recuperar una vida en eliminar l'últim enemic [x] //màxim 4 (3 vermelles + 1 blanca); "1 UP" durant 3 s també al màxim; animació inversa als cors vermells, blinking al blanc; no reviu un game over
  - temps esgotat [x] //ara mata del tot (game over); valorar si nomes ha de treure una vida
 
@@ -52,7 +52,7 @@ Objectes:
  - Bomb Up [x]
  - Fire Up [x]
  - Speed Up [x]
- - VEST [x] //invulnerabilitat completa 17 s amb parpelleig i compte enrere al HUD; un altre VEST reinicia a 17 s
+ - VEST [x] //invulnerabilitat completa 17 s amb parpelleig i compte enrere al HUD; un altre VEST reinicia a 17 s; no es traspassa ni es restaura en carregar un nivell
  - Clau amagada en arbust K [x] // obre una porta L; icona al HUD
  - objectes surten en destruir tiles [x]
 
