@@ -36,7 +36,17 @@ bool Game::update(int deltaTime)
 
 void Game::render()
 {
+	// Clear the bars in black, then the logical game area in its usual colour.
+	glDisable(GL_SCISSOR_TEST);
+	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(viewport[0], viewport[1], viewport[2], viewport[3]);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_SCISSOR_TEST);
 	if(state == MENU)
 		menu.render();
 	else

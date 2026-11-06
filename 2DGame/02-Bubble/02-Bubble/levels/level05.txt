@@ -8,11 +8,11 @@ images/personalized.png -- Tilesheet
 5       C              5
 5               C      5
 5        a    a        5
-5  F B            F *  5
+5  F *            F B  5
 5 12121          12121 5
 5                C     5
 5     C                5
-5   B    21  21    P   5
+5   B    21  21    *   5
 5  121    X       121  5
 5                      5
 52  C  a        a     25

@@ -6,8 +6,70 @@
 #define TARGET_FRAMERATE 60.0f
 
 
+static int windowedX = 100, windowedY = 100;
+static int windowedWidth = SCREEN_WIDTH, windowedHeight = SCREEN_HEIGHT;
+static bool windowedMaximized = false;
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// Keep the same logical camera and HUD at every window size.
+	int viewWidth = width;
+	int viewHeight = width * SCREEN_HEIGHT / SCREEN_WIDTH;
+	if(viewHeight > height)
+	{
+		viewHeight = height;
+		viewWidth = height * SCREEN_WIDTH / SCREEN_HEIGHT;
+	}
+	glViewport((width - viewWidth) / 2, (height - viewHeight) / 2, viewWidth, viewHeight);
+}
+
+void toggleFullscreen(GLFWwindow* window)
+{
+	if(glfwGetWindowMonitor(window) != NULL)
+	{
+		glfwSetWindowMonitor(window, NULL, windowedX, windowedY, windowedWidth, windowedHeight, 0);
+		if(windowedMaximized)
+			glfwMaximizeWindow(window);
+		return;
+	}
+
+	// Use the monitor containing most of the window.
+	int x, y, width, height, monitorCount;
+	glfwGetWindowPos(window, &x, &y);
+	glfwGetWindowSize(window, &width, &height);
+	GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+	GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+	int bestOverlap = 0;
+	for(int i = 0; i < monitorCount; i++)
+	{
+		int mx, my;
+		glfwGetMonitorPos(monitors[i], &mx, &my);
+		const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
+		int overlap = glm::max(0, glm::min(x + width, mx + mode->width) - glm::max(x, mx))
+		            * glm::max(0, glm::min(y + height, my + mode->height) - glm::max(y, my));
+		if(overlap > bestOverlap)
+		{
+			bestOverlap = overlap;
+			monitor = monitors[i];
+		}
+	}
+	windowedMaximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED) != 0;
+	if(windowedMaximized)
+		glfwRestoreWindow(window);
+	glfwGetWindowPos(window, &windowedX, &windowedY);
+	glfwGetWindowSize(window, &windowedWidth, &windowedHeight);
+	const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+	glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	if(key == GLFW_KEY_F11)
+	{
+		if(action == GLFW_PRESS)
+			toggleFullscreen(window);
+		return;
+	}
 	if (action == GLFW_PRESS)
 		Game::instance().keyPressed(key);
 	else if (action == GLFW_RELEASE)
@@ -38,7 +100,7 @@ int main(void)
 		return -1;
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pocket Bomberman", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -54,10 +116,14 @@ int main(void)
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	/* Init glew to have access to GL extensions */
 	glewExperimental = GL_TRUE;
 	glewInit();
+	int framebufferWidth, framebufferHeight;
+	glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+	framebuffer_size_callback(window, framebufferWidth, framebufferHeight);
 
 	/* Init step of the game loop */
 	Game::instance().init();
@@ -66,6 +132,13 @@ int main(void)
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+		if(framebufferWidth == 0 || framebufferHeight == 0 || glfwGetWindowAttrib(window, GLFW_ICONIFIED))
+		{
+			glfwWaitEvents();
+			timePreviousFrame = glfwGetTime();
+			continue;
+		}
 		currentTime = glfwGetTime();
 		if (currentTime - timePreviousFrame >= timePerFrame)
 		{

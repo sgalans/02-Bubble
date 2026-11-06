@@ -112,7 +112,7 @@ private:
 private:
 	GLuint vao;
 	GLuint vbo;
-	GLint posLocation, texCoordLocation;
+	GLint posLocation, texCoordLocation, texBoundsLocation;
 	int nTiles;
 	glm::ivec2 position, mapSize, tilesheetSize;
 	int tileSize, blockSize;

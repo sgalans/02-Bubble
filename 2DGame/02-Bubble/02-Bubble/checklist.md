@@ -1,4 +1,5 @@
 Interface:
+ - Escalat de finestra i pantalla completa [x] //proporció 4:3 centrada amb franges negres; F11 alterna i restaura la finestra anterior
  - Menu principal [x] //PLAY / INSTRUCTIONS / CREDITS + selector de nivells
  - Previsualització d'entrada al selector [x] //START WITH: icones i valors de vides, bombes, foc i velocitat del nivell seleccionat; mateix càlcul que en carregar-lo
  - Instruccions [x]
@@ -14,7 +15,7 @@ Interface:
 
 Enemy:
  - walker [x]
- - runner [x]
+ - runner [x] //en perdre el jugador de vista camina en el mateix sentit; ignora el jugador invulnerable (reaparició, VEST i god mode)
  - shooter [x]
  - Boss [x] //arbre volador 2x2 (X), recorregut diagonal creuat entre quatre cantonades simètriques; ignora blocs, el frenen les bombes; dispara 3 boles
 

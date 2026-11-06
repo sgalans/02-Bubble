@@ -113,6 +113,7 @@ void TileMap::render() const
 	glBindVertexArray(vao);
 	glEnableVertexAttribArray(posLocation);
 	glEnableVertexAttribArray(texCoordLocation);
+	glEnableVertexAttribArray(texBoundsLocation);
 	glDrawArrays(GL_TRIANGLES, 0, 6 * nTiles);
 	glDisable(GL_TEXTURE_2D);
 	for(unsigned int i = 0; i < buttons.size(); i++)
@@ -376,18 +377,18 @@ void TileMap::prepareArrays(const glm::vec2 &minCoords, ShaderProgram &program)
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	updateTileVertices();
-	posLocation = program.bindVertexAttribute("position", 2, 4*sizeof(float), 0);
-	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 4*sizeof(float), (void *)(2*sizeof(float)));
+	posLocation = program.bindVertexAttribute("position", 2, 8*sizeof(float), 0);
+	texCoordLocation = program.bindVertexAttribute("texCoord", 2, 8*sizeof(float), (void *)(2*sizeof(float)));
+	texBoundsLocation = program.bindVertexAttribute("texBounds", 4, 8*sizeof(float), (void *)(4*sizeof(float)));
 }
 
 void TileMap::updateTileVertices()
 {
 	int tile;
-	glm::vec2 posTile, texCoordTile[2], halfTexel;
+	glm::vec2 posTile, texCoordTile[2];
 	vector<float> vertices;
 	
 	nTiles = 0;
-	halfTexel = glm::vec2(0.5f / tilesheet.width(), 0.5f / tilesheet.height());
 	for(int j=0; j<mapSize.y; j++)
 	{
 		for(int i=0; i<mapSize.x; i++)
@@ -400,28 +401,27 @@ void TileMap::updateTileVertices()
 				posTile = glm::vec2(position.x + i * tileSize, position.y + j * tileSize);
 				texCoordTile[0] = glm::vec2(float((tile-1)%tilesheetSize.x) / tilesheetSize.x, float((tile-1)/tilesheetSize.x) / tilesheetSize.y);
 				texCoordTile[1] = texCoordTile[0] + tileTexSize;
-				//texCoordTile[0] += halfTexel;
-				texCoordTile[1] -= halfTexel;
-				// First triangle
-				vertices.push_back(posTile.x); vertices.push_back(posTile.y);
-				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
-				vertices.push_back(posTile.x + blockSize); vertices.push_back(posTile.y);
-				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[0].y);
-				vertices.push_back(posTile.x + blockSize); vertices.push_back(posTile.y + blockSize);
-				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
-				// Second triangle
-				vertices.push_back(posTile.x); vertices.push_back(posTile.y);
-				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
-				vertices.push_back(posTile.x + blockSize); vertices.push_back(posTile.y + blockSize);
-				vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
-				vertices.push_back(posTile.x); vertices.push_back(posTile.y + blockSize);
-				vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[1].y);
+				// Keep the complete UV span and attach this tile's sampling bounds.
+				const float quad[24] = {
+					posTile.x, posTile.y, texCoordTile[0].x, texCoordTile[0].y,
+					posTile.x + blockSize, posTile.y, texCoordTile[1].x, texCoordTile[0].y,
+					posTile.x + blockSize, posTile.y + blockSize, texCoordTile[1].x, texCoordTile[1].y,
+					posTile.x, posTile.y, texCoordTile[0].x, texCoordTile[0].y,
+					posTile.x + blockSize, posTile.y + blockSize, texCoordTile[1].x, texCoordTile[1].y,
+					posTile.x, posTile.y + blockSize, texCoordTile[0].x, texCoordTile[1].y
+				};
+				for(int v = 0; v < 24; v += 4)
+				{
+					vertices.insert(vertices.end(), quad + v, quad + v + 4);
+					vertices.push_back(texCoordTile[0].x); vertices.push_back(texCoordTile[0].y);
+					vertices.push_back(texCoordTile[1].x); vertices.push_back(texCoordTile[1].y);
+				}
 			}
 		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * nTiles * sizeof(float), vertices.empty() ? NULL : &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.empty() ? NULL : &vertices[0], GL_STATIC_DRAW);
 }
 
 // Collision tests for axis aligned bounding boxes.
