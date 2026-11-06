@@ -118,15 +118,8 @@ void Runner::update(int deltaTime)
 	// Only guard edges while standing, so airborne runners can still land.
 	bool onGround = hasFloorBelow(posEnemy.x, sizeEnemy.x);
 
-	// Spotting the player starts a charge; losing sight of it mid-charge (it
-	// jumped over us, or got out of reach) makes the runner turn around.
-	if(seesPlayer())
-		chasing = true;
-	else if(chasing)
-	{
-		chasing = false;
-		setDirection(1 - direction);
-	}
+	// Losing sight ends the charge; walls and ledges still control direction.
+	chasing = seesPlayer();
 
 	horizontalRemainder += chasing ? RUNNER_SPEED : WALKING_SPEED;
 	int speed = int(horizontalRemainder);
@@ -203,7 +196,7 @@ void Runner::render()
 // the same height and within range, with no map blocks between them.
 bool Runner::seesPlayer() const
 {
-	if(player == NULL || !player->isAlive())
+	if(player == NULL || !player->isAlive() || player->isInvulnerable())
 		return false;
 
 	// Work in map coordinates, the same space as posEnemy.

@@ -15,7 +15,7 @@ Interface:
 
 Enemy:
  - walker [x]
- - runner [x]
+ - runner [x] //en perdre el jugador de vista camina en el mateix sentit; ignora el jugador invulnerable (reaparició, VEST i god mode)
  - shooter [x]
  - Boss [x] //arbre volador 2x2 (X), recorregut diagonal creuat entre quatre cantonades simètriques; ignora blocs, el frenen les bombes; dispara 3 boles
 
