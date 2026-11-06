@@ -37,7 +37,7 @@ HUD::HUD()
 	lifeSprite = NULL;
 	keySprite = NULL;
 	speedUpLevel = 0;
-	bombProof = false;
+	vestTime = 0;
 	hasKey = false;
 	lives = maxLives = nBombs = firePower = enemiesLeft = timeLeft = 0;
 	currentTime = 0.0f;
@@ -91,7 +91,7 @@ void HUD::init(ShaderProgram &shaderProgram)
 }
 
 void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePower, int enemiesLeft, int timeLeft, bool hasKey,
-                 int speedUpLevel, bool bombProof)
+                 int speedUpLevel, int vestTime)
 {
 	currentTime += deltaTime;
 	heartAnimationTime = glm::max(0, heartAnimationTime - deltaTime);
@@ -115,7 +115,7 @@ void HUD::update(int deltaTime, int lives, int maxLives, int nBombs, int firePow
 	this->timeLeft = timeLeft;
 	this->hasKey = hasKey;
 	this->speedUpLevel = speedUpLevel;
-	this->bombProof = bombProof;
+	this->vestTime = vestTime;
 }
 
 void HUD::render()
@@ -195,8 +195,9 @@ void HUD::renderStats()
 	stringstream speed;
 	speed << "SPEED " << speedUpLevel + 1;
 	renderText(speed.str(), col3, white);
-	renderText(bombProof ? "VEST ON" : "VEST OFF", col3 + row2,
-	           bombProof ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
+	stringstream vest;
+	vest << "VEST " << (vestTime + 999) / 1000;
+	renderText(vest.str(), col3 + row2, vestTime > 0 ? glm::vec4(0.3f, 1.f, 0.3f, 1.f) : white);
 	program->setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
 }
 

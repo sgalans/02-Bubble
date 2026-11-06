@@ -56,7 +56,7 @@ private:
 	void renderEndScreen(const string &title, const glm::vec4 &titleColor, const string &hint);
 	void renderFinalScreen();
 	void tryPlayerBomb();
-	bool placeBomb(const glm::ivec2 &tile, int range, bool playerOwned);
+	bool placeBomb(const glm::ivec2 &tile, int range);
 	void chainExplosions();
 	void applyExplosionDamage();
 	void removeDeadEnemies();

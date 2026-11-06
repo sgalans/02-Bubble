@@ -27,13 +27,19 @@ sense afegir columnes a la fila. L'atles continua sent de 80×80 píxels: `5 5`.
 | `T` | Trampolí: alçades 9/12/16 píxels, impuls de 10 tiles; activat pel botó |
 | `U` | Botó sense col·lisió: activa el `T` exactament 4 tiles a l'esquerra |
 | `V` | El mateix botó, girat 90° per situar-lo al terra; mateixa activació i recàrrega |
-| `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o Bomb Proof |
+| `B`, `F`, `S`, `P` | Arbust amb Bomb Up, Fire Up, Speed Up o VEST (invulnerabilitat completa durant 17 s) |
 | `K` | Arbust amb una clau |
 | `L` | Porta amb pany; sòlida i immune a explosions |
 | `D` | Sortida; s'obre quan no queden enemics |
 | `@` | Inici del jugador |
 | `W`, `R`, `Z` | Walker, Runner, Shooter |
 | `X` | Boss (arbre de 2×2 tiles; la lletra marca el tile superior esquerre) |
+
+VEST (`P`) protegeix de totes les explosions, enemics i projectils durant
+17 segons. El jugador parpelleja i el HUD mostra els segons restants,
+arrodonits cap amunt (`VEST 17` fins a `VEST 0`). Recollir-ne un altre
+reinicia els 17 segons. En passar de nivell es conserva el temps restant,
+sense consumir-lo al menú ni durant l'entrada a la porta. No evita la derrota per temps esgotat.
 
 La clau apareix en destruir l'arbust `K`. Cal recollir-la i tocar la porta `L`
 per obrir el pas permanentment. Obrir una porta consumeix la clau.

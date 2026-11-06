@@ -13,9 +13,9 @@ images/personalized.png -- Tilesheet
 5                C     5
 5     C                5
 5   B    21  21    P   5
-5  121            121  5
+5  121    X       121  5
 5                      5
 52  C  a        a     25
-5              X       5
+5                      5
 5    @     T   V      D5
 555555555555555555555555

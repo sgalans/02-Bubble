@@ -92,7 +92,7 @@ la superfície però no reben l'impuls. Deixa espai lliure a sobre per al salt.
 | `B` | Arbust amb Bomb Up: +1 bomba simultània |
 | `F` | Arbust amb Fire Up: +1 tile d'abast de l'explosió |
 | `S` | Arbust amb Speed Up: augmenta la velocitat |
-| `P` | Arbust amb Bomb Proof: protegeix de les bombes pròpies |
+| `P` | Arbust amb VEST: invulnerabilitat completa durant 17 segons; recollir-ne un altre reinicia el compte |
 | `K` | Arbust amb una clau |
 
 Els arbustos bloquegen el moviment i el foc. Una explosió els destrueix

@@ -15,6 +15,7 @@
 #define LEDGE_FALL_SPEED_TILES 6.f // initial downward speed when walking off support
 #define MAX_FALL_SPEED_TILES 15.f // tiles per second
 #define INVULNERABILITY_TIME 3000 // ms after respawning
+#define VEST_TIME 17000 // ms of protection from enemies, projectiles and explosions
 #define DEATH_TIME 1500 // ms
 #define DEATH_FRAMES 4
 #define EXIT_TIME 1000 // ms
@@ -69,7 +70,7 @@ void Player::init(const glm::ivec2 &tileMapPos, ShaderProgram &shaderProgram)
 	nBombs = 1;
 	firePower = 1; // Fire Up items extend it
 	moveSpeed = BASE_MOVE_SPEED;
-	bombProof = false;
+	vestTime = 0;
 	invulnTime = 0;
 	deathTime = blinkTime = 0;
 	exiting = false;
@@ -175,6 +176,7 @@ void Player::update(int deltaTime)
 		return;
 	if(invulnTime > 0)
 		invulnTime = max(0, invulnTime - deltaTime);
+	vestTime -= glm::clamp(deltaTime, 0, vestTime);
 	blinkTime = (blinkTime + max(0, deltaTime) % BLINK_CYCLE) % BLINK_CYCLE;
 
 	glm::ivec2 previousPos = posPlayer;
@@ -385,6 +387,7 @@ void Player::startDeath()
 {
 	deathTime = DEATH_TIME;
 	invulnTime = 0;
+	vestTime = 0;
 	verticalVelocity = 0.f;
 	horizontalRemainder = 0.f;
 	bBombRequested = false;
@@ -424,7 +427,8 @@ void Player::applyItem(Item::ItemType type)
 		moveSpeed = min(moveSpeed + SPEED_UP_INCREMENT, MAX_MOVE_SPEED);
 		break;
 	case Item::BOMB_PROOF:
-		bombProof = true;
+		vestTime = VEST_TIME;
+		blinkTime = 0;
 		break;
 	default:
 		break;
@@ -433,7 +437,7 @@ void Player::applyItem(Item::ItemType type)
 
 Player::PowerUps Player::getPowerUps() const
 {
-	PowerUps powerUps = { nBombs, firePower, moveSpeed, bombProof };
+	PowerUps powerUps = { nBombs, firePower, moveSpeed, vestTime };
 	return powerUps;
 }
 
@@ -447,7 +451,7 @@ void Player::setPowerUps(const PowerUps &powerUps)
 	nBombs = powerUps.nBombs;
 	firePower = powerUps.firePower;
 	moveSpeed = powerUps.moveSpeed;
-	bombProof = powerUps.bombProof;
+	vestTime = glm::clamp(powerUps.vestTime, 0, VEST_TIME);
 }
 
 void Player::setTileMap(TileMap *tileMap)

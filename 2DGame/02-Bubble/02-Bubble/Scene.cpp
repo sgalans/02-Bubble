@@ -387,7 +387,7 @@ void Scene::update(int deltaTime)
 	updateCamera();
 	hud->update(deltaTime, player->getLives(), player->getMaxLives(), player->getNBombs(),
 	            player->getFirePower(), int(enemies.size()), timeLeft, hasKey,
-	            player->getSpeedUpLevel(), player->isBombProof());
+	            player->getSpeedUpLevel(), player->getVestTime());
 }
 
 // Drops a bomb on the cell at the player's feet, horizontally centred on him.
@@ -400,7 +400,7 @@ void Scene::tryPlayerBomb()
 	glm::ivec2 pos = glm::ivec2(player->getPosition()) - map->getPosition();
 	glm::ivec2 size = player->getSize();
 	glm::ivec2 tile((pos.x + size.x / 2) / map->getTileSize(), (pos.y + size.y - 1) / map->getTileSize());
-	placeBomb(tile, player->getFirePower(), true);
+	placeBomb(tile, player->getFirePower());
 }
 
 // Only bombs still burning their fuse count against the player's limit
@@ -417,13 +417,12 @@ int Scene::activeBombs() const
 }
 
 // Puts a bomb on the given cell if it is free. Returns false otherwise.
-bool Scene::placeBomb(const glm::ivec2 &tile, int range, bool playerOwned)
+bool Scene::placeBomb(const glm::ivec2 &tile, int range)
 {
 	if(!map->setBomb(tile.x, tile.y))
 		return false;
 	Bomb *bomb = new Bomb();
 	bomb->init(tile, range, glm::ivec2(SCREEN_X, SCREEN_Y), map, &bombTexture, &explosionTexture, texProgram);
-	bomb->setPlayerOwned(playerOwned);
 	bombs.push_back(bomb);
 	Audio::instance().play(Audio::BOMB_PLACE);
 
@@ -488,8 +487,7 @@ void Scene::applyExplosionDamage()
 	{
 		if(bombs[b]->getState() != Bomb::EXPLODING)
 			continue;
-		bool harmless = bombs[b]->isPlayerOwned() && player->isBombProof();
-		if(player->isAlive() && !harmless && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
+		if(player->isAlive() && bombs[b]->flameTouches(player->getPosition(), player->getSize()))
 			player->loseLife();
 		for(unsigned int i = 0; i < enemies.size(); i++)
 		{
