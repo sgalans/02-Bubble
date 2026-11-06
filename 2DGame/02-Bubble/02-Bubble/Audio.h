@@ -21,6 +21,12 @@ public:
 		MENU_MOVE, MENU_SELECT, BOMB_PLACE, EXPLOSION, ITEM_PICKUP, PLAYER_HURT, SOUND_COUNT
 	};
 
+	// Music tracks, files in musicFiles (Audio.cpp)
+	enum Music
+	{
+		MUSIC_TITLE, MUSIC_FOREST, MUSIC_BOSS, MUSIC_WORLD_CLEAR, MUSIC_GAME_OVER, MUSIC_COUNT
+	};
+
 	static Audio &instance()
 	{
 		static Audio A;
@@ -33,8 +39,7 @@ public:
 	bool init();
 	void play(Sound sound);
 
-	// Only one music track plays at a time; it loops until stopped
-	void playMusic(const std::string &file);
+	void playMusic(Music music, bool loop = true);
 	void stopMusic();
 
 	// Both volumes go from 0 (mute) to 1

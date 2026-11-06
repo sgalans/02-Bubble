@@ -12,6 +12,7 @@ void Game::init()
 	Audio::instance().init();
 	menu.init();
 	state = MENU;
+	Audio::instance().playMusic(Audio::MUSIC_TITLE);
 	for(int i = 0; i < MENU_NUM_LEVELS; i++)
 	{
 		levelItems[i] = Player::ItemCounts();
@@ -29,7 +30,12 @@ bool Game::update(int deltaTime)
 			startLevel(level);
 	}
 	else
+	{
 		scene->update(deltaTime);
+		// The win screen gets its jingle once, without looping
+		if(scene->isCleared())
+			Audio::instance().playMusic(Audio::MUSIC_WORLD_CLEAR, false);
+	}
 
 	return bPlay;
 }
@@ -97,6 +103,9 @@ void Game::keyPressed(int key)
 	// Debug: K wipes out every enemy, which also opens the exit door
 	if(state == PLAYING && key == GLFW_KEY_K)
 		scene->killAllEnemies();
+	// Debug: P gives the player every power-up
+	if(state == PLAYING && key == GLFW_KEY_P)
+		scene->giveAllPowerUps();
 	if(state == MENU)
 		menu.keyPressed(key);
 	keys[key] = true;
@@ -135,6 +144,8 @@ void Game::startLevel(int level)
 	scene->setLives(getStartingLives(level));
 	currentLevel = level;
 	state = PLAYING;
+	// Levels 1-4 are the forest; the last level is the boss fight
+	Audio::instance().playMusic(level == MENU_NUM_LEVELS ? Audio::MUSIC_BOSS : Audio::MUSIC_FOREST);
 }
 
 Player::PowerUps Game::getStartingPowerUps(int level) const
@@ -160,6 +171,7 @@ void Game::backToMenu()
 	delete scene;
 	scene = NULL;
 	state = MENU;
+	Audio::instance().playMusic(Audio::MUSIC_TITLE);
 }
 
 // Unlocks the next level and goes straight into it. After the last level, or if
@@ -174,7 +186,10 @@ void Game::levelCleared()
 	if(next <= MENU_NUM_LEVELS && menu.isPlayable(next))
 		startLevel(next);
 	else
+	{
 		state = MENU;
+		Audio::instance().playMusic(Audio::MUSIC_TITLE);
+	}
 }
 
 void Game::saveLevelProgress()

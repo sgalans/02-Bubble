@@ -66,6 +66,8 @@ public:
 	static bool isBlinkVisible(int elapsedTime);
 	bool takeBombRequest();
 	void applyItem(Item::ItemType type);
+	// Debug cheat: max bombs, fire and speed, plus a fresh vest
+	void giveAllPowerUps();
 	ItemCounts getCollectedItems() const { return collectedItems; }
 	static PowerUps powerUpsFromItems(const ItemCounts &items);
 	PowerUps getPowerUps() const;

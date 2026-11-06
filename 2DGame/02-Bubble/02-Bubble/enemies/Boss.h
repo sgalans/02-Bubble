@@ -25,6 +25,7 @@ public:
 
 	void setPlayer(const Player *target);
 	bool takeShot(glm::vec2 &origin, glm::vec2 &velocity);
+	int shotBounces() const { return 4; }
 
 private:
 	enum State { FLY, WINDUP, RECOVER, HURT, DYING };
@@ -36,7 +37,7 @@ private:
 	void setState(State newState);
 
 private:
-	static const int MAX_SHOTS = 5;
+	static const int MAX_SHOTS = 10;
 
 	const Player *player;
 	State state;

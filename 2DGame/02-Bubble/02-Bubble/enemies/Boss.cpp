@@ -4,7 +4,8 @@
 
 
 // Tuning
-#define BOSS_LIVES 5
+#define BOSS_LIVES 8
+#define REAR_FIRE_HITS 4         // after this many hits it also fires backwards
 #define BOSS_FLIGHT_SPEED 31.5f  // pixels per second
 #define FLIGHT_CORNERS 4
 #define FLIGHT_MARGIN 4.f        // corner marker cells from each map edge
@@ -324,13 +325,19 @@ void Boss::fireSpread()
 		return;
 
 	float baseAngle = atan2(toTarget.y, toTarget.x);
-	int count = glm::min(SHOT_COUNT, MAX_SHOTS);
-	for(int i = 0; i < count; i++)
+	// Once badly hurt, a mirrored fan also flies away from the player.
+	int fans = (BOSS_LIVES - lives >= REAR_FIRE_HITS) ? 2 : 1;
+	int count = glm::min(SHOT_COUNT, MAX_SHOTS / fans);
+	for(int fan = 0; fan < fans; fan++)
 	{
-		float angle = baseAngle + (i - (count - 1) / 2.f) * SHOT_SPREAD;
-		shotOrigins[nPendingShots] = center;
-		shotVelocities[nPendingShots] = glm::vec2(cos(angle), sin(angle)) * SHOT_SPEED;
-		nPendingShots++;
+		float fanAngle = baseAngle + fan * 3.14159265f;
+		for(int i = 0; i < count; i++)
+		{
+			float angle = fanAngle + (i - (count - 1) / 2.f) * SHOT_SPREAD;
+			shotOrigins[nPendingShots] = center;
+			shotVelocities[nPendingShots] = glm::vec2(cos(angle), sin(angle)) * SHOT_SPEED;
+			nPendingShots++;
+		}
 	}
 }
 

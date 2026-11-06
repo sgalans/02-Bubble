@@ -18,6 +18,7 @@ Projectile::Projectile()
 	sprite = NULL;
 	map = NULL;
 	done = false;
+	bouncesLeft = 0;
 }
 
 Projectile::~Projectile()
@@ -26,9 +27,10 @@ Projectile::~Projectile()
 		delete sprite;
 }
 
-void Projectile::init(const glm::vec2 &center, const glm::vec2 &velocity, const glm::ivec2 &tileMapPos,
+void Projectile::init(const glm::vec2 &center, const glm::vec2 &velocity, int bounces, const glm::ivec2 &tileMapPos,
                       TileMap *tileMap, Texture *sheet, ShaderProgram &shaderProgram)
 {
+	bouncesLeft = bounces;
 	tileMapDispl = tileMapPos;
 	map = tileMap;
 	size = glm::ivec2(BALL_SIZE);
@@ -52,13 +54,39 @@ void Projectile::update(int deltaTime)
 	if(done)
 		return;
 
-	pos += velocity * (deltaTime / 1000.f);
+	// Move one axis at a time so a wall hit tells us which component to flip.
+	glm::vec2 step = velocity * (deltaTime / 1000.f);
+	for(int axis = 0; axis < 2 && !done; axis++)
+	{
+		glm::vec2 previous = pos;
+		pos[axis] += step[axis];
+		glm::ivec2 tile = centerTile();
+		if(map->hasBomb(tile.x, tile.y))
+			done = true;
+		else if(map->isWall(tile.x, tile.y))
+		{
+			if(bouncesLeft > 0 && !isInWall(previous))
+			{
+				bouncesLeft--;
+				pos = previous;
+				velocity[axis] = -velocity[axis];
+			}
+			else
+				done = true;
+		}
+	}
 	sprite->setPosition(getPosition());
+}
 
-	
-	glm::ivec2 tile = glm::ivec2(pos + glm::vec2(size) / 2.f) / map->getTileSize();
-	if(map->isWall(tile.x, tile.y) || map->hasBomb(tile.x, tile.y))
-		done = true;
+glm::ivec2 Projectile::centerTile() const
+{
+	return glm::ivec2(glm::floor((pos + glm::vec2(size) / 2.f) / float(map->getTileSize())));
+}
+
+bool Projectile::isInWall(const glm::vec2 &at) const
+{
+	glm::ivec2 tile = glm::ivec2(glm::floor((at + glm::vec2(size) / 2.f) / float(map->getTileSize())));
+	return map->isWall(tile.x, tile.y);
 }
 
 void Projectile::render()

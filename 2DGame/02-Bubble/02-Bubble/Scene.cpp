@@ -258,10 +258,10 @@ void Scene::removeCollectedItems()
 	}
 }
 
-void Scene::spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity)
+void Scene::spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity, int bounces)
 {
 	Projectile *projectile = new Projectile();
-	projectile->init(origin, velocity, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
+	projectile->init(origin, velocity, bounces, glm::ivec2(SCREEN_X, SCREEN_Y), map, &itemTexture, texProgram);
 	projectiles.push_back(projectile);
 }
 
@@ -379,7 +379,7 @@ void Scene::update(int deltaTime)
 		glm::vec2 shotOrigin, shotVelocity;
 		// The boss can fire several balls at once
 		while(enemies[i]->takeShot(shotOrigin, shotVelocity))
-			spawnProjectile(shotOrigin, shotVelocity);
+			spawnProjectile(shotOrigin, shotVelocity, enemies[i]->shotBounces());
 	}
 	updateProjectiles(deltaTime);
 	updateBombs(deltaTime);

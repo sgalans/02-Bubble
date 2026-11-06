@@ -37,6 +37,8 @@ public:
 	// Enemies that fire return true once per shot, with the projectile's
 	// starting centre and velocity. Scene creates the projectile.
 	virtual bool takeShot(glm::vec2 &origin, glm::vec2 &velocity) { return false; }
+	// How many times this enemy's projectiles ricochet off walls.
+	virtual int shotBounces() const { return 0; }
 
 protected:
 	void updateSpritePosition();

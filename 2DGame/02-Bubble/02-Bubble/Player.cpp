@@ -439,6 +439,17 @@ void Player::applyItem(Item::ItemType type)
 	}
 }
 
+void Player::giveAllPowerUps()
+{
+	while(nBombs < MAX_BOMBS)
+		applyItem(Item::BOMB_UP);
+	while(firePower < MAX_FIRE_POWER)
+		applyItem(Item::FIRE_UP);
+	while(moveSpeed < MAX_MOVE_SPEED)
+		applyItem(Item::SPEED_UP);
+	applyItem(Item::BOMB_PROOF);
+}
+
 Player::PowerUps Player::powerUpsFromItems(const ItemCounts &items)
 {
 	PowerUps powerUps = {

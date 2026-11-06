@@ -18,7 +18,8 @@ public:
 
 public:
 	// center is in screen coordinates, velocity in pixels per second
-	void init(const glm::vec2 &center, const glm::vec2 &velocity, const glm::ivec2 &tileMapPos,
+	// bounces is how many times it ricochets off walls before vanishing
+	void init(const glm::vec2 &center, const glm::vec2 &velocity, int bounces, const glm::ivec2 &tileMapPos,
 	          TileMap *tileMap, Texture *sheet, ShaderProgram &shaderProgram);
 	void update(int deltaTime);
 	void render();
@@ -29,9 +30,14 @@ public:
 	bool isDone() const { return done; }
 
 private:
+	glm::ivec2 centerTile() const;
+	bool isInWall(const glm::vec2 &at) const;
+
+private:
 	glm::ivec2 tileMapDispl, size;
 	glm::vec2 pos, velocity; // pos is the top-left corner in map coordinates
 	bool done;
+	int bouncesLeft;
 	Sprite *sprite;
 	TileMap *map;
 

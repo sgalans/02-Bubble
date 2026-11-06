@@ -40,6 +40,8 @@ public:
 	void setLives(int lives) { player->setLives(lives); }
 	// Debug cheat: every enemy dies and the exit door opens
 	void killAllEnemies();
+	// Debug cheat: the player gets every power-up
+	void giveAllPowerUps() { player->giveAllPowerUps(); }
 	// The last level shows the end-of-game picture instead of the normal win screen
 	void setFinalLevel(bool final);
 
@@ -49,7 +51,7 @@ private:
 	void spawnItem(Item::ItemType type, const glm::ivec2 &tile);
 	void collectItems();
 	void removeCollectedItems();
-	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity);
+	void spawnProjectile(const glm::vec2 &origin, const glm::vec2 &velocity, int bounces);
 	void updateProjectiles(int deltaTime);
 	void updateCamera();
 	void renderBackground();
