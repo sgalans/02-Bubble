@@ -50,12 +50,18 @@ private:
 	void renderStartingStats();
 	void renderTextScreen(const std::string &title, const std::string &body);
 	void renderArrow(const std::string &label, float y, const glm::vec4 &color);
+	void renderBackground();
+	// Centred inside the right-hand column, clear of the character in the background
+	void renderInColumn(Text &text, const std::string &str, float y, const glm::vec4 &color);
+	void renderShadowed(Text &text, const std::string &str, const glm::vec2 &pos, const glm::vec4 &color);
 
 private:
 	ShaderProgram program;
 	Text titleText, entryText, footerText;
 	Texture itemTexture, heartTexture;
 	Sprite *itemIcon, *heartIcon;
+	Texture backgroundTexture;
+	Sprite *backgroundSprite;
 	bool available[MENU_NUM_LEVELS]; // The level file exists
 	bool unlocked[MENU_NUM_LEVELS]; // Level 1 always, the rest once the previous one is beaten
 	Screen screen;

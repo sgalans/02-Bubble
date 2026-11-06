@@ -23,6 +23,19 @@
 #define TEXT_FIRST_LINE_Y 120
 #define TEXT_LINE_SPACING 24
 
+// Background picture (160x80) scaled to the full screen height and anchored left,
+// so the character stays visible and the right side (sky) is what gets cropped
+#define BACKGROUND_FILE "images/menu_background.png"
+// Main and level screens put their entries in this column, right of the character
+#define COLUMN_X 240.f
+#define COLUMN_WIDTH (SCREEN_WIDTH - COLUMN_X)
+#define SHADOW_OFFSET 2.f // px, down and right
+// Titles and the "START WITH" label
+#define TITLE_COLOR glm::vec4(0.85f, 0.55f, 0.1f, 1.f)
+// Level select: unlocked levels, and locked ones in a pale, muted yellow
+#define LEVEL_COLOR glm::vec4(0.8f, 0.8f, 0.8f, 1.f)
+#define LOCKED_COLOR glm::vec4(0.75f, 0.7f, 0.45f, 1.f)
+
 // Entries of the main screen, in order
 enum MainEntry { MAIN_PLAY, MAIN_INSTRUCTIONS, MAIN_CREDITS, MAIN_NUM_ENTRIES };
 static const char *MAIN_LABELS[MAIN_NUM_ENTRIES] = { "PLAY", "INSTRUCTIONS", "CREDITS" };
@@ -54,12 +67,14 @@ Menu::Menu()
 	chosen = 0;
 	currentTime = 0.0f;
 	itemIcon = heartIcon = NULL;
+	backgroundSprite = NULL;
 }
 
 Menu::~Menu()
 {
 	delete itemIcon;
 	delete heartIcon;
+	delete backgroundSprite;
 	program.free();
 }
 
@@ -92,6 +107,18 @@ void Menu::init()
 	heartIcon->addKeyframe(0, glm::vec2(0.f));
 	heartIcon->changeAnimation(0);
 
+	backgroundTexture.loadFromFile(BACKGROUND_FILE, TEXTURE_PIXEL_FORMAT_RGBA);
+	backgroundTexture.setMinFilter(GL_NEAREST);
+	backgroundTexture.setMagFilter(GL_NEAREST);
+	float backgroundScale = float(SCREEN_HEIGHT) / backgroundTexture.height();
+	backgroundSprite = Sprite::createSprite(backgroundScale * glm::vec2(backgroundTexture.width(), backgroundTexture.height()),
+	                                        glm::vec2(1.f, 1.f), &backgroundTexture, &program);
+	backgroundSprite->setNumberAnimations(1);
+	backgroundSprite->setAnimationSpeed(0, 1);
+	backgroundSprite->addKeyframe(0, glm::vec2(0.f, 0.f));
+	backgroundSprite->changeAnimation(0);
+	backgroundSprite->setPosition(glm::vec2(0.f, 0.f));
+
 	for(int i = 0; i < MENU_NUM_LEVELS; i++)
 	{
 		ifstream fin(levelFile(i + 1).c_str());
@@ -119,6 +146,15 @@ void Menu::render()
 	program.setUniformMatrix4f("projection", glm::ortho(0.f, float(SCREEN_WIDTH), float(SCREEN_HEIGHT), 0.f));
 	program.setUniformMatrix4f("modelview", glm::mat4(1.0f));
 	program.setUniform2f("texCoordDispl", 0.f, 0.f);
+	// The info screens are long text, so they get plain black to stay readable
+	if(screen == MAIN || screen == LEVELS)
+		renderBackground();
+	else
+	{
+		glClearColor(0.f, 0.f, 0.f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0.3f, 0.3f, 0.3f, 1.f); // Game's normal clear colour
+	}
 
 	switch(screen)
 	{
@@ -139,24 +175,25 @@ void Menu::render()
 
 void Menu::renderMain()
 {
-	titleText.renderCentered("MAIN MENU", TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+	renderInColumn(titleText, "MAIN MENU", TITLE_Y, TITLE_COLOR);
 
 	for(int i = 0; i < MAIN_NUM_ENTRIES; i++)
 	{
 		float y = float(MAIN_FIRST_ENTRY_Y + i * MAIN_ENTRY_SPACING);
 		glm::vec4 color = (i == mainSelected) ? glm::vec4(1.f, 1.f, 0.3f, 1.f) : glm::vec4(1.f, 1.f, 1.f, 1.f);
-		entryText.renderCentered(MAIN_LABELS[i], y, SCREEN_WIDTH, color);
+		renderInColumn(entryText, MAIN_LABELS[i], y, color);
 		if(i == mainSelected)
 			renderArrow(MAIN_LABELS[i], y, color);
 	}
 
-	footerText.renderCentered("ARROWS: MOVE  ENTER: SELECT  ESC: EXIT", FOOTER_Y, SCREEN_WIDTH,
-	                          glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+	renderShadowed(footerText, "ARROWS: MOVE  ENTER: SELECT  ESC: EXIT",
+	               glm::vec2((SCREEN_WIDTH - footerText.width("ARROWS: MOVE  ENTER: SELECT  ESC: EXIT")) / 2.f, FOOTER_Y),
+	               glm::vec4(1.f));
 }
 
 void Menu::renderTextScreen(const string &title, const string &body)
 {
-	titleText.renderCentered(title, TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+	titleText.renderCentered(title, TITLE_Y, SCREEN_WIDTH, TITLE_COLOR);
 
 	stringstream lines(body);
 	string line;
@@ -164,7 +201,7 @@ void Menu::renderTextScreen(const string &title, const string &body)
 		footerText.renderCentered(line, float(TEXT_FIRST_LINE_Y + i * TEXT_LINE_SPACING), SCREEN_WIDTH,
 		                          glm::vec4(1.f, 1.f, 1.f, 1.f));
 
-	footerText.renderCentered("ESC: BACK", FOOTER_Y, SCREEN_WIDTH, glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+	footerText.renderCentered("ESC: BACK", FOOTER_Y, SCREEN_WIDTH, glm::vec4(1.f));
 }
 
 // Blinking arrow to the left of the selected entry
@@ -172,13 +209,31 @@ void Menu::renderArrow(const string &label, float y, const glm::vec4 &color)
 {
 	if(int(currentTime / BLINK_PERIOD) % 2 != 0)
 		return;
-	float x = (SCREEN_WIDTH - entryText.width(label)) / 2.f - entryText.width("> ");
-	entryText.render(">", glm::vec2(x, y), color);
+	float x = COLUMN_X + (COLUMN_WIDTH - entryText.width(label)) / 2.f - entryText.width("> ");
+	renderShadowed(entryText, ">", glm::vec2(x, y), color);
+}
+
+void Menu::renderBackground()
+{
+	program.setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
+	backgroundSprite->render();
+}
+
+void Menu::renderInColumn(Text &text, const string &str, float y, const glm::vec4 &color)
+{
+	renderShadowed(text, str, glm::vec2(COLUMN_X + (COLUMN_WIDTH - text.width(str)) / 2.f, y), color);
+}
+
+// Black copy offset down-right first, so text reads over the busy background
+void Menu::renderShadowed(Text &text, const string &str, const glm::vec2 &pos, const glm::vec4 &color)
+{
+	text.render(str, pos + glm::vec2(SHADOW_OFFSET), glm::vec4(0.f, 0.f, 0.f, 1.f));
+	text.render(str, pos, color);
 }
 
 void Menu::renderLevels()
 {
-	titleText.renderCentered("SELECT LEVEL", TITLE_Y, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+	renderInColumn(titleText, "SELECT LEVEL", TITLE_Y, TITLE_COLOR);
 
 	for(int i = 0; i < MENU_NUM_LEVELS; i++)
 	{
@@ -188,20 +243,21 @@ void Menu::renderLevels()
 
 		glm::vec4 color;
 		if(!isPlayable(i + 1))
-			color = glm::vec4(0.5f, 0.5f, 0.5f, 1.f);
+			color = LOCKED_COLOR;
 		else if(i == selected)
 			color = glm::vec4(1.f, 1.f, 0.3f, 1.f);
 		else
-			color = glm::vec4(1.f, 1.f, 1.f, 1.f);
-		entryText.renderCentered(label.str(), y, SCREEN_WIDTH, color);
+			color = LEVEL_COLOR;
+		renderInColumn(entryText, label.str(), y, color);
 
 		if(i == selected)
 			renderArrow(label.str(), y, color);
 	}
 
 	renderStartingStats();
-	footerText.renderCentered("ARROWS: MOVE  ENTER: PLAY  ESC: BACK", FOOTER_Y, SCREEN_WIDTH,
-	                          glm::vec4(0.8f, 0.8f, 0.8f, 1.f));
+	renderShadowed(footerText, "ARROWS: MOVE  ENTER: PLAY  ESC: BACK",
+	               glm::vec2((SCREEN_WIDTH - footerText.width("ARROWS: MOVE  ENTER: PLAY  ESC: BACK")) / 2.f, FOOTER_Y),
+	               glm::vec4(1.f));
 }
 
 void Menu::renderStartingStats()
@@ -211,17 +267,20 @@ void Menu::renderStartingStats()
 	const int values[] = { game.getStartingLives(selected + 1), powerUps.nBombs,
 	                       powerUps.firePower, powerUps.getSpeedUpLevel() + 1 };
 	glm::vec4 white(1.f);
-	footerText.renderCentered("START WITH", 350.f, SCREEN_WIDTH, glm::vec4(1.f, 0.8f, 0.2f, 1.f));
+	renderInColumn(footerText, "START WITH", 350.f, TITLE_COLOR);
+	// Four icon+number pairs 100 px apart; the last pair is about 76 px wide
+	const float rowWidth = 3 * 100.f + 76.f;
+	const float rowX = COLUMN_X + (COLUMN_WIDTH - rowWidth) / 2.f;
 	for(int i = 0; i < 4; i++)
 	{
-		glm::vec2 pos(136.f + i * 100.f, 378.f);
+		glm::vec2 pos(rowX + i * 100.f, 378.f);
 		Sprite *icon = i == 0 ? heartIcon : itemIcon;
 		if(i > 0)
 			itemIcon->changeAnimation(i - 1);
 		program.setUniform4f("color", 1.f, 1.f, 1.f, 1.f);
 		icon->setPosition(pos);
 		icon->render();
-		footerText.render(std::to_string(values[i]), pos + glm::vec2(44.f, 8.f), white);
+		renderShadowed(footerText, std::to_string(values[i]), pos + glm::vec2(44.f, 8.f), white);
 	}
 }
 
