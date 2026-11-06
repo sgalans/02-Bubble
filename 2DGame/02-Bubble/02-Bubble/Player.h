@@ -46,6 +46,7 @@ public:
 	// Takes every life at once, ignoring invulnerability and god mode (used when time runs out)
 	void loseAllLives();
 	int getLives() const { return lives; }
+	void setLives(int remaining) { lives = glm::clamp(remaining, 0, maxLives); }
 	int getMaxLives() const { return maxLives; }
 	int getNBombs() const { return nBombs; }
 	int getFirePower() const { return firePower; }

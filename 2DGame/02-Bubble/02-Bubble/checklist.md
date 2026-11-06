@@ -44,7 +44,7 @@ Vides:
  - 3 vides [x] 
  - perdre vida en tocar enemic / projectil / explosio [x]
  - respawn en perdre una vida [x] //animació de mort d'1,5 s; torna al punt d'inici amb 3 s d'invulnerabilitat; el nivell no es reinicia
- - decidir si les vides es mantenen entre nivells [] //ara cada Scene crea un Player nou amb 3 vides
+ - conservar les vides restants entre nivells [x] //continua amb les mateixes vides i power-ups; una partida nova comença amb 3 vides
  - temps esgotat [x] //ara mata del tot (game over); valorar si nomes ha de treure una vida
 
 Objectes:

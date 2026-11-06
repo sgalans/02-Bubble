@@ -61,6 +61,8 @@ s'encongeix fins a desaparèixer durant 1 segon. El temps i la resta del joc
 queden aturats durant aquesta entrada. Després apareix «YOU WIN»; al nivell 5
 es mostra la imatge final `images/EndScreen.png`.
 `Enter` continua al nivell següent o torna al menú després de l'últim nivell.
+En continuar, es conserven les vides restants i els power-ups; només una
+partida nova o una càrrega directa amb `1`–`5` restaura les 3 vides inicials.
 
 Les posicions de plataformes, claus, portes, núvols i altres elements són
 les de les graelles `level01.txt`–`level05.txt`. Consulta el fitxer concret

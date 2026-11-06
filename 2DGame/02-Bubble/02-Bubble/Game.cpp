@@ -12,7 +12,7 @@ void Game::init()
 	Audio::instance().init();
 	menu.init();
 	state = MENU;
-	nextLevelWithPowerUps = 0;
+	nextLevelWithProgress = 0;
 }
 
 bool Game::update(int deltaTime)
@@ -53,7 +53,7 @@ void Game::keyPressed(int key)
 			return;
 		delete scene;
 		scene = NULL;
-		nextLevelWithPowerUps = 0;
+		nextLevelWithProgress = 0;
 		startLevel(level);
 		return;
 	}
@@ -113,9 +113,12 @@ void Game::startLevel(int level)
 	scene = new Scene();
 	scene->init(Menu::levelFile(level), levelMinutes[level - 1] * 60 * 1000);
 	scene->setFinalLevel(level == MENU_NUM_LEVELS);
-	if(level == nextLevelWithPowerUps)
+	if(level == nextLevelWithProgress)
+	{
 		scene->setPowerUps(nextPowerUps);
-	nextLevelWithPowerUps = 0;
+		scene->setLives(nextLives);
+	}
+	nextLevelWithProgress = 0;
 	currentLevel = level;
 	state = PLAYING;
 }
@@ -125,10 +128,10 @@ void Game::backToMenu()
 	if(scene->isCleared())
 	{
 		menu.unlockLevel(currentLevel + 1);
-		preservePowerUpsForNextLevel();
+		preserveProgressForNextLevel();
 	}
 	else
-		nextLevelWithPowerUps = 0;
+		nextLevelWithProgress = 0;
 	delete scene;
 	scene = NULL;
 	state = MENU;
@@ -140,7 +143,7 @@ void Game::levelCleared()
 {
 	int next = currentLevel + 1;
 	menu.unlockLevel(next);
-	preservePowerUpsForNextLevel();
+	preserveProgressForNextLevel();
 	delete scene;
 	scene = NULL;
 	if(next <= MENU_NUM_LEVELS && menu.isPlayable(next))
@@ -149,10 +152,11 @@ void Game::levelCleared()
 		state = MENU;
 }
 
-void Game::preservePowerUpsForNextLevel()
+void Game::preserveProgressForNextLevel()
 {
 	nextPowerUps = scene->getPowerUps();
-	nextLevelWithPowerUps = currentLevel + 1;
+	nextLives = scene->getLives();
+	nextLevelWithProgress = currentLevel + 1;
 }
 
 
