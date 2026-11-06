@@ -2,7 +2,7 @@ Interface:
  - Menu principal [x] //PLAY / INSTRUCTIONS / CREDITS + selector de nivells
  - Instruccions [x]
  - Crèdits [x] //noms dels dos integrants
- - HUD vides [x]
+ - HUD vides [x] //pèrdua animada durant 1,5 s: flaix blanc/vermell, parpelleig i fotogrames de buidatge fins al cor buit
  - HUD temps restant [x] //vermell i parpellejant els ultims 30s
  - HUD enemics restants [x]
  - HUD bombes simultanies [x]
@@ -80,7 +80,7 @@ General (polish):
  - Textura definitiva de la porta [x]
  - Fons amb cel i núvols [x]
  - Mort del boss [x] //postura de cop + partícules 4 s; parpelleig des del segon 2; la sortida espera que acabi
- - Animacions [] //falten: mort dels enemics normals, tile destruint-se, HUD
+ - Animacions [] //falten: mort dels enemics normals, tile destruint-se, canvis del màxim de vides al HUD
  - Transicions entre pantalles (fade) []
  - Revisar bugs abans del lliurament [] //cada bug resta punts
 
